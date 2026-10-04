@@ -41,7 +41,7 @@ export const MaamulatCategoryCard: React.FC<MaamulatCategoryCardProps> = ({
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <span className="text-lg flex-shrink-0 select-none">{info.emoji}</span>
           <div className="min-w-0 flex-1">
-            <div className="flex items-baseline justify-between gap-2">
+            <div className="flex flex-row-reverse items-baseline justify-between gap-2">
               <h2 className="arabic-text text-lg sm:text-xl font-bold text-ink-900 dark:text-white leading-tight">
                 {info.urdu}
               </h2>
