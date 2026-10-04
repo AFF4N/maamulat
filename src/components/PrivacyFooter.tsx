@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Lock, RotateCcw, FastForward, Download, Trash2 } from 'lucide-react';
+import { Lock } from 'lucide-react';
 import type { MaamulatState } from '../types';
 
 interface PrivacyFooterProps {
