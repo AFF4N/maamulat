@@ -1,0 +1,26 @@
+{
+  "name": "معمولات | Maamulat — Daily Spiritual Sheet",
+  "short_name": "معمولات",
+  "description": "Daily spiritual tracking, Sunan, Hasanat, and Murrabi accountability companion.",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FDFBF7",
+  "theme_color": "#1E3E2B",
+  "categories": ["lifestyle", "productivity"],
+  "icons": [
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon.svg",
+      "sizes": "192x192 512x512",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}
