@@ -65,7 +65,7 @@ export const PrivacyFooter: React.FC<PrivacyFooterProps> = ({
       </div>
 
       {/* Discrete Local Testing & Backup Drawer */}
-      <div className="pt-2">
+      {/* <div className="pt-2">
         <button
           onClick={() => setShowTools(!showTools)}
           className="text-[11px] text-ink-400 dark:text-ink-500 hover:text-ink-700 dark:hover:text-ink-300 underline underline-offset-2 transition-colors"
@@ -120,7 +120,7 @@ export const PrivacyFooter: React.FC<PrivacyFooterProps> = ({
             )}
           </div>
         )}
-      </div>
+      </div> */}
 
       {/* Developer Credit & Du'a Request */}
       <div className="pt-3 pb-1 space-y-1">
