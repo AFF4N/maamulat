@@ -11,6 +11,8 @@ import { MurrabiAccountability } from '../components/MurrabiAccountability';
 import { PrivacyFooter } from '../components/PrivacyFooter';
 import { TaskCustomizerScreen } from '../components/TaskCustomizerScreen';
 import { ScrollToTop } from '../components/ScrollToTop';
+import { PastDayAlertBanner } from '../components/PastDayAlertBanner';
+import { formatShortDate } from '../utils/dateUtils';
 
 interface AppRouterProps {
   maamulat: ReturnType<typeof useMaamulat>;
@@ -82,19 +84,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     ? state.history[0]?.date
     : undefined;
 
-  // Helper to format short date like "4 Oct"
-  const formatFriendlyDate = (dateStr: string) => {
-    try {
-      const [y, m, d] = dateStr.split('-').map(Number);
-      const date = new Date(y, m - 1, d);
-      return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
-    } catch {
-      return dateStr;
-    }
-  };
-
   const friendlyDateLabel = isViewingPastDay
-    ? formatFriendlyDate(selectedDate)
+    ? formatShortDate(selectedDate)
     : undefined;
 
   return (
@@ -148,27 +139,13 @@ export const AppRouter: React.FC<AppRouterProps> = ({
           onSelectDate={setSelectedDate}
         />
 
-        {/* 4b. Alert banner when viewing a past day (English Primary, Urdu Secondary) */}
+        {/* 4b. Alert banner when viewing a past day */}
         {isViewingPastDay && (
-          <div className="flex items-center justify-between p-3 sm:p-3.5 rounded-2xl bg-amber-50/90 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800/80 text-xs text-amber-900 dark:text-amber-200 animate-fadeIn shadow-soft-sm">
-            <div className="flex items-center gap-2.5">
-              <span className="w-2.5 h-2.5 rounded-full bg-amber-500 animate-pulse shrink-0" />
-              <div>
-                <span className="font-bold block">
-                  Viewing Past Day: {friendlyDateLabel} {selectedDate === yesterdayDate ? '(Yesterday)' : ''} · <span className="arabic-text font-normal opacity-75">سابقہ دن کا ریکارڈ</span>
-                </span>
-                <span className="text-[11px] opacity-85 block mt-0.5">
-                  You are viewing and editing {friendlyDateLabel}'s sheet.<span className="arabic-text opacity-75">(معمولات تبدیل کر کے نیچے سے رپورٹ بھیجیں)</span>
-                </span>
-              </div>
-            </div>
-            <button
-              onClick={() => setSelectedDate(state.todayDate)}
-              className="shrink-0 px-3 py-1.5 rounded-xl bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] shadow-sm tap-bounce transition-all ml-2"
-            >
-              Return to Today
-            </button>
-          </div>
+          <PastDayAlertBanner
+            dateLabel={friendlyDateLabel || selectedDate}
+            isYesterday={selectedDate === yesterdayDate}
+            onReturnToToday={() => setSelectedDate(state.todayDate)}
+          />
         )}
 
         {/* 5. Daily Maamulat Task Categories (renders active date's tasks) */}

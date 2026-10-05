@@ -1,6 +1,7 @@
 import React from 'react';
 import type { DayRecord } from '../types';
 import { Check, X, Calendar } from 'lucide-react';
+import { formatShortDate } from '../utils/dateUtils';
 
 interface DailyHistoryTimelineProps {
   history: DayRecord[];
@@ -19,17 +20,6 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
 }) => {
   // Take up to the last 6 days from history (newest first in array, so slice(0, 6) and reverse for chronological left-to-right)
   const recentDays = (history || []).slice(0, 6).reverse();
-
-  // Helper to format short date like "3 Oct"
-  const formatShortDate = (dateStr: string) => {
-    try {
-      const [y, m, d] = dateStr.split('-').map(Number);
-      const date = new Date(y, m - 1, d);
-      return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
-    } catch {
-      return dateStr;
-    }
-  };
 
   const isTodaySelected = selectedDate === todayDate;
 

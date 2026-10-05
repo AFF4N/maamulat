@@ -34,6 +34,82 @@ const WAKE_PRESETS = [
   '08:00 AM',
 ];
 
+interface TimePresetBoxProps {
+  icon: React.ReactNode;
+  urduLabel: string;
+  englishLabel: string;
+  time: string;
+  presets: string[];
+  colorTheme: 'indigo' | 'amber';
+  onTimeChange: (time: string) => void;
+  placeholder: string;
+}
+
+const TimePresetBox: React.FC<TimePresetBoxProps> = ({
+  icon,
+  urduLabel,
+  englishLabel,
+  time,
+  presets,
+  colorTheme,
+  onTimeChange,
+  placeholder,
+}) => {
+  const isIndigo = colorTheme === 'indigo';
+  const badgeClasses = isIndigo
+    ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60'
+    : 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60';
+  const activePresetClasses = isIndigo
+    ? 'bg-indigo-600 text-white border-indigo-600 font-semibold'
+    : 'bg-amber-600 text-white border-amber-600 font-semibold';
+  const hoverBorderClasses = isIndigo ? 'hover:border-indigo-400' : 'hover:border-amber-400';
+
+  return (
+    <div className="p-3 rounded-xl bg-paper-50 dark:bg-ink-850 border border-paper-200 dark:border-ink-700 flex flex-col justify-between">
+      <div>
+        <div className="flex items-center justify-between mb-1.5">
+          <div className="flex items-center gap-1.5 text-xs font-semibold text-ink-700 dark:text-ink-300">
+            {icon}
+            <span className="arabic-text text-sm font-bold">{urduLabel}</span>
+            <span>{englishLabel}</span>
+          </div>
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${badgeClasses}`}>
+            {time}
+          </span>
+        </div>
+
+        {/* Quick presets */}
+        <div className="flex flex-wrap gap-1">
+          {presets.map((t) => (
+            <button
+              key={t}
+              type="button"
+              onClick={() => onTimeChange(t)}
+              className={`text-[10px] px-2 py-1 rounded-md border transition-all tap-bounce ${
+                time === t
+                  ? activePresetClasses
+                  : `bg-white dark:bg-ink-750 text-ink-600 dark:text-ink-300 border-paper-300 dark:border-ink-650 ${hoverBorderClasses}`
+              }`}
+            >
+              {t}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="mt-2.5 pt-2 border-t border-paper-200 dark:border-ink-700/60">
+        <input
+          type="text"
+          placeholder={placeholder}
+          value={time}
+          onChange={(e) => onTimeChange(e.target.value)}
+          className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-paper-300 dark:border-ink-650 bg-white dark:bg-ink-750 text-ink-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-sage-500"
+        />
+      </div>
+    </div>
+  );
+};
+
 export const SleepWakeCard: React.FC<SleepWakeCardProps> = ({
   sleepTime,
   wakeTime,
@@ -61,89 +137,29 @@ export const SleepWakeCard: React.FC<SleepWakeCardProps> = ({
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
-        {/* Sleep Time Box (9:00 PM to 12:00 AM) */}
-        <div className="p-3 rounded-xl bg-paper-50 dark:bg-ink-850 border border-paper-200 dark:border-ink-700 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-ink-700 dark:text-ink-300">
-                <Moon className="w-3.5 h-3.5 text-indigo-500" />
-                <span className="arabic-text text-sm font-bold">سونے کا وقت:</span>
-                <span>Sleep</span>
-              </div>
-              <span className="text-xs font-bold text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-2 py-0.5 rounded-md">
-                {sleepTime}
-              </span>
-            </div>
+        {/* Sleep Time Box */}
+        <TimePresetBox
+          icon={<Moon className="w-3.5 h-3.5 text-indigo-500" />}
+          urduLabel="سونے کا وقت:"
+          englishLabel="Sleep"
+          time={sleepTime}
+          presets={SLEEP_PRESETS}
+          colorTheme="indigo"
+          onTimeChange={onSleepTimeChange}
+          placeholder="Or custom e.g. 10:45 PM"
+        />
 
-            {/* Quick presets */}
-            <div className="flex flex-wrap gap-1">
-              {SLEEP_PRESETS.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => onSleepTimeChange(t)}
-                  className={`text-[10px] px-2 py-1 rounded-md border transition-all tap-bounce ${sleepTime === t
-                    ? 'bg-indigo-600 text-white border-indigo-600 font-semibold'
-                    : 'bg-white dark:bg-ink-750 text-ink-600 dark:text-ink-300 border-paper-300 dark:border-ink-650 hover:border-indigo-400'
-                    }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-2.5 pt-2 border-t border-paper-200 dark:border-ink-700/60">
-            <input
-              type="text"
-              placeholder="Or custom e.g. 10:45 PM"
-              value={sleepTime}
-              onChange={(e) => onSleepTimeChange(e.target.value)}
-              className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-paper-300 dark:border-ink-650 bg-white dark:bg-ink-750 text-ink-900 dark:text-white"
-            />
-          </div>
-        </div>
-
-        {/* Wake Time Box (3:00 AM to 8:00 AM Tahajjud to Chasht) */}
-        <div className="p-3 rounded-xl bg-paper-50 dark:bg-ink-850 border border-paper-200 dark:border-ink-700 flex flex-col justify-between">
-          <div>
-            <div className="flex items-center justify-between mb-1.5">
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-ink-700 dark:text-ink-300">
-                <Sun className="w-3.5 h-3.5 text-amber-500" />
-                <span className="arabic-text text-sm font-bold">جاگنے کا وقت:</span>
-                <span>Wake</span>
-              </div>
-              <span className="text-xs font-bold text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60 px-2 py-0.5 rounded-md">
-                {wakeTime}
-              </span>
-            </div>
-
-            {/* Quick presets */}
-            <div className="flex flex-wrap gap-1">
-              {WAKE_PRESETS.map((t) => (
-                <button
-                  key={t}
-                  onClick={() => onWakeTimeChange(t)}
-                  className={`text-[10px] px-2 py-1 rounded-md border transition-all tap-bounce ${wakeTime === t
-                    ? 'bg-amber-600 text-white border-amber-600 font-semibold'
-                    : 'bg-white dark:bg-ink-750 text-ink-600 dark:text-ink-300 border-paper-300 dark:border-ink-650 hover:border-amber-400'
-                    }`}
-                >
-                  {t}
-                </button>
-              ))}
-            </div>
-          </div>
-
-          <div className="mt-2.5 pt-2 border-t border-paper-200 dark:border-ink-700/60">
-            <input
-              type="text"
-              placeholder="Or custom e.g. 04:15 AM"
-              value={wakeTime}
-              onChange={(e) => onWakeTimeChange(e.target.value)}
-              className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-paper-300 dark:border-ink-650 bg-white dark:bg-ink-750 text-ink-900 dark:text-white"
-            />
-          </div>
-        </div>
+        {/* Wake Time Box */}
+        <TimePresetBox
+          icon={<Sun className="w-3.5 h-3.5 text-amber-500" />}
+          urduLabel="جاگنے کا وقت:"
+          englishLabel="Wake"
+          time={wakeTime}
+          presets={WAKE_PRESETS}
+          colorTheme="amber"
+          onTimeChange={onWakeTimeChange}
+          placeholder="Or custom e.g. 04:15 AM"
+        />
       </div>
     </section>
   );

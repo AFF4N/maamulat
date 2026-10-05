@@ -108,3 +108,17 @@ export function formatHijriDate(dateStr: string): string {
     return '';
   }
 }
+
+/**
+ * Converts YYYY-MM-DD into a short date like "4 Oct"
+ */
+export function formatShortDate(dateStr: string): string {
+  try {
+    const [y, m, d] = dateStr.split('-').map(Number);
+    const date = new Date(y, m - 1, d);
+    return date.toLocaleDateString('en-US', { day: 'numeric', month: 'short' });
+  } catch {
+    return dateStr;
+  }
+}
+

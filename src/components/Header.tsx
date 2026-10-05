@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Sparkles, SlidersHorizontal, Check, Target } from 'lucide-react';
+import { Menu, Sparkles, SlidersHorizontal } from 'lucide-react';
 import { formatEnglishDate, formatHijriDate } from '../utils/dateUtils';
 import { MenuDrawer } from './MenuDrawer';
+import { GoalEditorModal } from './GoalEditorModal';
 import type { MaamulatState } from '../types';
 
 interface HeaderProps {
@@ -17,8 +18,6 @@ interface HeaderProps {
   onResetToday?: () => void;
   onResetToDefault?: () => void;
 }
-
-const PRESET_GOALS = [7, 21, 40, 100];
 
 export const Header: React.FC<HeaderProps> = ({
   todayDate,
@@ -36,8 +35,6 @@ export const Header: React.FC<HeaderProps> = ({
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditingGoal, setIsEditingGoal] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const [dayInput, setDayInput] = useState(goalDay.toString());
-  const [targetInput, setTargetInput] = useState(goalMaxDays.toString());
 
   useEffect(() => {
     const handleScroll = () => {
@@ -47,24 +44,9 @@ export const Header: React.FC<HeaderProps> = ({
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const handleOpenEdit = () => {
-    setDayInput(goalDay.toString());
-    setTargetInput(goalMaxDays.toString());
-    setIsEditingGoal(true);
-  };
-
-  const handleSaveGoal = (e: React.FormEvent) => {
-    e.preventDefault();
-    const parsedTarget = parseInt(targetInput, 10);
-    const parsedDay = parseInt(dayInput, 10);
-
-    if (!isNaN(parsedTarget) && parsedTarget >= 1) {
-      onUpdateGoalMaxDays(parsedTarget);
-      if (!isNaN(parsedDay) && parsedDay >= 1) {
-        onUpdateGoalDay(Math.min(parsedTarget, parsedDay));
-      }
-      setIsEditingGoal(false);
-    }
+  const handleSaveGoal = (targetMax: number, currentDay: number) => {
+    onUpdateGoalMaxDays(targetMax);
+    onUpdateGoalDay(currentDay);
   };
 
   const englishDate = formatEnglishDate(todayDate);
@@ -135,18 +117,6 @@ export const Header: React.FC<HeaderProps> = ({
         )}
       </div>
 
-      {/* Header Titles: moved underneath the dates in smaller font */}
-      {/* <div className="text-left space-y-0.5 mb-3">
-        <div className="flex flex-row-reverse items-baseline gap-2">
-          <h2 className="arabic-text text-base sm:text-lg font-bold text-ink-800 dark:text-ink-200">
-            معمولاتِ یومیہ
-          </h2>
-          <span className="serif-display text-[11px] sm:text-xs tracking-wider uppercase text-ink-500 dark:text-ink-400 font-medium">
-            (Daily Spiritual Ritual Sheet)
-          </span>
-        </div>
-      </div> */}
-
       {/* Customizable Spiritual Goal Tracker Banner */}
       <div className="rounded-2xl bg-gradient-to-br from-white to-paper-100 dark:from-ink-850 dark:to-ink-800 border border-paper-300/80 dark:border-ink-700/80 p-3.5 shadow-soft-sm">
         <div className="flex items-center justify-between mb-2">
@@ -169,7 +139,7 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
 
           <button
-            onClick={handleOpenEdit}
+            onClick={() => setIsEditingGoal(true)}
             className="text-[11px] text-ink-500 dark:text-ink-400 hover:text-sage-700 dark:hover:text-sage-300 flex items-center gap-1 px-2 py-0.5 rounded-md hover:bg-paper-200 dark:hover:bg-ink-750 transition-colors tap-bounce"
             title="Set custom spiritual goal"
           >
@@ -199,91 +169,13 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Goal Customization Modal */}
-      {isEditingGoal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-sm w-full p-4 border border-paper-300 dark:border-ink-700 shadow-xl space-y-3.5">
-            <div className="flex items-center justify-between border-b border-paper-200 dark:border-ink-700 pb-2">
-              <div className="flex items-center gap-2">
-                <Target className="w-4 h-4 text-sage-600 dark:text-sage-400" />
-                <h3 className="text-sm font-bold text-ink-900 dark:text-white">
-                  Customize Spiritual Goal
-                </h3>
-              </div>
-              <button
-                onClick={() => setIsEditingGoal(false)}
-                className="text-ink-400 hover:text-ink-700 dark:hover:text-white text-xs"
-              >
-                ✕
-              </button>
-            </div>
-
-            <form onSubmit={handleSaveGoal} className="space-y-3 text-xs">
-              {/* Target Duration Selection */}
-              <div>
-                <label className="font-semibold text-ink-700 dark:text-ink-300 block mb-1">
-                  Target Duration (Days):
-                </label>
-                <div className="flex gap-1.5 mb-2">
-                  {PRESET_GOALS.map((preset) => (
-                    <button
-                      key={preset}
-                      type="button"
-                      onClick={() => setTargetInput(preset.toString())}
-                      className={`flex-1 py-1.5 rounded-lg border text-xs font-semibold transition-all tap-bounce ${targetInput === preset.toString()
-                        ? 'bg-sage-600 text-white border-sage-600'
-                        : 'bg-paper-100 dark:bg-ink-750 text-ink-700 dark:text-ink-300 border-paper-300 dark:border-ink-650 hover:border-sage-400'
-                        }`}
-                    >
-                      {preset}d
-                    </button>
-                  ))}
-                </div>
-                <input
-                  type="number"
-                  min="1"
-                  max="365"
-                  value={targetInput}
-                  onChange={(e) => setTargetInput(e.target.value)}
-                  placeholder="Or enter custom days (e.g. 30)"
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-paper-300 dark:border-ink-650 bg-white dark:bg-ink-750 text-ink-900 dark:text-white"
-                />
-              </div>
-
-              {/* Current Day */}
-              <div>
-                <label className="font-semibold text-ink-700 dark:text-ink-300 block mb-1">
-                  Current Day:
-                </label>
-                <input
-                  type="number"
-                  min="1"
-                  max={targetInput || '365'}
-                  value={dayInput}
-                  onChange={(e) => setDayInput(e.target.value)}
-                  className="w-full px-2.5 py-1.5 rounded-lg border border-paper-300 dark:border-ink-650 bg-white dark:bg-ink-750 text-ink-900 dark:text-white"
-                />
-              </div>
-
-              <div className="flex gap-2 pt-1">
-                <button
-                  type="submit"
-                  className="flex-1 py-2 rounded-xl bg-sage-600 hover:bg-sage-700 text-white font-semibold flex items-center justify-center gap-1.5 tap-bounce"
-                >
-                  <Check className="w-3.5 h-3.5" />
-                  <span>Save Goal</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={() => setIsEditingGoal(false)}
-                  className="px-3 py-2 rounded-xl border border-paper-300 dark:border-ink-650 text-ink-600 dark:text-ink-300 hover:bg-paper-100 dark:hover:bg-ink-750"
-                >
-                  Cancel
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+      <GoalEditorModal
+        isOpen={isEditingGoal}
+        onClose={() => setIsEditingGoal(false)}
+        goalDay={goalDay}
+        goalMaxDays={goalMaxDays}
+        onSave={handleSaveGoal}
+      />
 
       {/* Settings & Navigation Menu Drawer */}
       <MenuDrawer
@@ -294,7 +186,7 @@ export const Header: React.FC<HeaderProps> = ({
         onToggleTheme={onToggleTheme}
         goalDay={goalDay}
         goalMaxDays={goalMaxDays}
-        onOpenEditGoal={handleOpenEdit}
+        onOpenEditGoal={() => setIsEditingGoal(true)}
         state={state}
         onResetToday={onResetToday}
         onResetToDefault={onResetToDefault}

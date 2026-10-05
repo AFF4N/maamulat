@@ -1,20 +1,8 @@
 import React, { useState } from 'react';
 import type { CategoryConfig, MaamulatTask } from '../types';
-import {
-  ArrowLeft,
-  Plus,
-  Trash2,
-  Eye,
-  EyeOff,
-  ChevronDown,
-  ChevronUp,
-  Save,
-  RotateCcw,
-  Info,
-  Check,
-  MoveUp,
-  MoveDown
-} from 'lucide-react';
+import { ArrowLeft, RotateCcw, Check, Save } from 'lucide-react';
+import { CustomizerSectionCard } from './customizer/CustomizerSectionCard';
+import { NewCategoryCard } from './customizer/NewCategoryCard';
 
 interface TaskCustomizerScreenProps {
   initialCategories: CategoryConfig[];
@@ -23,6 +11,107 @@ interface TaskCustomizerScreenProps {
   onResetToDefault: () => void;
   onBackToHome: () => void;
 }
+
+/** Reusable Save Action Button */
+interface SaveActionButtonProps {
+  onSave: () => void;
+  isSaved: boolean;
+  label?: string;
+  size?: 'sm' | 'md';
+}
+
+export const SaveActionButton: React.FC<SaveActionButtonProps> = ({
+  onSave,
+  isSaved,
+  label = 'Save Changes',
+  size = 'sm',
+}) => {
+  const sizeClasses = size === 'md' ? 'px-5 py-2.5 shadow-md' : 'px-4 py-1.5 shadow-sm';
+  return (
+    <button
+      type="button"
+      onClick={onSave}
+      disabled={isSaved}
+      className={`inline-flex items-center gap-1.5 text-xs font-bold text-white rounded-xl transition-all tap-bounce ${sizeClasses} ${
+        isSaved
+          ? 'bg-emerald-600 dark:bg-emerald-600 scale-[1.02]'
+          : 'bg-sage-600 hover:bg-sage-700 dark:bg-sage-700 dark:hover:bg-sage-600'
+      }`}
+    >
+      {isSaved ? (
+        <>
+          <Check className="w-4 h-4 stroke-[2.5]" />
+          <span>{size === 'md' ? 'Saved! Returning to sheet...' : 'Saved!'}</span>
+        </>
+      ) : (
+        <>
+          <Save className="w-4 h-4" />
+          <span>{label}</span>
+        </>
+      )}
+    </button>
+  );
+};
+
+/** Reusable Floating Success Toast */
+export const SaveSuccessToast: React.FC<{ message?: string }> = ({
+  message = 'Changes saved! Returning to sheet...',
+}) => (
+  <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-700 text-white shadow-xl border border-emerald-500/80 animate-in fade-in slide-in-from-top-4 duration-200">
+    <Check className="w-4 h-4 stroke-[3] flex-shrink-0" />
+    <span className="text-xs font-bold whitespace-nowrap">{message}</span>
+  </div>
+);
+
+/** Reusable Reset Confirmation Modal */
+interface ResetConfirmModalProps {
+  isOpen: boolean;
+  onCancel: () => void;
+  onConfirm: () => void;
+}
+
+export const ResetConfirmModal: React.FC<ResetConfirmModalProps> = ({
+  isOpen,
+  onCancel,
+  onConfirm,
+}) => {
+  if (!isOpen) return null;
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-label="Confirm Reset"
+      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+    >
+      <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-sm w-full p-5 border border-paper-300 dark:border-ink-700 shadow-xl space-y-3">
+        <div className="space-y-1">
+          <h4 className="text-base font-bold text-ink-900 dark:text-white">
+            Reset to Original Defaults?
+          </h4>
+        </div>
+        <p className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed">
+          Are you sure you want to reset all sections and tasks back to the original traditional Tazkiyah defaults? Any custom added sections will be cleared.
+        </p>
+        <div className="flex items-center justify-end gap-2 pt-2">
+          <button
+            type="button"
+            onClick={onCancel}
+            className="px-3 py-1.5 rounded-xl text-xs font-semibold text-ink-500 hover:text-ink-800"
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            onClick={onConfirm}
+            className="px-4 py-1.5 rounded-xl text-xs font-bold bg-terracotta-600 hover:bg-terracotta-700 text-white"
+          >
+            Confirm Reset
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
 
 export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
   initialCategories,
@@ -49,19 +138,6 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
   const [expandedTaskDetails, setExpandedTaskDetails] = useState<Record<string, boolean>>({});
   const [saveSuccessToast, setSaveSuccessToast] = useState(false);
   const [showResetConfirm, setShowResetConfirm] = useState(false);
-
-  // New task quick-form state per category
-  const [addingTaskInCat, setAddingTaskInCat] = useState<string | null>(null);
-  const [newTaskUrdu, setNewTaskUrdu] = useState('');
-  const [newTaskEnglish, setNewTaskEnglish] = useState('');
-  const [newTaskEmoji, setNewTaskEmoji] = useState('🔹');
-  const [newTaskHasanat, setNewTaskHasanat] = useState(25);
-
-  // New category form state
-  const [isAddingCategory, setIsAddingCategory] = useState(false);
-  const [newCatUrdu, setNewCatUrdu] = useState('');
-  const [newCatEnglish, setNewCatEnglish] = useState('');
-  const [newCatEmoji, setNewCatEmoji] = useState('✨');
 
   // Toggle category collapsed/expanded
   const toggleSectionExpand = (catId: string) => {
@@ -102,41 +178,16 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
     setCategories(reordered);
   };
 
-  const handleCreateCategory = (e?: React.FormEvent) => {
-    if (e) e.preventDefault();
-    const english = newCatEnglish.trim() || newCatUrdu.trim();
-    const urdu = newCatUrdu.trim() || newCatEnglish.trim();
-    if (!english && !urdu) return;
-
-    const newId = `custom_${Date.now()}`;
+  const handleCreateCategory = (english: string, urdu: string, emoji: string) => {
+    const newId = `cat_${Date.now()}`;
     const newCategory: CategoryConfig = {
       id: newId,
       urdu,
       english,
-      emoji: newCatEmoji.trim() || '✨',
-      accent: 'border-sage-300 dark:border-sage-700/60 bg-sage-50/40 dark:bg-sage-900/10',
-      hidden: false,
+      emoji: emoji || '✨',
+      accent: 'sage',
     };
 
-    setCategories(prev => [...prev, newCategory]);
-    setExpandedSections(prev => ({ ...prev, [newId]: true }));
-    setNewCatUrdu('');
-    setNewCatEnglish('');
-    setNewCatEmoji('✨');
-    setIsAddingCategory(false);
-  };
-
-  // Preset quick-add category templates
-  const addCategoryPreset = (urdu: string, english: string, emoji: string) => {
-    const newId = `custom_${Date.now()}`;
-    const newCategory: CategoryConfig = {
-      id: newId,
-      urdu,
-      english,
-      emoji,
-      accent: 'border-sage-300 dark:border-sage-700/60 bg-sage-50/40 dark:bg-sage-900/10',
-      hidden: false,
-    };
     setCategories(prev => [...prev, newCategory]);
     setExpandedSections(prev => ({ ...prev, [newId]: true }));
   };
@@ -158,38 +209,35 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
     setTasks(prev => prev.filter(t => t.id !== taskId));
   };
 
-  const handleCreateTask = (catId: string) => {
-    const english = newTaskEnglish.trim() || newTaskUrdu.trim();
-    const urdu = newTaskUrdu.trim() || newTaskEnglish.trim();
-    if (!english && !urdu) return;
-
+  const handleCreateTask = (
+    catId: string,
+    english: string,
+    urdu: string,
+    emoji: string,
+    hasanat: number
+  ) => {
     const newId = `task_${Date.now()}`;
     const newTask: MaamulatTask = {
       id: newId,
       category: catId,
       urduTitle: urdu,
       englishTitle: english,
-      emoji: newTaskEmoji || '🔹',
-      hasanat: Number(newTaskHasanat) || 20,
+      emoji: emoji || '🔹',
+      hasanat: Number(hasanat) || 20,
       completed: false,
       hidden: false,
     };
 
     setTasks(prev => [...prev, newTask]);
-    setNewTaskUrdu('');
-    setNewTaskEnglish('');
-    setNewTaskEmoji('🔹');
-    setNewTaskHasanat(25);
-    setAddingTaskInCat(null);
   };
 
-  // Save all changes
+  // Save all changes with instant feedback and smooth return to home
   const handleSaveAll = () => {
     onSave(categories, tasks);
     setSaveSuccessToast(true);
     setTimeout(() => {
-      setSaveSuccessToast(false);
-    }, 2500);
+      onBackToHome();
+    }, 700);
   };
 
   // Reset to original default tasks
@@ -208,15 +256,17 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
         {/* Navigation & Action Bar */}
         <div className="flex items-center justify-between gap-3 border-b border-paper-200 dark:border-ink-800 pb-4">
           <button
+            type="button"
             onClick={onBackToHome}
             className="inline-flex items-center gap-2 text-xs font-semibold text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-white px-3 py-1.5 rounded-xl bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700 shadow-soft-sm transition-colors tap-bounce"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>Back to Sheet (معمولات شیٹ)</span>
+            <span>Back</span>
           </button>
 
           <div className="flex items-center gap-2">
             <button
+              type="button"
               onClick={() => setShowResetConfirm(true)}
               className="inline-flex items-center gap-1.5 text-xs font-semibold text-terracotta-600 dark:text-terracotta-400 hover:bg-terracotta-50 dark:hover:bg-terracotta-950/40 px-3 py-1.5 rounded-xl border border-terracotta-200 dark:border-terracotta-900/60 transition-colors tap-bounce"
               title="Reset all tasks and sections to original defaults"
@@ -225,31 +275,17 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
               <span className="hidden sm:inline">Reset Defaults</span>
             </button>
 
-            <button
-              onClick={handleSaveAll}
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-sage-600 hover:bg-sage-700 dark:bg-sage-700 dark:hover:bg-sage-600 px-4 py-1.5 rounded-xl shadow-sm transition-colors tap-bounce"
-            >
-              <Save className="w-4 h-4" />
-              <span>Save Changes (محفوظ کریں)</span>
-            </button>
+            <SaveActionButton
+              onSave={handleSaveAll}
+              isSaved={saveSuccessToast}
+              label="Save Changes"
+              size="sm"
+            />
           </div>
         </div>
 
-        {/* Success Toast */}
-        {saveSuccessToast && (
-          <div className="p-3 rounded-xl bg-emerald-500 text-white text-xs font-bold flex items-center justify-between shadow-lg animate-fadeIn">
-            <div className="flex items-center gap-2">
-              <Check className="w-4 h-4 stroke-[3]" />
-              <span>All changes saved successfully! (تمام ترامیم محفوظ کر لی گئیں)</span>
-            </div>
-            <button
-              onClick={onBackToHome}
-              className="text-[11px] underline underline-offset-2 hover:opacity-90 font-semibold"
-            >
-              Open Sheet Now →
-            </button>
-          </div>
-        )}
+        {/* Fixed Floating Success Toast (always visible at top of viewport) */}
+        {saveSuccessToast && <SaveSuccessToast />}
 
         {/* Screen Header */}
         <div className="space-y-1.5">
@@ -257,7 +293,7 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
             <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink-900 dark:text-white">
               Customize Maamulat
             </h1>
-            <span className="arabic-text text-sm sm:text-base font-semibold text-sage-700 dark:text-sage-400">
+            <span className="arabic-text text-left text-sm sm:text-base font-semibold text-sage-700 dark:text-sage-400">
               (معمولات کی تخصیص و سیٹنگز)
             </span>
           </div>
@@ -275,456 +311,37 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
         <div className="space-y-3.5">
           {categories.map((cat, catIndex) => {
             const catTasks = tasks.filter(t => t.category === cat.id);
-            const isExpanded = expandedSections[cat.id] ?? true;
-
             return (
-              <div
+              <CustomizerSectionCard
                 key={cat.id}
-                className={`rounded-2xl border transition-all duration-200 overflow-hidden ${cat.hidden
-                  ? 'bg-paper-100/60 dark:bg-ink-900/40 border-dashed border-paper-300 dark:border-ink-800 opacity-65'
-                  : 'bg-white dark:bg-ink-850 border-paper-300 dark:border-ink-700/80 shadow-soft-sm'
-                  }`}
-              >
-                {/* Section Header Block */}
-                <div className="p-3.5 sm:p-4 flex items-center justify-between gap-2.5 border-b border-paper-200/80 dark:border-ink-700/60 bg-paper-50/50 dark:bg-ink-800/40">
-                  <div className="flex items-center gap-2.5 flex-1 min-w-0">
-                    {/* Emoji input/pill */}
-                    <input
-                      type="text"
-                      value={cat.emoji}
-                      onChange={(e) => handleUpdateCategory(cat.id, { emoji: e.target.value })}
-                      className="w-8 h-8 rounded-lg bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700 text-center text-base focus:outline-none focus:ring-1 focus:ring-sage-500 flex-shrink-0"
-                      title="Section Emoji"
-                    />
-
-                    {/* Section Titles (English Primary, Urdu Secondary) */}
-                    <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <input
-                        type="text"
-                        value={cat.english}
-                        onChange={(e) => handleUpdateCategory(cat.id, { english: e.target.value })}
-                        placeholder="Section Name (English)"
-                        className="text-xs sm:text-sm font-semibold bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-900 dark:text-white px-1"
-                      />
-                      <input
-                        type="text"
-                        value={cat.urdu}
-                        onChange={(e) => handleUpdateCategory(cat.id, { urdu: e.target.value })}
-                        placeholder="سیکشن کا نام (Urdu)"
-                        className="arabic-text text-sm sm:text-base font-bold bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-700 dark:text-ink-300 px-1"
-                      />
-                    </div>
-                  </div>
-
-                  {/* Section Controls */}
-                  <div className="flex items-center gap-1 flex-shrink-0">
-                    {/* Reorder Up / Down */}
-                    <button
-                      type="button"
-                      disabled={catIndex === 0}
-                      onClick={() => handleMoveCategory(catIndex, 'up')}
-                      className="p-1.5 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 disabled:opacity-30 transition-colors"
-                      title="Move section up"
-                    >
-                      <MoveUp className="w-3.5 h-3.5" />
-                    </button>
-                    <button
-                      type="button"
-                      disabled={catIndex === categories.length - 1}
-                      onClick={() => handleMoveCategory(catIndex, 'down')}
-                      className="p-1.5 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 disabled:opacity-30 transition-colors"
-                      title="Move section down"
-                    >
-                      <MoveDown className="w-3.5 h-3.5" />
-                    </button>
-
-                    {/* Hide / Show Section */}
-                    <button
-                      type="button"
-                      onClick={() => handleToggleCategoryVisibility(cat.id)}
-                      className={`p-1.5 rounded-lg transition-colors ${cat.hidden
-                        ? 'text-amberGold-600 bg-amberGold-50 dark:bg-amberGold-950/40'
-                        : 'text-ink-400 hover:text-ink-700 dark:hover:text-ink-200'
-                        }`}
-                      title={cat.hidden ? 'Show Section on Sheet' : 'Hide Section from Sheet'}
-                    >
-                      {cat.hidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                    </button>
-
-                    {/* Delete Section */}
-                    <button
-                      type="button"
-                      onClick={() => handleDeleteCategory(cat.id)}
-                      className="p-1.5 rounded-lg text-ink-400 hover:text-terracotta-600 dark:hover:text-terracotta-400 transition-colors"
-                      title="Delete Section"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-
-                    {/* Collapse / Expand */}
-                    <button
-                      type="button"
-                      onClick={() => toggleSectionExpand(cat.id)}
-                      className="p-1.5 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 transition-colors"
-                    >
-                      {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                    </button>
-                  </div>
-                </div>
-
-                {/* Tasks List inside Section */}
-                {isExpanded && (
-                  <div className="p-3 sm:p-4 space-y-2.5">
-                    {catTasks.length === 0 ? (
-                      <p className="text-xs text-ink-400 italic py-2 text-center">
-                        No tasks in this section yet. Click "+ Add Task" below.
-                      </p>
-                    ) : (
-                      catTasks.map((task) => {
-                        const isTaskDetailsOpen = expandedTaskDetails[task.id] || false;
-
-                        return (
-                          <div
-                            key={task.id}
-                            className={`p-3 rounded-xl border transition-all ${task.hidden
-                              ? 'bg-paper-100/50 dark:bg-ink-900/30 border-dashed border-paper-300 dark:border-ink-800 opacity-60'
-                              : 'bg-white dark:bg-ink-800 border-paper-200 dark:border-ink-700/80 shadow-soft-sm'
-                              }`}
-                          >
-                            {/* Main Task Block Row */}
-                            <div className="flex items-center justify-between gap-2.5">
-                              <div className="flex items-center gap-2 flex-1 min-w-0">
-                                {/* Emoji */}
-                                <input
-                                  type="text"
-                                  value={task.emoji}
-                                  onChange={(e) => handleUpdateTask(task.id, { emoji: e.target.value })}
-                                  className="w-7 h-7 rounded-md bg-paper-50 dark:bg-ink-750 border border-paper-200 dark:border-ink-700 text-center text-sm focus:outline-none flex-shrink-0"
-                                  title="Task Emoji"
-                                />
-
-                                {/* Task Titles (English Primary, Urdu Secondary) */}
-                                <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                  <input
-                                    type="text"
-                                    value={task.englishTitle}
-                                    onChange={(e) => handleUpdateTask(task.id, { englishTitle: e.target.value })}
-                                    placeholder="Task Title (English)"
-                                    className="text-xs sm:text-sm font-medium bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-900 dark:text-white"
-                                  />
-                                  <input
-                                    type="text"
-                                    value={task.urduTitle}
-                                    onChange={(e) => handleUpdateTask(task.id, { urduTitle: e.target.value })}
-                                    placeholder="ٹاسک کا نام (Urdu)"
-                                    className="arabic-text text-sm font-bold bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-700 dark:text-ink-300"
-                                  />
-                                </div>
-                              </div>
-
-                              {/* Task Points & Action Buttons */}
-                              <div className="flex items-center gap-1.5 flex-shrink-0">
-                                {/* Hasanat Points */}
-                                <div className="flex items-center gap-1 bg-paper-100 dark:bg-ink-750 px-2 py-1 rounded-lg">
-                                  <span className="text-[10px] text-amberGold-600 font-bold">+</span>
-                                  <input
-                                    type="number"
-                                    value={task.hasanat}
-                                    onChange={(e) => handleUpdateTask(task.id, { hasanat: Number(e.target.value) })}
-                                    className="w-8 text-xs font-bold text-ink-800 dark:text-ink-200 bg-transparent text-center focus:outline-none"
-                                    title="Hasanat points"
-                                  />
-                                  <span className="text-[10px] text-ink-500">H</span>
-                                </div>
-
-                                {/* Details / Options Toggle */}
-                                <button
-                                  type="button"
-                                  onClick={() => toggleTaskDetails(task.id)}
-                                  className="p-1 rounded-md text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 transition-colors"
-                                  title="Edit description, guidance & options"
-                                >
-                                  <Info className="w-3.5 h-3.5" />
-                                </button>
-
-                                {/* Hide / Show Task */}
-                                <button
-                                  type="button"
-                                  onClick={() => handleToggleTaskVisibility(task.id)}
-                                  className={`p-1 rounded-md transition-colors ${task.hidden
-                                    ? 'text-amberGold-600 bg-amberGold-50 dark:bg-amberGold-950/40'
-                                    : 'text-ink-400 hover:text-ink-700 dark:hover:text-ink-200'
-                                    }`}
-                                  title={task.hidden ? 'Task is Hidden' : 'Hide Task'}
-                                >
-                                  {task.hidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
-                                </button>
-
-                                {/* Delete Task */}
-                                <button
-                                  type="button"
-                                  onClick={() => handleDeleteTask(task.id)}
-                                  className="p-1 rounded-md text-ink-400 hover:text-terracotta-600 dark:hover:text-terracotta-400 transition-colors"
-                                  title="Delete Task"
-                                >
-                                  <Trash2 className="w-3.5 h-3.5" />
-                                </button>
-                              </div>
-                            </div>
-
-                            {/* Expandable Task Metadata (Description, Guidance Tooltip, External Resource Link) */}
-                            {isTaskDetailsOpen && (
-                              <div className="mt-3 pt-2.5 border-t border-paper-200 dark:border-ink-700 space-y-2 text-xs animate-fadeIn">
-                                <div>
-                                  <label className="text-[10px] font-semibold text-ink-500 uppercase tracking-wider block mb-0.5">
-                                    Description (خلاصہ و فضیلت):
-                                  </label>
-                                  <input
-                                    type="text"
-                                    value={task.description || ''}
-                                    onChange={(e) => handleUpdateTask(task.id, { description: e.target.value })}
-                                    placeholder="Brief note or spiritual reminder..."
-                                    className="w-full px-2.5 py-1.5 rounded-lg border border-paper-300 dark:border-ink-700 bg-white dark:bg-ink-850 text-xs focus:outline-none focus:ring-1 focus:ring-sage-500 text-ink-800 dark:text-ink-200"
-                                  />
-                                </div>
-
-                                <div>
-                                  <label className="text-[10px] font-semibold text-ink-500 uppercase tracking-wider block mb-0.5">
-                                    Guidance Tooltip (طریقہ و احادیث):
-                                  </label>
-                                  <textarea
-                                    value={task.infoTooltip || ''}
-                                    onChange={(e) => handleUpdateTask(task.id, { infoTooltip: e.target.value })}
-                                    placeholder="Detailed guidance, Tareeqa, or Hadith shown in (i) info modal..."
-                                    rows={2}
-                                    className="w-full px-2.5 py-1.5 rounded-lg border border-paper-300 dark:border-ink-700 bg-white dark:bg-ink-850 text-xs focus:outline-none focus:ring-1 focus:ring-sage-500 text-ink-800 dark:text-ink-200"
-                                  />
-                                </div>
-
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                  <div>
-                                    <label className="text-[10px] font-semibold text-ink-500 uppercase tracking-wider block mb-0.5">
-                                      Resource Link URL (e.g. PDF Drive Link):
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={task.linkUrl || ''}
-                                      onChange={(e) => handleUpdateTask(task.id, { linkUrl: e.target.value })}
-                                      placeholder="https://..."
-                                      className="w-full px-2.5 py-1.5 rounded-lg border border-paper-300 dark:border-ink-700 bg-white dark:bg-ink-850 text-xs focus:outline-none focus:ring-1 focus:ring-sage-500 text-ink-800 dark:text-ink-200"
-                                    />
-                                  </div>
-                                  <div>
-                                    <label className="text-[10px] font-semibold text-ink-500 uppercase tracking-wider block mb-0.5">
-                                      Resource Link Label:
-                                    </label>
-                                    <input
-                                      type="text"
-                                      value={task.linkLabel || ''}
-                                      onChange={(e) => handleUpdateTask(task.id, { linkLabel: e.target.value })}
-                                      placeholder="e.g. Download File"
-                                      className="w-full px-2.5 py-1.5 rounded-lg border border-paper-300 dark:border-ink-700 bg-white dark:bg-ink-850 text-xs focus:outline-none focus:ring-1 focus:ring-sage-500 text-ink-800 dark:text-ink-200"
-                                    />
-                                  </div>
-                                </div>
-                              </div>
-                            )}
-                          </div>
-                        );
-                      })
-                    )}
-
-                    {/* Inline "+ Add Task" Block */}
-                    {addingTaskInCat === cat.id ? (
-                      <div className="p-3 rounded-xl border border-sage-300 dark:border-sage-800 bg-sage-50/50 dark:bg-sage-950/20 space-y-2.5 animate-fadeIn">
-                        <div className="text-xs font-bold text-sage-900 dark:text-sage-200">
-                          Add New Task (+ نیا ٹاسک شامل کریں)
-                        </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                          <input
-                            type="text"
-                            value={newTaskEnglish}
-                            onChange={(e) => setNewTaskEnglish(e.target.value)}
-                            placeholder="Task title in English (e.g. Surah Mulk)"
-                            className="text-xs px-2.5 py-1.5 rounded-lg border border-sage-300 dark:border-sage-700 bg-white dark:bg-ink-850 focus:outline-none text-ink-900 dark:text-white"
-                          />
-                          <input
-                            type="text"
-                            value={newTaskUrdu}
-                            onChange={(e) => setNewTaskUrdu(e.target.value)}
-                            placeholder="ٹاسک کا نام (اردو)"
-                            className="arabic-text text-xs px-2.5 py-1.5 rounded-lg border border-sage-300 dark:border-sage-700 bg-white dark:bg-ink-850 focus:outline-none text-ink-900 dark:text-white"
-                          />
-                        </div>
-                        <div className="flex items-center justify-between gap-2 pt-1">
-                          <div className="flex items-center gap-2">
-                            <span className="text-[11px] text-ink-500">Emoji:</span>
-                            <input
-                              type="text"
-                              value={newTaskEmoji}
-                              onChange={(e) => setNewTaskEmoji(e.target.value)}
-                              className="w-7 h-7 text-center rounded-md border border-paper-300 dark:border-ink-700 bg-white dark:bg-ink-800 text-xs"
-                            />
-                            <span className="text-[11px] text-ink-500">Points:</span>
-                            <input
-                              type="number"
-                              value={newTaskHasanat}
-                              onChange={(e) => setNewTaskHasanat(Number(e.target.value))}
-                              className="w-12 text-center rounded-md border border-paper-300 dark:border-ink-700 bg-white dark:bg-ink-800 text-xs font-bold"
-                            />
-                          </div>
-                          <div className="flex items-center gap-1.5">
-                            <button
-                              type="button"
-                              onClick={() => setAddingTaskInCat(null)}
-                              className="px-2.5 py-1 rounded-lg text-xs font-semibold text-ink-500 hover:text-ink-800"
-                            >
-                              Cancel
-                            </button>
-                            <button
-                              type="button"
-                              onClick={() => handleCreateTask(cat.id)}
-                              className="px-3 py-1 rounded-lg text-xs font-bold bg-sage-600 hover:bg-sage-700 text-white"
-                            >
-                              Add Task
-                            </button>
-                          </div>
-                        </div>
-                      </div>
-                    ) : (
-                      <button
-                        type="button"
-                        onClick={() => setAddingTaskInCat(cat.id)}
-                        className="w-full py-2 rounded-xl border border-dashed border-paper-300 dark:border-ink-700 hover:border-sage-400 dark:hover:border-sage-600 text-xs font-semibold text-ink-500 hover:text-sage-700 dark:hover:text-sage-300 flex items-center justify-center gap-1.5 transition-colors tap-bounce"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                        <span>Add Task to {cat.english || cat.urdu}</span>
-                      </button>
-                    )}
-                  </div>
-                )}
-              </div>
+                cat={cat}
+                catIndex={catIndex}
+                totalCategories={categories.length}
+                isExpanded={expandedSections[cat.id] ?? true}
+                catTasks={catTasks}
+                expandedTaskDetails={expandedTaskDetails}
+                onToggleExpand={() => toggleSectionExpand(cat.id)}
+                onUpdateCategory={(updates) => handleUpdateCategory(cat.id, updates)}
+                onMoveCategory={(dir) => handleMoveCategory(catIndex, dir)}
+                onToggleCategoryVisibility={() => handleToggleCategoryVisibility(cat.id)}
+                onDeleteCategory={() => handleDeleteCategory(cat.id)}
+                onUpdateTask={handleUpdateTask}
+                onToggleTaskDetails={toggleTaskDetails}
+                onToggleTaskVisibility={handleToggleTaskVisibility}
+                onDeleteTask={handleDeleteTask}
+                onCreateTask={handleCreateTask}
+              />
             );
           })}
         </div>
 
         {/* Create New Section Block */}
-        <div className="rounded-2xl p-4 bg-white dark:bg-ink-850 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <span className="p-1.5 rounded-lg bg-sage-100 dark:bg-sage-950 text-sage-700 dark:text-sage-300">
-                <Plus className="w-4 h-4" />
-              </span>
-              <h3 className="text-sm font-bold text-ink-900 dark:text-white">
-                Add New Section (+ نیا سیکشن شامل کریں)
-              </h3>
-            </div>
-            {!isAddingCategory && (
-              <button
-                onClick={() => setIsAddingCategory(true)}
-                className="text-xs font-bold text-sage-700 dark:text-sage-300 hover:underline"
-              >
-                + Create Section
-              </button>
-            )}
-          </div>
-
-          {/* Preset Quick Section Suggestions */}
-          <div className="pt-1">
-            <span className="text-[11px] font-semibold text-ink-500 uppercase tracking-wider block mb-2">
-              Quick Tazkiyah Templates:
-            </span>
-            <div className="flex flex-wrap gap-2">
-              <button
-                type="button"
-                onClick={() => addCategoryPreset('مطالعہ کتب و علم', 'Book Reading & Study', '📚')}
-                className="text-xs px-2.5 py-1 rounded-xl bg-paper-100 dark:bg-ink-800 border border-paper-200 dark:border-ink-700 hover:border-sage-400 text-ink-700 dark:text-ink-300 transition-colors tap-bounce"
-              >
-                📚 Book Reading (مطالعہ کتب)
-              </button>
-              <button
-                type="button"
-                onClick={() => addCategoryPreset('صدقہ و سخاوت', 'Daily Sadaqah & Giving', '🤲')}
-                className="text-xs px-2.5 py-1 rounded-xl bg-paper-100 dark:bg-ink-800 border border-paper-200 dark:border-ink-700 hover:border-sage-400 text-ink-700 dark:text-ink-300 transition-colors tap-bounce"
-              >
-                🤲 Daily Sadaqah (صدقہ و خیرات)
-              </button>
-              <button
-                type="button"
-                onClick={() => addCategoryPreset('مراقبہ و محاسبہ', 'Muraqabah & Reflection', '🕯️')}
-                className="text-xs px-2.5 py-1 rounded-xl bg-paper-100 dark:bg-ink-800 border border-paper-200 dark:border-ink-700 hover:border-sage-400 text-ink-700 dark:text-ink-300 transition-colors tap-bounce"
-              >
-                🕯️ Muraqabah (مراقبہ و محاسبہ)
-              </button>
-              <button
-                type="button"
-                onClick={() => addCategoryPreset('صلہ رحمی و والدین', 'Family Ties & Parents', '🏡')}
-                className="text-xs px-2.5 py-1 rounded-xl bg-paper-100 dark:bg-ink-800 border border-paper-200 dark:border-ink-700 hover:border-sage-400 text-ink-700 dark:text-ink-300 transition-colors tap-bounce"
-              >
-                🏡 Family Ties (صلہ رحمی)
-              </button>
-              <button
-                type="button"
-                onClick={() => addCategoryPreset('ورزش و حفظانِ صحت', 'Health & Physical Routine', '🌱')}
-                className="text-xs px-2.5 py-1 rounded-xl bg-paper-100 dark:bg-ink-800 border border-paper-200 dark:border-ink-700 hover:border-sage-400 text-ink-700 dark:text-ink-300 transition-colors tap-bounce"
-              >
-                🌱 Health & Fitness (ورزش و صحت)
-              </button>
-            </div>
-          </div>
-
-          {/* Custom Section Creator Form */}
-          {isAddingCategory && (
-            <form onSubmit={handleCreateCategory} className="pt-2 border-t border-paper-200 dark:border-ink-700 space-y-2.5 animate-fadeIn">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
-                <input
-                  type="text"
-                  value={newCatEnglish}
-                  onChange={(e) => setNewCatEnglish(e.target.value)}
-                  placeholder="Section title in English (e.g. Daily Study)"
-                  className="text-xs px-3 py-2 rounded-xl border border-paper-300 dark:border-ink-700 bg-white dark:bg-ink-800 focus:outline-none focus:ring-1 focus:ring-sage-500 text-ink-900 dark:text-white"
-                />
-                <input
-                  type="text"
-                  value={newCatUrdu}
-                  onChange={(e) => setNewCatUrdu(e.target.value)}
-                  placeholder="سیکشن کا نام اردو میں (e.g. مطالعہ کتب)"
-                  className="arabic-text text-xs px-3 py-2 rounded-xl border border-paper-300 dark:border-ink-700 bg-white dark:bg-ink-800 focus:outline-none focus:ring-1 focus:ring-sage-500 text-ink-900 dark:text-white"
-                />
-              </div>
-              <div className="flex items-center justify-between pt-1">
-                <div className="flex items-center gap-2">
-                  <span className="text-xs text-ink-500">Emoji Icon:</span>
-                  <input
-                    type="text"
-                    value={newCatEmoji}
-                    onChange={(e) => setNewCatEmoji(e.target.value)}
-                    className="w-8 h-8 text-center rounded-lg border border-paper-300 dark:border-ink-700 bg-white dark:bg-ink-800 text-sm"
-                  />
-                </div>
-                <div className="flex items-center gap-2">
-                  <button
-                    type="button"
-                    onClick={() => setIsAddingCategory(false)}
-                    className="px-3 py-1.5 rounded-xl text-xs font-semibold text-ink-500 hover:text-ink-800"
-                  >
-                    Cancel
-                  </button>
-                  <button
-                    type="submit"
-                    className="px-4 py-1.5 rounded-xl text-xs font-bold bg-sage-600 hover:bg-sage-700 text-white transition-colors"
-                  >
-                    Save Section
-                  </button>
-                </div>
-              </div>
-            </form>
-          )}
-        </div>
+        <NewCategoryCard onCreateCategory={handleCreateCategory} />
 
         {/* Bottom Save Bar */}
         <div className="flex items-center justify-between pt-2">
           <button
+            type="button"
             onClick={onBackToHome}
             className="text-xs font-semibold text-ink-500 hover:text-ink-800 dark:hover:text-ink-300 flex items-center gap-1.5"
           >
@@ -732,50 +349,23 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
             <span>Discard & Return</span>
           </button>
 
-          <button
-            onClick={handleSaveAll}
-            className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-sage-600 hover:bg-sage-700 px-5 py-2.5 rounded-xl shadow-md transition-colors tap-bounce"
-          >
-            <Save className="w-4 h-4" />
-            <span>Save All Changes (تمام ترامیم محفوظ کریں)</span>
-          </button>
+          <SaveActionButton
+            onSave={handleSaveAll}
+            isSaved={saveSuccessToast}
+            label="Save All Changes"
+            size="md"
+          />
         </div>
       </div>
 
       {/* Reset Confirmation Modal */}
-      {showResetConfirm && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
-          <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-sm w-full p-5 border border-paper-300 dark:border-ink-700 shadow-xl space-y-3">
-            <div className="space-y-1">
-              <h4 className="text-base font-bold text-ink-900 dark:text-white">
-                Reset to Original Defaults?
-              </h4>
-              <p className="arabic-text text-sm font-semibold text-terracotta-600 dark:text-terracotta-400">
-                (کیا آپ تمام ترامیم اصل حالت پر بحال کرنا چاہتے ہیں؟)
-              </p>
-            </div>
-            <p className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed">
-              Are you sure you want to reset all sections and tasks back to the original traditional Tazkiyah defaults? Any custom added sections will be cleared.
-            </p>
-            <div className="flex items-center justify-end gap-2 pt-2">
-              <button
-                type="button"
-                onClick={() => setShowResetConfirm(false)}
-                className="px-3 py-1.5 rounded-xl text-xs font-semibold text-ink-500 hover:text-ink-800"
-              >
-                Cancel
-              </button>
-              <button
-                type="button"
-                onClick={handleConfirmReset}
-                className="px-4 py-1.5 rounded-xl text-xs font-bold bg-terracotta-600 hover:bg-terracotta-700 text-white"
-              >
-                Confirm Reset
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ResetConfirmModal
+        isOpen={showResetConfirm}
+        onCancel={() => setShowResetConfirm(false)}
+        onConfirm={handleConfirmReset}
+      />
     </div>
   );
 };
+
+export default TaskCustomizerScreen;
