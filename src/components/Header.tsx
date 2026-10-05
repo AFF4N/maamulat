@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Sun, Moon, Sparkles, SlidersHorizontal, Check, Target } from 'lucide-react';
-import { formatUrduDate, formatEnglishDate, getUrduDayName } from '../utils/dateUtils';
+import { formatEnglishDate, formatHijriDate } from '../utils/dateUtils';
 
 interface HeaderProps {
   todayDate: string;
@@ -47,15 +47,14 @@ export const Header: React.FC<HeaderProps> = ({
     }
   };
 
-  const urduDate = formatUrduDate(todayDate);
-  const urduDay = getUrduDayName(todayDate);
   const englishDate = formatEnglishDate(todayDate);
+  const hijriDate = formatHijriDate(todayDate);
   const progressPercent = Math.min(100, Math.round((goalDay / goalMaxDays) * 100));
 
   return (
-    <header className="relative pt-3 pb-4">
-      {/* Top action row */}
-      <div className="flex items-center justify-between mb-3">
+    <header className="relative pt-3 pb-3">
+      {/* Top action row: Tazkiyah & Maamulat on the left, Theme Switcher on the right */}
+      <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-sage-100 dark:bg-sage-950/60 text-sage-700 dark:text-sage-300 text-sm font-semibold border border-sage-200/80 dark:border-sage-800">
             🌿
@@ -74,19 +73,28 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
       </div>
 
-      {/* Main Title & Bilingual Heading */}
-      <div className="text-center space-y-1 mb-4">
-        <h1 className="arabic-text text-3xl sm:text-4xl font-bold text-ink-900 dark:text-white tracking-wide">
-          معمولاتِ یومیہ
+      {/* Date Block: English date bigger on top (left-aligned), Hijri date under it */}
+      <div className="text-left mb-8">
+        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-ink-900 dark:text-white leading-tight">
+          {englishDate}
         </h1>
-        <p className="serif-display text-sm tracking-widest uppercase text-ink-500 dark:text-ink-400">
-          Daily Spiritual Ritual Sheet
-        </p>
-        <p className="text-xs text-ink-600 dark:text-ink-400 font-medium pt-0.5">
-          <span className="arabic-text font-semibold">{urduDay}، {urduDate}</span>
-          <span className="mx-1.5 opacity-40">·</span>
-          <span>{englishDate}</span>
-        </p>
+        {hijriDate && (
+          <p className="text-sm sm:text-base font-semibold text-sage-700 dark:text-sage-400 mt-1">
+            {hijriDate}
+          </p>
+        )}
+      </div>
+
+      {/* Header Titles: moved underneath the dates in smaller font */}
+      <div className="text-left space-y-0.5 mb-3">
+        <div className="flex flex-row-reverse items-baseline gap-2">
+          <h2 className="arabic-text text-base sm:text-lg font-bold text-ink-800 dark:text-ink-200">
+            معمولاتِ یومیہ
+          </h2>
+          <span className="serif-display text-[11px] sm:text-xs tracking-wider uppercase text-ink-500 dark:text-ink-400 font-medium">
+            (Daily Spiritual Ritual Sheet)
+          </span>
+        </div>
       </div>
 
       {/* Customizable Spiritual Goal Tracker Banner */}
@@ -171,11 +179,10 @@ export const Header: React.FC<HeaderProps> = ({
                       key={preset}
                       type="button"
                       onClick={() => setTargetInput(preset.toString())}
-                      className={`flex-1 py-1.5 rounded-lg border text-xs font-semibold transition-all tap-bounce ${
-                        targetInput === preset.toString()
-                          ? 'bg-sage-600 text-white border-sage-600'
-                          : 'bg-paper-100 dark:bg-ink-750 text-ink-700 dark:text-ink-300 border-paper-300 dark:border-ink-650 hover:border-sage-400'
-                      }`}
+                      className={`flex-1 py-1.5 rounded-lg border text-xs font-semibold transition-all tap-bounce ${targetInput === preset.toString()
+                        ? 'bg-sage-600 text-white border-sage-600'
+                        : 'bg-paper-100 dark:bg-ink-750 text-ink-700 dark:text-ink-300 border-paper-300 dark:border-ink-650 hover:border-sage-400'
+                        }`}
                     >
                       {preset}d
                     </button>

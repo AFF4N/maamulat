@@ -6,6 +6,8 @@ interface DailyProgressBarProps {
   totalCount: number;
   percentage: number;
   todayHasanat: number;
+  dateLabel?: string;
+  isViewingPastDay?: boolean;
 }
 
 export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
@@ -13,15 +15,25 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
   totalCount,
   percentage,
   todayHasanat,
+  dateLabel,
+  isViewingPastDay,
 }) => {
   const isAllComplete = completedCount === totalCount && totalCount > 0;
+
+  const titleEnglish = isViewingPastDay && dateLabel
+    ? `${dateLabel}'s Progress`
+    : "Today's Progress";
+
+  const titleUrdu = isViewingPastDay && dateLabel
+    ? `${dateLabel} کی پیشرفت`
+    : "آج کی پیشرفت";
 
   return (
     <div className="rounded-2xl p-4 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm my-3 space-y-2.5">
       <div className="flex items-center justify-between">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">
-            Today's Progress (تکمیل برائے آج)
+            {titleEnglish} <span className="font-normal text-[11px] opacity-75">({titleUrdu})</span>
           </span>
           <div className="flex items-baseline gap-2 mt-0.5">
             <span className="text-lg font-bold text-ink-900 dark:text-white">
@@ -34,7 +46,9 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
         </div>
 
         <div className="text-right">
-          <span className="text-[11px] font-medium text-ink-500 dark:text-ink-400">Earned Today</span>
+          <span className="text-[11px] font-medium text-ink-500 dark:text-ink-400">
+            {isViewingPastDay && dateLabel ? `Earned (${dateLabel})` : 'Earned Today'}
+          </span>
           <p className="text-sm font-bold text-amberGold-600 dark:text-amberGold-400">
             +{todayHasanat} <span className="text-[10px] font-normal">Hasanat</span>
           </p>

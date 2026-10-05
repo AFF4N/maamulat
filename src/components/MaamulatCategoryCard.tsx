@@ -1,11 +1,12 @@
 import React from 'react';
-import type { MaamulatTask, TaskCategory } from '../types';
+import type { MaamulatTask, TaskCategory, CategoryConfig } from '../types';
 import { CATEGORY_INFO } from '../utils/defaultTasks';
 import { MaamulatTaskRow } from './MaamulatTaskRow';
 import { TakbeerOolaStepper } from './TakbeerOolaStepper';
 
 interface MaamulatCategoryCardProps {
   category: TaskCategory;
+  categoryConfig?: CategoryConfig;
   tasks: MaamulatTask[];
   onToggleTask: (id: string) => void;
   onUpdateTaskMeasure?: (taskId: string, measure: string) => void;
@@ -17,6 +18,7 @@ interface MaamulatCategoryCardProps {
 
 export const MaamulatCategoryCard: React.FC<MaamulatCategoryCardProps> = ({
   category,
+  categoryConfig,
   tasks,
   onToggleTask,
   onUpdateTaskMeasure,
@@ -24,15 +26,20 @@ export const MaamulatCategoryCard: React.FC<MaamulatCategoryCardProps> = ({
   takbeerOola,
   onAdjustTakbeerOola,
 }) => {
-  const info = CATEGORY_INFO[category] || {
+  const info = categoryConfig || CATEGORY_INFO[category] || {
     urdu: category,
     english: category,
     emoji: '✨',
     accent: 'border-paper-200 bg-white'
   };
 
-  const completedCount = tasks.filter(t => t.completed).length;
-  const isCategoryComplete = completedCount === tasks.length && tasks.length > 0;
+  const visibleTasks = tasks.filter(t => !t.hidden);
+  const completedCount = visibleTasks.filter(t => t.completed).length;
+  const isCategoryComplete = completedCount === visibleTasks.length && visibleTasks.length > 0;
+
+  if (visibleTasks.length === 0) {
+    return null;
+  }
 
   return (
     <section className="rounded-2xl p-3.5 sm:p-4 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm space-y-3">
@@ -58,13 +65,13 @@ export const MaamulatCategoryCard: React.FC<MaamulatCategoryCardProps> = ({
             : 'bg-paper-100 dark:bg-ink-750 text-ink-500 dark:text-ink-400'
             }`}
         >
-          {completedCount}&nbsp;/&nbsp;{tasks.length}
+          {completedCount}&nbsp;/&nbsp;{visibleTasks.length}
         </span>
       </div>
 
       {/* Task Rows List */}
       <div className="space-y-2">
-        {tasks.map((task) => (
+        {visibleTasks.map((task) => (
           <MaamulatTaskRow
             key={task.id}
             task={task}

@@ -139,11 +139,13 @@ export const MaamulatTaskRow: React.FC<MaamulatTaskRowProps> = ({
                   target="_blank"
                   rel="noopener noreferrer"
                   onClick={(e) => e.stopPropagation()}
-                  className="inline-flex items-center gap-1.5 text-[11px] font-semibold text-emerald-700 dark:text-emerald-300 hover:text-emerald-900 dark:hover:text-white bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 transition-colors tap-bounce"
+                  className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-300 hover:text-emerald-900 dark:hover:text-white transition-colors tap-bounce"
                 >
-                  <FileText className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                  <span className="arabic-text font-bold">{task.linkLabel}</span>
-                  <ExternalLink className="w-2.5 h-2.5 opacity-70" />
+                  <FileText className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 flex-shrink-0" />
+                  <span className="font-sans font-semibold text-[11px] leading-none pt-0.5">
+                    {task.linkLabel}
+                  </span>
+                  <ExternalLink className="w-3 h-3 opacity-70 flex-shrink-0" />
                 </a>
               </div>
             )}
@@ -191,8 +193,8 @@ export const MaamulatTaskRow: React.FC<MaamulatTaskRowProps> = ({
 
       {/* Tilawat Measure Customization Modal */}
       {showMeasureModal && (
-        <div 
-          onClick={(e) => e.stopPropagation()} 
+        <div
+          onClick={(e) => e.stopPropagation()}
           className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
         >
           <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-sm w-full p-4 sm:p-5 border border-paper-300 dark:border-ink-700 shadow-xl space-y-3.5">
@@ -221,11 +223,10 @@ export const MaamulatTaskRow: React.FC<MaamulatTaskRowProps> = ({
                   key={preset.label}
                   type="button"
                   onClick={() => handleSelectMeasure(preset.label)}
-                  className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center justify-center gap-0.5 transition-all tap-bounce ${
-                    (task.customMeasure || 'ایک پاؤ') === preset.label
+                  className={`p-2.5 rounded-xl border text-xs font-semibold flex flex-col items-center justify-center gap-0.5 transition-all tap-bounce ${(task.customMeasure || 'ایک پاؤ') === preset.label
                       ? 'bg-sage-100 dark:bg-sage-900/60 border-sage-500 text-sage-900 dark:text-sage-200 shadow-sm'
                       : 'bg-paper-50 dark:bg-ink-850 border-paper-200 dark:border-ink-700 text-ink-700 dark:text-ink-300 hover:border-sage-300 dark:hover:border-sage-700'
-                  }`}
+                    }`}
                 >
                   <span className="arabic-text text-sm font-bold">{preset.label}</span>
                   <span className="text-[10px] text-ink-500 dark:text-ink-400">{preset.english}</span>

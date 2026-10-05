@@ -77,3 +77,34 @@ export function getDayDifference(dateStr1: string, dateStr2: string): number {
   const date2 = new Date(y2, m2 - 1, d2).getTime();
   return Math.round((date1 - date2) / (1000 * 60 * 60 * 24));
 }
+
+/**
+ * Formats a YYYY-MM-DD date into Islamic Hijri date:
+ * e.g. "23 Rabiʻ II 1448 AH (23 ربیع الثانی 1448ھ)"
+ */
+export function formatHijriDate(dateStr: string): string {
+  try {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const d = new Date(year, month - 1, day);
+
+    // English Hijri
+    const enFormatter = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+    const enHijri = enFormatter.format(d);
+
+    // Urdu Hijri
+    const urFormatter = new Intl.DateTimeFormat('ur-PK-u-ca-islamic-umalqura', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+    const urHijri = urFormatter.format(d).replace('ہجری', 'ھ');
+
+    return `${enHijri} (${urHijri})`;
+  } catch {
+    return '';
+  }
+}

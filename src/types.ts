@@ -5,12 +5,22 @@ export type TaskCategory =
   | 'dhikr_morning' 
   | 'dhikr_evening' 
   | 'nawafil' 
-  | 'duas'
-  | 'hifazat';
+  | 'duas' 
+  | 'hifazat'
+  | (string & {});
+
+export interface CategoryConfig {
+  id: string;
+  urdu: string;
+  english: string;
+  emoji: string;
+  accent?: string;
+  hidden?: boolean;
+}
 
 export interface MaamulatTask {
   id: string;
-  category: TaskCategory;
+  category: string;
   urduTitle: string;
   englishTitle: string;
   description?: string;
@@ -22,6 +32,7 @@ export interface MaamulatTask {
   hasanat: number;
   completed: boolean;
   completedAt?: string;
+  hidden?: boolean;           // Allows hiding tasks from daily sheet
 }
 
 export interface DayRecord {
@@ -36,6 +47,8 @@ export interface DayRecord {
   sleepTime: string;          // e.g. "11:30 PM"
   wakeTime: string;           // e.g. "05:00 AM"
   status: 'completed' | 'partial' | 'missed';
+  reportText?: string;        // Full WhatsApp formatted text report
+  tasks?: MaamulatTask[];     // Task snapshot for that day
 }
 
 export interface MaamulatState {
@@ -52,6 +65,7 @@ export interface MaamulatState {
   takbeerOola: number;        // 0 to 5
   sleepTime: string;          // e.g. "11:30 PM"
   wakeTime: string;           // e.g. "05:00 AM"
+  categories: CategoryConfig[]; // customizable sections
   tasks: MaamulatTask[];
   history: DayRecord[];
   murrabiContact?: string;    // from ?murrabi= or stored

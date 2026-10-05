@@ -7,6 +7,7 @@ interface StreakAndHasanatProps {
   highestStreak: number;
   totalHasanat: number;
   todayHasanat: number;
+  dateLabel?: string;
 }
 
 export const StreakAndHasanat: React.FC<StreakAndHasanatProps> = ({
@@ -14,6 +15,7 @@ export const StreakAndHasanat: React.FC<StreakAndHasanatProps> = ({
   highestStreak,
   totalHasanat,
   todayHasanat,
+  dateLabel,
 }) => {
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [fade, setFade] = useState(true);
@@ -80,7 +82,7 @@ export const StreakAndHasanat: React.FC<StreakAndHasanatProps> = ({
               {totalHasanat.toLocaleString()}
             </span>
             <span className="text-[10px] uppercase font-bold text-sage-700 dark:text-sage-300 bg-sage-100 dark:bg-sage-900/60 px-1.5 py-0.5 rounded-md">
-              +{todayHasanat} today
+              +{todayHasanat} {dateLabel || 'today'}
             </span>
           </div>
 
@@ -90,23 +92,23 @@ export const StreakAndHasanat: React.FC<StreakAndHasanatProps> = ({
         </div>
       </div>
 
-      {/* Warm Halal Wit & Encouragement Bar */}
+      {/* Warm Halal Wit & Encouragement Bar (Fixed 2 lines to prevent truncation) */}
       <div
         onClick={rotateQuote}
-        className="cursor-pointer select-none rounded-xl px-3.5 py-2 bg-paper-100/90 dark:bg-ink-800/60 border border-paper-300/60 dark:border-ink-700/60 flex items-center justify-between gap-2 text-xs text-ink-700 dark:text-ink-300 hover:border-sage-300 dark:hover:border-sage-700 transition-colors"
+        className="cursor-pointer select-none rounded-xl px-3.5 py-2.5 bg-paper-100/90 dark:bg-ink-800/60 border border-paper-300/60 dark:border-ink-700/60 flex items-center justify-between gap-2.5 text-xs text-ink-700 dark:text-ink-300 hover:border-sage-300 dark:hover:border-sage-700 transition-colors tap-bounce"
         title="Tap for another encouragement"
       >
-        <div className="flex items-center gap-2 overflow-hidden">
-          <span className="text-sm">💬</span>
+        <div className="flex items-center gap-2 flex-1 min-w-0">
+          <span className="text-sm shrink-0">💬</span>
           <p
-            className={`italic transition-opacity duration-200 truncate ${
+            className={`italic transition-opacity duration-200 line-clamp-2 leading-snug min-h-[2.4rem] flex items-center ${
               fade ? 'opacity-100' : 'opacity-0'
             }`}
           >
             "{currentQuote.quote}"
           </p>
         </div>
-        <RefreshCw className="w-3 h-3 text-ink-400 opacity-60 flex-shrink-0 hover:rotate-180 transition-transform duration-300" />
+        <RefreshCw className="w-3.5 h-3.5 text-ink-400 opacity-60 shrink-0 hover:rotate-180 transition-transform duration-300" />
       </div>
     </div>
   );

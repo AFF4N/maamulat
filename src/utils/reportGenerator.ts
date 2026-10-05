@@ -1,4 +1,4 @@
-import type { MaamulatState } from '../types';
+import type { MaamulatState, DayRecord } from '../types';
 import { formatUrduDate } from './dateUtils';
 
 /**
@@ -6,11 +6,6 @@ import { formatUrduDate } from './dateUtils';
  * matching the user's daily spiritual habit tracker.
  */
 export function generateWhatsAppReport(state: MaamulatState): string {
-  const getTaskStatus = (id: string): string => {
-    const t = state.tasks.find(x => x.id === id);
-    return t && t.completed ? '✅' : '❌';
-  };
-
   const urduDate = formatUrduDate(state.todayDate);
 
   const lines: string[] = [];
@@ -22,70 +17,36 @@ export function generateWhatsAppReport(state: MaamulatState): string {
   lines.push(`*تاریخ:* ${urduDate}`);
   lines.push('');
 
-  // 1. Salah in congregation
-  lines.push(`🔸فجر باجماعت ${getTaskStatus('fajr_jamaat')}`);
-  lines.push(`🔸ظہر با جماعت ${getTaskStatus('zuhr_jamaat')}`);
-  lines.push(`🔸عصر باجماعت ${getTaskStatus('asr_jamaat')}`);
-  lines.push(`🔸مغرب باجماعت ${getTaskStatus('maghrib_jamaat')}`);
-  lines.push(`🔸 عشاء باجماعت ${getTaskStatus('isha_jamaat')}`);
-  lines.push(`🔸تکبیر اولی ${state.takbeerOola}/5`);
-  lines.push('');
+  // Active categories & tasks
+  const categories = state.categories && state.categories.length > 0
+    ? state.categories.filter(c => !c.hidden)
+    : [];
 
-  // 2. Sunnah
-  lines.push('*🟢 سنتوں پر عمل*');
-  lines.push(`🔸مسواک ${getTaskStatus('miswak')}`);
-  lines.push('');
+  categories.forEach((cat) => {
+    const catTasks = state.tasks.filter(t => t.category === cat.id && !t.hidden);
+    if (catTasks.length === 0) return;
 
-  // 3. Quran Tilawat
-  lines.push('*🔵 قرآن تلاوت*');
-  lines.push(`🔹سورہ یاسین ${getTaskStatus('surah_yaseen')}`);
-  lines.push(`🔹سورہ واقعہ ${getTaskStatus('surah_waqiah')}`);
-  const tilawatTask = state.tasks.find(t => t.id === 'tilawat_paao');
-  const tilawatLabel = tilawatTask ? tilawatTask.urduTitle : 'تلاوت ( ایک پاؤ )';
-  lines.push(`🔹${tilawatLabel} ${getTaskStatus('tilawat_paao')}`);
-  lines.push('');
+    // Category Header (e.g. *🟢 سنتوں پر عمل*)
+    lines.push(`*${cat.emoji} ${cat.urdu}*`);
 
-  // 4. Morning Dhikr
-  lines.push('*🔴 ذکر صبح*');
-  lines.push(`🔺 استغفار 100 ${getTaskStatus('istighfar_morning')}`);
-  lines.push(`🔺درود شریف 100 ${getTaskStatus('durood_morning')}`);
-  lines.push(`🔺تیسرا کلمہ 100 ${getTaskStatus('kalimah3_morning')}`);
-  lines.push(`🔺پہلا کلمہ 100 ${getTaskStatus('kalimah1_morning')}`);
-  lines.push('');
+    // Tasks under category
+    catTasks.forEach((task) => {
+      const status = task.completed ? '✅' : '❌';
+      lines.push(`${task.emoji}${task.urduTitle} ${status}`);
+    });
 
-  // 5. Evening Dhikr
-  lines.push('*🔴 ذکر شام*');
-  lines.push(`🔺 استغفار 100 ${getTaskStatus('istighfar_evening')}`);
-  lines.push(`🔺درود شریف 100 ${getTaskStatus('durood_evening')}`);
-  lines.push(`🔺تیسرا کلمہ 100 ${getTaskStatus('kalimah3_evening')}`);
-  lines.push(`🔺پہلا کلمہ 100 ${getTaskStatus('kalimah1_evening')}`);
-  lines.push('');
+    // If salah, include Takbeer-e-Oola count
+    if (cat.id === 'salah' && state.takbeerOola !== undefined) {
+      lines.push(`🔸تکبیر اولی ${state.takbeerOola}/5`);
+    }
 
-  // 6. Nawafil
-  lines.push('*🟢نوافل*');
-  lines.push(`🟩 تہجد ${getTaskStatus('tahajjud')}`);
-  lines.push(`🟩 اشراق ${getTaskStatus('ishraq')}`);
-  lines.push(`🟩 چاشت ${getTaskStatus('chasht')}`);
-  lines.push(`🟩 اوابین ${getTaskStatus('awwabin')}`);
-  lines.push('');
+    lines.push('');
+  });
 
-  // 7. Duas
-  lines.push('*⚫ دعائیں*');
-  lines.push(`◼️تہجد کے بعد دعا ${getTaskStatus('dua_tahajjud')}`);
-  lines.push(`◼️ مناجات فقیر ${getTaskStatus('munajat_faqeer')}`);
-  lines.push('');
-
-  // 8. Guarding Senses & Limbs
-  lines.push('*🛡️ اعضاء کی حفاظت*');
-  lines.push(`🔹زبان کی حفاظت ${getTaskStatus('zuban_hifazat')}`);
-  lines.push(`🔹نظروں کی حفاظت ${getTaskStatus('nazaron_hifazat')}`);
-  lines.push(`🔹کانوں کی حفاظت ${getTaskStatus('kaanon_hifazat')}`);
-  lines.push('');
-
-  // 8. Sleep & Wake times
+  // Sleep & Wake times
   lines.push('*🟤 سونے اور جاگنے کا وقت*');
-  lines.push(`🟫 سونے کا وقت: ${state.sleepTime || '11:30PM'}`);
-  lines.push(`🟫 جاگنے کا وقت: ${state.wakeTime || '05:00AM'}`);
+  lines.push(`🟫 سونے کا وقت: ${state.sleepTime || '11:30 PM'}`);
+  lines.push(`🟫 جاگنے کا وقت: ${state.wakeTime || '05:00 AM'}`);
 
   return lines.join('\n');
 }
@@ -101,4 +62,44 @@ export function buildWhatsAppLink(phone: string, text: string): string {
     return `https://wa.me/${cleanPhone}?text=${encoded}`;
   }
   return `https://wa.me/?text=${encoded}`;
+}
+
+/**
+ * Retrieves the full WhatsApp report for a past DayRecord.
+ * 1. Checks if a pre-generated reportText snapshot exists.
+ * 2. Or regenerates from the tasks snapshot if preserved.
+ * 3. Falls back cleanly to summary stats for legacy day records.
+ */
+export function getReportForDayRecord(record: DayRecord, state: MaamulatState): string {
+  if (record.reportText) {
+    return record.reportText;
+  }
+
+  if (record.tasks && record.tasks.length > 0) {
+    return generateWhatsAppReport({
+      ...state,
+      todayDate: record.date,
+      goalDay: record.goalDay,
+      goalMaxDays: record.goalMaxDays,
+      takbeerOola: record.takbeerOola,
+      sleepTime: record.sleepTime,
+      wakeTime: record.wakeTime,
+      tasks: record.tasks,
+    });
+  }
+
+  // Fallback for legacy day records without full task snapshot
+  const lines: string[] = [];
+  lines.push(`*ہدف یوم:* ${record.goalDay || 1}/${record.goalMaxDays || 40}`);
+  lines.push(`*تاریخ:* ${record.urduDate || record.date}`);
+  lines.push('');
+  lines.push(`*📊 تکمیل معمولات:* ${record.completedCount}/${record.totalCount}`);
+  lines.push(`*🔸 تکبیر اولی:* ${record.takbeerOola}/5`);
+  lines.push(`*✨ کمائے گئے حسنات:* +${record.hasanatEarned}`);
+  lines.push('');
+  lines.push('*🟤 سونے اور جاگنے کا وقت*');
+  lines.push(`🟫 سونے کا وقت: ${record.sleepTime || '11:30 PM'}`);
+  lines.push(`🟫 جاگنے کا وقت: ${record.wakeTime || '05:00 AM'}`);
+
+  return lines.join('\n');
 }

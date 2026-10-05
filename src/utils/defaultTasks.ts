@@ -1,4 +1,63 @@
-import type { MaamulatTask, EncouragementQuote } from '../types';
+import type { MaamulatTask, EncouragementQuote, CategoryConfig } from '../types';
+
+export const DEFAULT_CATEGORIES: CategoryConfig[] = [
+  {
+    id: 'salah',
+    urdu: 'نماز پنجگانہ باجماعت',
+    english: '5 Daily Prayers (Congregation)',
+    emoji: '🕌',
+    accent: 'border-sage-300 dark:border-sage-700/60 bg-sage-50/40 dark:bg-sage-900/10'
+  },
+  {
+    id: 'sunnah',
+    urdu: 'سنتوں پر عمل',
+    english: 'Sunnah Practices',
+    emoji: '🟢',
+    accent: 'border-emerald-200 dark:border-emerald-800/40 bg-emerald-50/30 dark:bg-emerald-950/10'
+  },
+  {
+    id: 'quran',
+    urdu: 'قرآن تلاوت',
+    english: 'Qur\'an Recitation',
+    emoji: '🔵',
+    accent: 'border-sky-200 dark:border-sky-800/40 bg-sky-50/30 dark:bg-sky-950/10'
+  },
+  {
+    id: 'dhikr_morning',
+    urdu: 'ذکر صبح (۱۰۰ مرتبہ)',
+    english: 'Morning Dhikr (100x)',
+    emoji: '🔴',
+    accent: 'border-amber-200 dark:border-amber-800/40 bg-amber-50/30 dark:bg-amber-950/10'
+  },
+  {
+    id: 'dhikr_evening',
+    urdu: 'ذکر شام (۱۰۰ مرتبہ)',
+    english: 'Evening Dhikr (100x)',
+    emoji: '🔴',
+    accent: 'border-orange-200 dark:border-orange-800/40 bg-orange-50/30 dark:bg-orange-950/10'
+  },
+  {
+    id: 'nawafil',
+    urdu: 'نوافل',
+    english: 'Nawafil Prayers',
+    emoji: '🟢',
+    accent: 'border-teal-200 dark:border-teal-800/40 bg-teal-50/30 dark:bg-teal-950/10'
+  },
+  {
+    id: 'duas',
+    urdu: 'دعائیں و مناجات',
+    english: 'Duas & Munajat',
+    emoji: '⚫',
+    accent: 'border-stone-200 dark:border-stone-800/40 bg-stone-50/30 dark:bg-stone-900/20'
+  },
+  {
+    id: 'hifazat',
+    urdu: 'حفاظتِ جوارح و اعضاء',
+    english: 'Guarding Senses & Limbs',
+    emoji: '🛡️',
+    accent: 'border-indigo-200 dark:border-indigo-800/40 bg-indigo-50/30 dark:bg-indigo-950/10'
+  }
+];
 
 export const DEFAULT_TASKS: MaamulatTask[] = [
   // 🕌 نماز باجماعت (Salah in Congregation)

@@ -17,12 +17,18 @@ interface MurrabiAccountabilityProps {
   state: MaamulatState;
   onUpdateMurrabiContact: (contact: string) => void;
   currentStreak: number;
+  isViewingPastDay?: boolean;
+  activeDateLabel?: string;
+  onSelectYesterday?: () => void;
 }
 
 export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
   state,
   onUpdateMurrabiContact,
   currentStreak,
+  isViewingPastDay,
+  activeDateLabel,
+  onSelectYesterday,
 }) => {
   const [showWhyModal, setShowWhyModal] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -89,17 +95,18 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
             <HeartHandshake className="w-5 h-5" />
           </span>
           <div className="min-w-0 flex-1">
-            <div className="flex flex-row-reverse items-baseline justify-between gap-2">
-              <h3 className="arabic-text text-lg sm:text-xl font-bold text-ink-900 dark:text-white leading-tight">
-                ارسال برائے مربی
-              </h3>
-              <span className="text-xs text-ink-500 dark:text-ink-400 font-medium">
-                (Murrabi Report)
-              </span>
-            </div>
-            <p className="text-[11px] text-ink-600 dark:text-ink-400">
-              Share your daily sheet with your spiritual mentor or accountability partner.
-            </p>
+            <h3 className="text-base sm:text-lg font-bold text-ink-900 dark:text-white leading-tight">
+              Murrabi Report <span className="arabic-text text-sm font-normal opacity-75">(ارسال برائے مربی)</span>
+            </h3>
+            {isViewingPastDay ? (
+              <p className="text-[11px] font-medium text-amber-700 dark:text-amber-300 mt-0.5">
+                Selected: {activeDateLabel || state.todayDate} Report · منتخب رپورٹ. Review or edit tasks above, then send to your mentor.
+              </p>
+            ) : (
+              <p className="text-[11px] text-ink-600 dark:text-ink-400 mt-0.5">
+                Share your daily sheet with your spiritual mentor or accountability partner. (مربی سے روزانہ شیٹ شیئر کریں)
+              </p>
+            )}
           </div>
         </div>
 
@@ -189,7 +196,7 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
           className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-sage-700 hover:bg-sage-800 text-white text-xs font-bold transition-all shadow-sm tap-bounce"
         >
           <Send className="w-3.5 h-3.5" />
-          <span>Send via WhatsApp</span>
+          <span>{isViewingPastDay ? 'Send Selected Day via WhatsApp' : 'Send via WhatsApp'}</span>
         </button>
 
         <button
@@ -212,6 +219,17 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
           )}
         </button>
       </div>
+
+      {/* Yesterday's Quick Switch Button (if on today) */}
+      {!isViewingPastDay && onSelectYesterday && (
+        <button
+          onClick={onSelectYesterday}
+          className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50 text-xs font-semibold tap-bounce transition-all"
+        >
+          <span>Switch to Yesterday's Report (کل کی رپورٹ دیکھیں و بھیجیں)</span>
+          <span>➔</span>
+        </button>
+      )}
 
       {/* Toggle Live Report Preview */}
       <div className="pt-1">
