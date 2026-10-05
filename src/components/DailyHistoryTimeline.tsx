@@ -49,7 +49,21 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
 
       {/* 7-Day Pill Row */}
       <div className="grid grid-cols-7 gap-1.5 pt-1">
-        {/* Past days */}
+        {/* Fill empty placeholder pills on the left so dates stack against Today on the right */}
+        {Array.from({ length: Math.max(0, 6 - recentDays.length) }).map((_, i) => (
+          <div
+            key={`placeholder-${i}`}
+            className="flex flex-col items-center py-2 px-1 rounded-xl border border-dashed border-paper-300 dark:border-ink-700/60 bg-paper-50/40 dark:bg-ink-800/40 text-ink-300 dark:text-ink-600 text-center"
+          >
+            <span className="text-[10px] font-normal mb-1 opacity-50">—</span>
+            <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs">
+              ·
+            </span>
+            <span className="text-[9px] mt-1 opacity-40">—</span>
+          </div>
+        ))}
+
+        {/* Past days (ordered oldest -> yesterday right before Today) */}
         {recentDays.map((rec) => {
           const isPassed = rec.status === 'completed';
           const isPartial = rec.status === 'partial';
@@ -91,20 +105,6 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
             </button>
           );
         })}
-
-        {/* Fill empty placeholder pills if less than 6 past records exist */}
-        {Array.from({ length: Math.max(0, 6 - recentDays.length) }).map((_, i) => (
-          <div
-            key={`placeholder-${i}`}
-            className="flex flex-col items-center py-2 px-1 rounded-xl border border-dashed border-paper-300 dark:border-ink-700/60 bg-paper-50/40 dark:bg-ink-800/40 text-ink-300 dark:text-ink-600 text-center"
-          >
-            <span className="text-[10px] font-normal mb-1 opacity-50">—</span>
-            <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs">
-              ·
-            </span>
-            <span className="text-[9px] mt-1 opacity-40">—</span>
-          </div>
-        ))}
 
         {/* Today Pill */}
         <button

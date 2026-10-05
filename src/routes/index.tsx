@@ -10,6 +10,7 @@ import { SleepWakeCard } from '../components/SleepWakeCard';
 import { MurrabiAccountability } from '../components/MurrabiAccountability';
 import { PrivacyFooter } from '../components/PrivacyFooter';
 import { TaskCustomizerScreen } from '../components/TaskCustomizerScreen';
+import { ScrollToTop } from '../components/ScrollToTop';
 
 interface AppRouterProps {
   maamulat: ReturnType<typeof useMaamulat>;
@@ -100,7 +101,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     <div className="min-h-screen bg-paper-50 dark:bg-[#121514] text-ink-900 dark:text-[#E8ECE9] transition-colors duration-300">
       {/* Mobile-first centered container with safe-area spacing */}
       <main className="max-w-xl mx-auto px-3.5 sm:px-5 py-4 pb-16 space-y-4">
-        {/* 1. Header with Spiritual Goal Tracker & Theme Toggle */}
+        {/* 1. Header with Spiritual Goal Tracker & Menu Drawer */}
         <Header
           todayDate={selectedDate}
           goalDay={activeGoalDay}
@@ -109,6 +110,10 @@ export const AppRouter: React.FC<AppRouterProps> = ({
           onUpdateGoalMaxDays={setGoalTargetDays}
           isDark={isDark}
           onToggleTheme={onToggleTheme}
+          onNavigateToCustomize={() => navigateTo('/customize')}
+          state={state}
+          onResetToday={resetToday}
+          onResetToDefault={resetCategoriesAndTasksToDefault}
         />
 
         {/* 2. Streak and Hasanat Stat Cards with Halal Wit / Encouragements */}
@@ -212,6 +217,9 @@ export const AppRouter: React.FC<AppRouterProps> = ({
           onSimulateNextDay={simulateNextDay}
           onResetToday={resetToday}
         />
+
+        {/* Floating Scroll To Top Button */}
+        <ScrollToTop />
       </main>
     </div>
   );

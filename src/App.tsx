@@ -25,6 +25,19 @@ export function App() {
     }
   }, [isDark]);
 
+  // Detect PWA standalone mode and tag root for consistent styling across platforms
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const isStandalone =
+        window.matchMedia('(display-mode: standalone)').matches ||
+        (window.navigator as unknown as { standalone?: boolean }).standalone === true;
+
+      if (isStandalone) {
+        document.documentElement.classList.add('standalone');
+      }
+    }
+  }, []);
+
   const toggleTheme = () => setIsDark((prev) => !prev);
 
   return (

@@ -104,13 +104,15 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
 
   const handleCreateCategory = (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-    if (!newCatUrdu.trim()) return;
+    const english = newCatEnglish.trim() || newCatUrdu.trim();
+    const urdu = newCatUrdu.trim() || newCatEnglish.trim();
+    if (!english && !urdu) return;
 
     const newId = `custom_${Date.now()}`;
     const newCategory: CategoryConfig = {
       id: newId,
-      urdu: newCatUrdu.trim(),
-      english: newCatEnglish.trim() || newCatUrdu.trim(),
+      urdu,
+      english,
       emoji: newCatEmoji.trim() || '✨',
       accent: 'border-sage-300 dark:border-sage-700/60 bg-sage-50/40 dark:bg-sage-900/10',
       hidden: false,
@@ -157,13 +159,16 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
   };
 
   const handleCreateTask = (catId: string) => {
-    if (!newTaskUrdu.trim()) return;
+    const english = newTaskEnglish.trim() || newTaskUrdu.trim();
+    const urdu = newTaskUrdu.trim() || newTaskEnglish.trim();
+    if (!english && !urdu) return;
+
     const newId = `task_${Date.now()}`;
     const newTask: MaamulatTask = {
       id: newId,
       category: catId,
-      urduTitle: newTaskUrdu.trim(),
-      englishTitle: newTaskEnglish.trim() || newTaskUrdu.trim(),
+      urduTitle: urdu,
+      englishTitle: english,
       emoji: newTaskEmoji || '🔹',
       hasanat: Number(newTaskHasanat) || 20,
       completed: false,
@@ -198,7 +203,7 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
   const totalActiveCategories = categories.filter(c => !c.hidden).length;
 
   return (
-    <div className="min-h-screen bg-paper-50 dark:bg-[#121514] text-ink-900 dark:text-[#E8ECE9] py-5 px-3.5 sm:px-6">
+    <div className="min-h-screen bg-paper-50 dark:bg-[#121514] text-ink-900 dark:text-[#E8ECE9] py-5 standalone:pt-[calc(1.25rem+env(safe-area-inset-top,0px))] px-3.5 sm:px-6">
       <div className="max-w-2xl mx-auto space-y-5">
         {/* Navigation & Action Bar */}
         <div className="flex items-center justify-between gap-3 border-b border-paper-200 dark:border-ink-800 pb-4">
@@ -207,7 +212,7 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
             className="inline-flex items-center gap-2 text-xs font-semibold text-ink-600 dark:text-ink-400 hover:text-ink-900 dark:hover:text-white px-3 py-1.5 rounded-xl bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700 shadow-soft-sm transition-colors tap-bounce"
           >
             <ArrowLeft className="w-4 h-4" />
-            <span>معمولات شیٹ (Back to Sheet)</span>
+            <span>Back to Sheet (معمولات شیٹ)</span>
           </button>
 
           <div className="flex items-center gap-2">
@@ -248,10 +253,13 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
 
         {/* Screen Header */}
         <div className="space-y-1.5">
-          <div className="flex items-center justify-between">
-            <h1 className="arabic-text text-2xl sm:text-3xl font-bold text-ink-900 dark:text-white">
-              معمولات کی تخصیص و سیٹنگز
+          <div className="flex flex-col sm:flex-row sm:items-baseline gap-1 sm:gap-2.5">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-ink-900 dark:text-white">
+              Customize Maamulat
             </h1>
+            <span className="arabic-text text-sm sm:text-base font-semibold text-sage-700 dark:text-sage-400">
+              (معمولات کی تخصیص و سیٹنگز)
+            </span>
           </div>
           <p className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed">
             Customize your daily spiritual checklist: add custom sections, edit task names, change Hasanat rewards, or hide items you are not practicing right now.
@@ -289,21 +297,21 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
                       title="Section Emoji"
                     />
 
-                    {/* Section Titles */}
+                    {/* Section Titles (English Primary, Urdu Secondary) */}
                     <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                      <input
-                        type="text"
-                        value={cat.urdu}
-                        onChange={(e) => handleUpdateCategory(cat.id, { urdu: e.target.value })}
-                        placeholder="سیکشن کا نام (Urdu)"
-                        className="arabic-text text-sm sm:text-base font-bold bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-900 dark:text-white px-1"
-                      />
                       <input
                         type="text"
                         value={cat.english}
                         onChange={(e) => handleUpdateCategory(cat.id, { english: e.target.value })}
                         placeholder="Section Name (English)"
-                        className="text-xs font-medium bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-600 dark:text-ink-400 px-1"
+                        className="text-xs sm:text-sm font-semibold bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-900 dark:text-white px-1"
+                      />
+                      <input
+                        type="text"
+                        value={cat.urdu}
+                        onChange={(e) => handleUpdateCategory(cat.id, { urdu: e.target.value })}
+                        placeholder="سیکشن کا نام (Urdu)"
+                        className="arabic-text text-sm sm:text-base font-bold bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-700 dark:text-ink-300 px-1"
                       />
                     </div>
                   </div>
@@ -395,21 +403,21 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
                                   title="Task Emoji"
                                 />
 
-                                {/* Urdu & English Titles */}
+                                {/* Task Titles (English Primary, Urdu Secondary) */}
                                 <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-2">
-                                  <input
-                                    type="text"
-                                    value={task.urduTitle}
-                                    onChange={(e) => handleUpdateTask(task.id, { urduTitle: e.target.value })}
-                                    placeholder="ٹاسک کا نام (Urdu)"
-                                    className="arabic-text text-sm font-bold bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-900 dark:text-white"
-                                  />
                                   <input
                                     type="text"
                                     value={task.englishTitle}
                                     onChange={(e) => handleUpdateTask(task.id, { englishTitle: e.target.value })}
                                     placeholder="Task Title (English)"
-                                    className="text-xs bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-600 dark:text-ink-400"
+                                    className="text-xs sm:text-sm font-medium bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-900 dark:text-white"
+                                  />
+                                  <input
+                                    type="text"
+                                    value={task.urduTitle}
+                                    onChange={(e) => handleUpdateTask(task.id, { urduTitle: e.target.value })}
+                                    placeholder="ٹاسک کا نام (Urdu)"
+                                    className="arabic-text text-sm font-bold bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-700 dark:text-ink-300"
                                   />
                                 </div>
                               </div>
@@ -469,7 +477,7 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
                               <div className="mt-3 pt-2.5 border-t border-paper-200 dark:border-ink-700 space-y-2 text-xs animate-fadeIn">
                                 <div>
                                   <label className="text-[10px] font-semibold text-ink-500 uppercase tracking-wider block mb-0.5">
-                                    Description / فضیلت کا خلاصہ:
+                                    Description (خلاصہ و فضیلت):
                                   </label>
                                   <input
                                     type="text"
@@ -482,7 +490,7 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
 
                                 <div>
                                   <label className="text-[10px] font-semibold text-ink-500 uppercase tracking-wider block mb-0.5">
-                                    Info Tooltip (طریقہ و احادیثِ مبارکہ):
+                                    Guidance Tooltip (طریقہ و احادیث):
                                   </label>
                                   <textarea
                                     value={task.infoTooltip || ''}
@@ -530,22 +538,22 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
                     {addingTaskInCat === cat.id ? (
                       <div className="p-3 rounded-xl border border-sage-300 dark:border-sage-800 bg-sage-50/50 dark:bg-sage-950/20 space-y-2.5 animate-fadeIn">
                         <div className="text-xs font-bold text-sage-900 dark:text-sage-200">
-                          نواں ٹاسک شامل کریں (+ Add New Task)
+                          Add New Task (+ نیا ٹاسک شامل کریں)
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                          <input
+                            type="text"
+                            value={newTaskEnglish}
+                            onChange={(e) => setNewTaskEnglish(e.target.value)}
+                            placeholder="Task title in English (e.g. Surah Mulk)"
+                            className="text-xs px-2.5 py-1.5 rounded-lg border border-sage-300 dark:border-sage-700 bg-white dark:bg-ink-850 focus:outline-none text-ink-900 dark:text-white"
+                          />
                           <input
                             type="text"
                             value={newTaskUrdu}
                             onChange={(e) => setNewTaskUrdu(e.target.value)}
                             placeholder="ٹاسک کا نام (اردو)"
                             className="arabic-text text-xs px-2.5 py-1.5 rounded-lg border border-sage-300 dark:border-sage-700 bg-white dark:bg-ink-850 focus:outline-none text-ink-900 dark:text-white"
-                          />
-                          <input
-                            type="text"
-                            value={newTaskEnglish}
-                            onChange={(e) => setNewTaskEnglish(e.target.value)}
-                            placeholder="Task title (English)"
-                            className="text-xs px-2.5 py-1.5 rounded-lg border border-sage-300 dark:border-sage-700 bg-white dark:bg-ink-850 focus:outline-none text-ink-900 dark:text-white"
                           />
                         </div>
                         <div className="flex items-center justify-between gap-2 pt-1">
@@ -590,7 +598,7 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
                         className="w-full py-2 rounded-xl border border-dashed border-paper-300 dark:border-ink-700 hover:border-sage-400 dark:hover:border-sage-600 text-xs font-semibold text-ink-500 hover:text-sage-700 dark:hover:text-sage-300 flex items-center justify-center gap-1.5 transition-colors tap-bounce"
                       >
                         <Plus className="w-3.5 h-3.5" />
-                        <span>Add Task to {cat.english}</span>
+                        <span>Add Task to {cat.english || cat.urdu}</span>
                       </button>
                     )}
                   </div>
@@ -608,7 +616,7 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
                 <Plus className="w-4 h-4" />
               </span>
               <h3 className="text-sm font-bold text-ink-900 dark:text-white">
-                نیا سیکشن شامل کریں (+ Add New Custom Section)
+                Add New Section (+ نیا سیکشن شامل کریں)
               </h3>
             </div>
             {!isAddingCategory && (
@@ -632,35 +640,35 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
                 onClick={() => addCategoryPreset('مطالعہ کتب و علم', 'Book Reading & Study', '📚')}
                 className="text-xs px-2.5 py-1 rounded-xl bg-paper-100 dark:bg-ink-800 border border-paper-200 dark:border-ink-700 hover:border-sage-400 text-ink-700 dark:text-ink-300 transition-colors tap-bounce"
               >
-                📚 مطالعہ کتب (Reading)
+                📚 Book Reading (مطالعہ کتب)
               </button>
               <button
                 type="button"
                 onClick={() => addCategoryPreset('صدقہ و سخاوت', 'Daily Sadaqah & Giving', '🤲')}
                 className="text-xs px-2.5 py-1 rounded-xl bg-paper-100 dark:bg-ink-800 border border-paper-200 dark:border-ink-700 hover:border-sage-400 text-ink-700 dark:text-ink-300 transition-colors tap-bounce"
               >
-                🤲 صدقہ و خیرات (Sadaqah)
+                🤲 Daily Sadaqah (صدقہ و خیرات)
               </button>
               <button
                 type="button"
                 onClick={() => addCategoryPreset('مراقبہ و محاسبہ', 'Muraqabah & Reflection', '🕯️')}
                 className="text-xs px-2.5 py-1 rounded-xl bg-paper-100 dark:bg-ink-800 border border-paper-200 dark:border-ink-700 hover:border-sage-400 text-ink-700 dark:text-ink-300 transition-colors tap-bounce"
               >
-                🕯️ مراقبہ (Muraqabah)
+                🕯️ Muraqabah (مراقبہ و محاسبہ)
               </button>
               <button
                 type="button"
                 onClick={() => addCategoryPreset('صلہ رحمی و والدین', 'Family Ties & Parents', '🏡')}
                 className="text-xs px-2.5 py-1 rounded-xl bg-paper-100 dark:bg-ink-800 border border-paper-200 dark:border-ink-700 hover:border-sage-400 text-ink-700 dark:text-ink-300 transition-colors tap-bounce"
               >
-                🏡 صلہ رحمی (Kinship)
+                🏡 Family Ties (صلہ رحمی)
               </button>
               <button
                 type="button"
                 onClick={() => addCategoryPreset('ورزش و حفظانِ صحت', 'Health & Physical Routine', '🌱')}
                 className="text-xs px-2.5 py-1 rounded-xl bg-paper-100 dark:bg-ink-800 border border-paper-200 dark:border-ink-700 hover:border-sage-400 text-ink-700 dark:text-ink-300 transition-colors tap-bounce"
               >
-                🌱 ورزش و صحت (Health)
+                🌱 Health & Fitness (ورزش و صحت)
               </button>
             </div>
           </div>
@@ -671,18 +679,17 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
                 <input
                   type="text"
-                  value={newCatUrdu}
-                  onChange={(e) => setNewCatUrdu(e.target.value)}
-                  placeholder="سیکشن کا نام اردو میں (e.g. مطالعہ کتب)"
-                  required
-                  className="arabic-text text-xs px-3 py-2 rounded-xl border border-paper-300 dark:border-ink-700 bg-white dark:bg-ink-800 focus:outline-none focus:ring-1 focus:ring-sage-500 text-ink-900 dark:text-white"
-                />
-                <input
-                  type="text"
                   value={newCatEnglish}
                   onChange={(e) => setNewCatEnglish(e.target.value)}
                   placeholder="Section title in English (e.g. Daily Study)"
                   className="text-xs px-3 py-2 rounded-xl border border-paper-300 dark:border-ink-700 bg-white dark:bg-ink-800 focus:outline-none focus:ring-1 focus:ring-sage-500 text-ink-900 dark:text-white"
+                />
+                <input
+                  type="text"
+                  value={newCatUrdu}
+                  onChange={(e) => setNewCatUrdu(e.target.value)}
+                  placeholder="سیکشن کا نام اردو میں (e.g. مطالعہ کتب)"
+                  className="arabic-text text-xs px-3 py-2 rounded-xl border border-paper-300 dark:border-ink-700 bg-white dark:bg-ink-800 focus:outline-none focus:ring-1 focus:ring-sage-500 text-ink-900 dark:text-white"
                 />
               </div>
               <div className="flex items-center justify-between pt-1">
@@ -730,7 +737,7 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
             className="inline-flex items-center gap-1.5 text-xs font-bold text-white bg-sage-600 hover:bg-sage-700 px-5 py-2.5 rounded-xl shadow-md transition-colors tap-bounce"
           >
             <Save className="w-4 h-4" />
-            <span>Save All Changes (محفوظ کریں)</span>
+            <span>Save All Changes (تمام ترامیم محفوظ کریں)</span>
           </button>
         </div>
       </div>
@@ -739,9 +746,14 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
       {showResetConfirm && (
         <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn">
           <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-sm w-full p-5 border border-paper-300 dark:border-ink-700 shadow-xl space-y-3">
-            <h4 className="arabic-text text-base font-bold text-ink-900 dark:text-white">
-              اصل حالت پر بحال کریں؟
-            </h4>
+            <div className="space-y-1">
+              <h4 className="text-base font-bold text-ink-900 dark:text-white">
+                Reset to Original Defaults?
+              </h4>
+              <p className="arabic-text text-sm font-semibold text-terracotta-600 dark:text-terracotta-400">
+                (کیا آپ تمام ترامیم اصل حالت پر بحال کرنا چاہتے ہیں؟)
+              </p>
+            </div>
             <p className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed">
               Are you sure you want to reset all sections and tasks back to the original traditional Tazkiyah defaults? Any custom added sections will be cleared.
             </p>

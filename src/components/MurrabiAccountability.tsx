@@ -224,10 +224,10 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
       {!isViewingPastDay && onSelectYesterday && (
         <button
           onClick={onSelectYesterday}
-          className="w-full flex items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50 text-xs font-semibold tap-bounce transition-all"
+          className="w-full flex flex-col items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50 text-xs font-semibold tap-bounce transition-all"
         >
-          <span>Switch to Yesterday's Report (کل کی رپورٹ دیکھیں و بھیجیں)</span>
-          <span>➔</span>
+          <span>Switch to Yesterday's Report ➔</span>
+          <span className='arabic-text'>(کل کی رپورٹ دیکھیں و بھیجیں) </span>
         </button>
       )}
 

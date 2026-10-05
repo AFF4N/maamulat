@@ -1,6 +1,8 @@
-import React, { useState } from 'react';
-import { Sun, Moon, Sparkles, SlidersHorizontal, Check, Target } from 'lucide-react';
+import React, { useState, useEffect } from 'react';
+import { Menu, Sparkles, SlidersHorizontal, Check, Target } from 'lucide-react';
 import { formatEnglishDate, formatHijriDate } from '../utils/dateUtils';
+import { MenuDrawer } from './MenuDrawer';
+import type { MaamulatState } from '../types';
 
 interface HeaderProps {
   todayDate: string;
@@ -10,6 +12,10 @@ interface HeaderProps {
   onUpdateGoalMaxDays: (maxDays: number) => void;
   isDark: boolean;
   onToggleTheme: () => void;
+  onNavigateToCustomize?: () => void;
+  state?: MaamulatState;
+  onResetToday?: () => void;
+  onResetToDefault?: () => void;
 }
 
 const PRESET_GOALS = [7, 21, 40, 100];
@@ -22,10 +28,24 @@ export const Header: React.FC<HeaderProps> = ({
   onUpdateGoalMaxDays,
   isDark,
   onToggleTheme,
+  onNavigateToCustomize,
+  state,
+  onResetToday,
+  onResetToDefault,
 }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditingGoal, setIsEditingGoal] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const [dayInput, setDayInput] = useState(goalDay.toString());
   const [targetInput, setTargetInput] = useState(goalMaxDays.toString());
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 120);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleOpenEdit = () => {
     setDayInput(goalDay.toString());
@@ -52,8 +72,38 @@ export const Header: React.FC<HeaderProps> = ({
   const progressPercent = Math.min(100, Math.round((goalDay / goalMaxDays) * 100));
 
   return (
-    <header className="relative pt-3 pb-3">
-      {/* Top action row: Tazkiyah & Maamulat on the left, Theme Switcher on the right */}
+    <header className="relative pt-3 standalone:pt-[calc(0.75rem+env(safe-area-inset-top,0px))] pb-3">
+      {/* Fixed Sticky Date Bar (Revealed smoothly on scroll without layout shift or border artifacts) */}
+      <div
+        className={`fixed top-0 left-0 right-0 z-30 transition-all duration-300 transform bg-paper-50/95 dark:bg-[#121514]/95 backdrop-blur-md border-b border-paper-300/80 dark:border-ink-800 shadow-soft-sm pt-2 standalone:pt-[calc(0.5rem+env(safe-area-inset-top,0px))] pb-2.5 ${
+          isScrolled
+            ? 'translate-y-0 opacity-100 pointer-events-auto'
+            : '-translate-y-full opacity-0 pointer-events-none'
+        }`}
+      >
+        <div className="max-w-xl mx-auto px-3.5 sm:px-5 flex items-center justify-between">
+          <div className="min-w-0">
+            <h2 className="text-sm sm:text-base font-bold text-ink-900 dark:text-white tracking-tight truncate leading-tight">
+              {englishDate}
+            </h2>
+            {hijriDate && (
+              <p className="text-xs font-semibold text-sage-700 dark:text-sage-400 truncate mt-0.5">
+                {hijriDate}
+              </p>
+            )}
+          </div>
+
+          <button
+            onClick={() => setIsMenuOpen(true)}
+            aria-label="Open settings and navigation menu"
+            className="p-1.5 rounded-full border border-paper-300 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:text-ink-950 dark:hover:text-white hover:border-sage-400 dark:hover:border-sage-600 transition-all tap-bounce shadow-soft-sm shrink-0 ml-3"
+          >
+            <Menu className="w-4 h-4" />
+          </button>
+        </div>
+      </div>
+
+      {/* Top action row: Tazkiyah & Maamulat on the left, Menu Drawer on the right */}
       <div className="flex items-center justify-between mb-4">
         <div className="flex items-center space-x-2">
           <span className="inline-flex items-center justify-center w-8 h-8 rounded-full bg-sage-100 dark:bg-sage-950/60 text-sage-700 dark:text-sage-300 text-sm font-semibold border border-sage-200/80 dark:border-sage-800">
@@ -65,15 +115,15 @@ export const Header: React.FC<HeaderProps> = ({
         </div>
 
         <button
-          onClick={onToggleTheme}
-          aria-label="Toggle dark mode"
-          className="p-2 rounded-full border border-paper-300 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-600 dark:text-ink-300 hover:text-ink-900 dark:hover:text-white transition-all tap-bounce"
+          onClick={() => setIsMenuOpen(true)}
+          aria-label="Open settings and navigation menu"
+          className="p-2 rounded-full border border-paper-300 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:text-ink-950 dark:hover:text-white hover:border-sage-400 dark:hover:border-sage-600 transition-all tap-bounce shadow-soft-sm flex items-center justify-center"
         >
-          {isDark ? <Sun className="w-4 h-4 text-amber-400" /> : <Moon className="w-4 h-4 text-ink-700" />}
+          <Menu className="w-4 h-4" />
         </button>
       </div>
 
-      {/* Date Block: English date bigger on top (left-aligned), Hijri date under it */}
+      {/* Main In-Page Date Block (Stable, no font-scaling jumps or layout shifts) */}
       <div className="text-left mb-8">
         <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-ink-900 dark:text-white leading-tight">
           {englishDate}
@@ -86,7 +136,7 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Header Titles: moved underneath the dates in smaller font */}
-      <div className="text-left space-y-0.5 mb-3">
+      {/* <div className="text-left space-y-0.5 mb-3">
         <div className="flex flex-row-reverse items-baseline gap-2">
           <h2 className="arabic-text text-base sm:text-lg font-bold text-ink-800 dark:text-ink-200">
             معمولاتِ یومیہ
@@ -95,7 +145,7 @@ export const Header: React.FC<HeaderProps> = ({
             (Daily Spiritual Ritual Sheet)
           </span>
         </div>
-      </div>
+      </div> */}
 
       {/* Customizable Spiritual Goal Tracker Banner */}
       <div className="rounded-2xl bg-gradient-to-br from-white to-paper-100 dark:from-ink-850 dark:to-ink-800 border border-paper-300/80 dark:border-ink-700/80 p-3.5 shadow-soft-sm">
@@ -105,7 +155,7 @@ export const Header: React.FC<HeaderProps> = ({
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amberGold-500 opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amberGold-500"></span>
             </span>
-            <div className="flex items-center gap-1.5">
+            <div className="flex flex-row-reverse items-center gap-1.5">
               <span className="arabic-text text-base font-bold text-ink-900 dark:text-white">
                 ہدف یوم:
               </span>
@@ -234,6 +284,21 @@ export const Header: React.FC<HeaderProps> = ({
           </div>
         </div>
       )}
+
+      {/* Settings & Navigation Menu Drawer */}
+      <MenuDrawer
+        isOpen={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        onNavigateToCustomize={onNavigateToCustomize || (() => { })}
+        isDark={isDark}
+        onToggleTheme={onToggleTheme}
+        goalDay={goalDay}
+        goalMaxDays={goalMaxDays}
+        onOpenEditGoal={handleOpenEdit}
+        state={state}
+        onResetToday={onResetToday}
+        onResetToDefault={onResetToDefault}
+      />
     </header>
   );
 };

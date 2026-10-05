@@ -45,8 +45,8 @@ export const DEFAULT_CATEGORIES: CategoryConfig[] = [
   },
   {
     id: 'duas',
-    urdu: 'دعائیں و مناجات',
-    english: 'Duas & Munajat',
+    urdu: 'دعائیں',
+    english: 'Duas',
     emoji: '⚫',
     accent: 'border-stone-200 dark:border-stone-800/40 bg-stone-50/30 dark:bg-stone-900/20'
   },

@@ -15,14 +15,16 @@ export const TakbeerOolaStepper: React.FC<TakbeerOolaStepperProps> = ({
   return (
     <div className="p-3.5 rounded-xl border border-amberGold-200 dark:border-amberGold-900/60 bg-gradient-to-r from-amberGold-50/50 to-white dark:from-ink-850 dark:to-ink-800 flex items-center justify-between">
       <div className="min-w-0 pr-2">
-        <div className="flex items-center gap-1.5">
-          <span className="text-sm">🔸</span>
-          <span className="arabic-text text-base font-bold text-ink-900 dark:text-white">
-            تکبیرِ اولیٰ
-          </span>
-          <span className="text-xs text-ink-500 dark:text-ink-400 font-medium">
-            (Takbeer-e-Oola)
-          </span>
+        <div className="flex items-start gap-1.5">
+          <span className="text-sm mt-0.5">🔸</span>
+          <div className="flex flex-col">
+            <span className="arabic-text text-left font-bold text-ink-900 dark:text-white leading-tight whitespace-nowrap">
+              تکبیرِ اولیٰ
+            </span>
+            <span className="text-xs text-ink-500 dark:text-ink-400 font-medium whitespace-nowrap">
+              (Takbeer-e-Oola)
+            </span>
+          </div>
         </div>
         <p className="text-[11px] text-ink-500 dark:text-ink-400 mt-0.5">
           Joining with the Imam at the opening Takbeer
@@ -33,11 +35,10 @@ export const TakbeerOolaStepper: React.FC<TakbeerOolaStepperProps> = ({
           {Array.from({ length: max }).map((_, i) => (
             <span
               key={i}
-              className={`h-2 rounded-full transition-all duration-300 ${
-                i < value
+              className={`h-2 rounded-full transition-all duration-300 ${i < value
                   ? 'w-4 bg-amberGold-500'
                   : 'w-2 bg-paper-300 dark:bg-ink-700'
-              }`}
+                }`}
             />
           ))}
         </div>

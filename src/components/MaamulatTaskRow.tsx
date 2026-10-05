@@ -68,10 +68,10 @@ export const MaamulatTaskRow: React.FC<MaamulatTaskRowProps> = ({
 
           {/* Text Details */}
           <div className="min-w-0">
-            <div className="flex items-center gap-1.5 flex-wrap">
+            <div className="flex items-center gap-x-1.5 gap-y-0 flex-wrap">
               <span className="text-sm select-none">{task.emoji}</span>
               <span
-                className={`arabic-text text-base font-bold transition-colors ${task.completed
+                className={`arabic-text text-base font-bold leading-snug transition-colors ${task.completed
                   ? 'text-sage-900 dark:text-sage-200 line-through opacity-85'
                   : 'text-ink-900 dark:text-white'
                   }`}
@@ -79,7 +79,7 @@ export const MaamulatTaskRow: React.FC<MaamulatTaskRowProps> = ({
                 {task.urduTitle}
               </span>
               <span
-                className={`text-xs font-medium truncate ${task.completed
+                className={`text-xs font-medium leading-tight truncate ${task.completed
                   ? 'text-sage-700/70 dark:text-sage-400/70'
                   : 'text-ink-500 dark:text-ink-400'
                   }`}
