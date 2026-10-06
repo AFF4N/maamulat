@@ -1,4 +1,4 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   X,
   SlidersHorizontal,
@@ -11,6 +11,7 @@ import {
   ChevronRight,
   Sparkles,
   RefreshCw,
+  HeartHandshake,
 } from 'lucide-react';
 import type { MaamulatState } from '../types';
 
@@ -26,6 +27,7 @@ interface MenuDrawerProps {
   state?: MaamulatState;
   onResetToday?: () => void;
   onResetToDefault?: () => void;
+  onUpdateMurrabiContact?: (contact: string) => void;
 }
 
 export const MenuDrawer: React.FC<MenuDrawerProps> = ({
@@ -40,7 +42,24 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
   state,
   onResetToday,
   onResetToDefault,
+  onUpdateMurrabiContact,
 }) => {
+  const [murrabiInput, setMurrabiInput] = useState(state?.murrabiContact || '');
+  const [isMurrabiSaved, setIsMurrabiSaved] = useState(false);
+
+  // Sync murrabiInput when state.murrabiContact changes
+  useEffect(() => {
+    if (state?.murrabiContact !== undefined) {
+      setMurrabiInput(state.murrabiContact || '');
+    }
+  }, [state?.murrabiContact]);
+
+  const handleSaveMurrabi = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    onUpdateMurrabiContact?.(murrabiInput);
+    setIsMurrabiSaved(true);
+    setTimeout(() => setIsMurrabiSaved(false), 2000);
+  };
   // Close drawer on ESC key
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -177,7 +196,61 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
             </button>
           </div>
 
-          {/* 2. Theme / Appearance Mode Switcher */}
+          {/* 2. Murrabi & Accountability Partner */}
+          <div className="space-y-1.5">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">
+              Accountability Partner · مربی و احتساب
+            </span>
+            <div className="p-3.5 rounded-2xl bg-white dark:bg-ink-850 border border-paper-300 dark:border-ink-800 space-y-3 shadow-soft-sm">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-sage-100 dark:bg-sage-950/60 text-sage-700 dark:text-sage-300 flex items-center justify-center shrink-0">
+                    <HeartHandshake className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-ink-900 dark:text-white block truncate">
+                      Murrabi Details (مربی کا رابطہ)
+                    </span>
+                    <span className="text-[10px] text-ink-500 dark:text-ink-400 block">
+                      {state?.murrabiContact ? '✓ Linked & Report Unlocked' : 'Add phone to unlock WhatsApp report'}
+                    </span>
+                  </div>
+                </div>
+                {state?.murrabiContact && (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 shrink-0">
+                    Unlocked
+                  </span>
+                )}
+              </div>
+
+              {/* Contact Input Form */}
+              <form onSubmit={handleSaveMurrabi} className="space-y-1.5">
+                <label className="text-[11px] font-semibold text-ink-700 dark:text-ink-300 block">
+                  WhatsApp Number (with country code):
+                </label>
+                <div className="flex gap-2">
+                  <input
+                    type="tel"
+                    value={murrabiInput}
+                    onChange={(e) => setMurrabiInput(e.target.value)}
+                    placeholder="e.g. 923001234567 or +92 300..."
+                    className="flex-1 text-xs px-2.5 py-1.5 rounded-xl border border-paper-300 dark:border-ink-700 bg-paper-50 dark:bg-ink-800 text-ink-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-sage-500"
+                  />
+                  <button
+                    type="submit"
+                    className="px-3.5 py-1.5 rounded-xl text-xs font-bold bg-sage-600 hover:bg-sage-700 text-white transition-colors tap-bounce shrink-0"
+                  >
+                    {isMurrabiSaved ? 'Saved!' : 'Save'}
+                  </button>
+                </div>
+                <p className="text-[10px] text-ink-500 dark:text-ink-400 leading-snug">
+                  Adding your Murrabi's WhatsApp number immediately unlocks the accountability section on your sheet even if your streak is under 3 days.
+                </p>
+              </form>
+            </div>
+          </div>
+
+          {/* 3. Theme / Appearance Mode Switcher */}
           <div className="space-y-1.5">
             <span className="text-[11px] font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">
               Appearance · تھیم
@@ -231,7 +304,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
             </div>
           </div>
 
-          {/* 3. Spiritual Goal Quick Control */}
+          {/* 4. Spiritual Goal Quick Control */}
           <div className="space-y-1.5">
             <span className="text-[11px] font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">
               Spiritual Goal · ہدف یوم
@@ -262,7 +335,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
             </div>
           </div>
 
-          {/* 4. Data & Utilities */}
+          {/* 5. Data & Utilities */}
           <div className="space-y-1.5">
             <span className="text-[11px] font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">
               Data & Sheet Actions · اعمال
@@ -333,7 +406,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
             </div>
           </div>
 
-          {/* 5. Privacy Trust Banner */}
+          {/* 6. Privacy Trust Banner */}
           <div className="p-3 rounded-2xl bg-sage-50/70 dark:bg-sage-950/40 border border-sage-200 dark:border-sage-900/60 text-xs text-sage-900 dark:text-sage-300 space-y-1">
             <div className="flex items-center gap-1.5 font-bold text-[11px]">
               <ShieldCheck className="w-4 h-4 text-sage-600 dark:text-sage-400 shrink-0" />

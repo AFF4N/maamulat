@@ -17,6 +17,7 @@ interface HeaderProps {
   state?: MaamulatState;
   onResetToday?: () => void;
   onResetToDefault?: () => void;
+  onUpdateMurrabiContact?: (contact: string) => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -31,6 +32,7 @@ export const Header: React.FC<HeaderProps> = ({
   state,
   onResetToday,
   onResetToDefault,
+  onUpdateMurrabiContact,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditingGoal, setIsEditingGoal] = useState(false);
@@ -190,6 +192,7 @@ export const Header: React.FC<HeaderProps> = ({
         state={state}
         onResetToday={onResetToday}
         onResetToDefault={onResetToDefault}
+        onUpdateMurrabiContact={onUpdateMurrabiContact}
       />
     </header>
   );

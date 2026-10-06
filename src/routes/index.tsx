@@ -105,6 +105,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
           state={state}
           onResetToday={resetToday}
           onResetToDefault={resetCategoriesAndTasksToDefault}
+          onUpdateMurrabiContact={setMurrabiContact}
         />
 
         {/* 2. Streak and Hasanat Stat Cards with Halal Wit / Encouragements */}
