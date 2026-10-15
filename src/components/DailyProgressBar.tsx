@@ -1,6 +1,6 @@
 import React from 'react';
 import { Award } from 'lucide-react';
-import { STREAK_PASS_PERCENTAGE, getStreakPassTarget } from '../constants';
+import { getStreakPassTarget } from '../constants';
 
 interface DailyProgressBarProps {
   completedCount: number;
@@ -27,16 +27,16 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
     ? `${dateLabel}'s Progress`
     : "Today's Progress";
 
-  const titleUrdu = isViewingPastDay && dateLabel
-    ? `${dateLabel} کی پیشرفت`
-    : "آج کی پیشرفت";
+  // const titleUrdu = isViewingPastDay && dateLabel
+  //   ? `${dateLabel} کی پیشرفت`
+  //   : "آج کی پیشرفت";
 
   return (
     <div className="rounded-2xl p-4 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm my-3 space-y-2.5">
-      <div className="flex items-center justify-between">
+      <div className="flex items-baseline justify-between">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">
-            {titleEnglish} <span className="font-normal text-[11px] opacity-75">({titleUrdu})</span>
+            {titleEnglish}
           </span>
           <div className="flex items-baseline gap-2 mt-0.5">
             <span className="text-lg font-bold text-ink-900 dark:text-white">
@@ -49,7 +49,7 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
           <div className="mt-1">
             {isPassed ? (
               <span className="text-[11px] font-medium text-sage-600 dark:text-sage-400 flex items-center gap-1">
-                <span>✓</span> Daily Streak Goal Passed (≥{STREAK_PASS_PERCENTAGE}%)
+                <span>✓</span> Goal Passed
               </span>
             ) : (
               <span className="text-[11px] text-ink-500 dark:text-ink-400">

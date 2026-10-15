@@ -95,7 +95,7 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
             <span className="p-1.5 sm:p-2 rounded-xl bg-sage-100 dark:bg-sage-950/60 text-sage-700 dark:text-sage-300 shrink-0">
               <HeartHandshake className="w-4 h-4 sm:w-5 sm:h-5" />
             </span>
-            <h3 className="text-base sm:text-lg font-bold text-ink-900 dark:text-white leading-tight">
+            <h3 className="flex flex-col items-start text-base sm:text-lg font-bold text-ink-900 dark:text-white leading-tight">
               Murrabi Report <span className="arabic-text text-sm font-normal opacity-75">(ارسال برائے مربی)</span>
             </h3>
           </div>
@@ -112,16 +112,10 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
         </div>
 
         {/* Full-width descriptive text that utilizes horizontal space naturally */}
-        {isViewingPastDay ? (
-          <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed pt-0.5">
-            Selected: <span className="font-semibold">{activeDateLabel || state.todayDate} Report</span> · <span className="arabic-text">منتخب رپورٹ</span>. Review or edit tasks above, then send to your mentor.
-          </p>
-        ) : (
-          <p className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed pt-0.5">
-            Share your daily sheet with your spiritual mentor or accountability partner.{' '}
-            <span className="arabic-text opacity-75">(مربی سے روزانہ شیٹ شیئر کریں)</span>
-          </p>
-        )}
+        <p className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed pt-0.5">
+          Share your daily sheet with your spiritual mentor or accountability partner.{' '}
+          <span className="arabic-text opacity-75">(مربی سے روزانہ شیٹ شیئر کریں)</span>
+        </p>
       </div>
 
       {/* Murrabi Contact Row */}

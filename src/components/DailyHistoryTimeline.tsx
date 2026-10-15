@@ -44,7 +44,7 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
       </div>
 
       {/* 7-Day Pill Row */}
-      <div className="grid grid-cols-7 gap-1.5 pt-1">
+      <div className="grid grid-cols-7 gap-1 pt-1">
         {/* Fill empty placeholder pills on the left so dates stack against Today on the right */}
         {Array.from({ length: Math.max(0, 6 - recentDays.length) }).map((_, i) => (
           <div
@@ -87,7 +87,7 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
             <button
               key={rec.date}
               onClick={() => onSelectDate(rec.date)}
-              className={`flex flex-col items-center py-2 px-1 rounded-xl border-2 text-center transition-colors tap-bounce relative ${stateStyles.base} ${
+              className={`flex flex-col items-center py-2 px-1 rounded-xl border-2 text-center transition-colors tap-bounce relative whitespace-nowrap ${stateStyles.base} ${
                 isSelected ? stateStyles.selected : stateStyles.unselected
               }`}
               title={`${rec.date} (${rec.completedCount}/${rec.totalCount}) - ${isPassed ? `Passed (≥${STREAK_PASS_PERCENTAGE}%)` : isPartial ? `Partial (<${STREAK_PASS_PERCENTAGE}%)` : 'Missed (0)'}`}
