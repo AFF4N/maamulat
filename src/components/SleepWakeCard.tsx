@@ -57,12 +57,12 @@ const TimePresetBox: React.FC<TimePresetBoxProps> = ({
 }) => {
   const isIndigo = colorTheme === 'indigo';
   const badgeClasses = isIndigo
-    ? 'text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60'
-    : 'text-amber-600 dark:text-amber-400 bg-amber-50 dark:bg-amber-950/60';
+    ? 'text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60'
+    : 'text-stone-700 dark:text-stone-300 bg-amber-50/80 dark:bg-amber-950/30 border border-amber-200/70 dark:border-amber-800/60';
   const activePresetClasses = isIndigo
-    ? 'bg-indigo-600 text-white border-indigo-600 font-semibold'
-    : 'bg-amber-600 text-white border-amber-600 font-semibold';
-  const hoverBorderClasses = isIndigo ? 'hover:border-indigo-400' : 'hover:border-amber-400';
+    ? 'bg-slate-100 text-slate-800 border-slate-400 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-500 font-bold shadow-soft-sm'
+    : 'bg-amber-50/80 text-stone-800 border-amber-300/80 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-700/60 font-bold shadow-soft-sm';
+  const hoverBorderClasses = isIndigo ? 'hover:border-slate-400 dark:hover:border-slate-500' : 'hover:border-amber-300 dark:hover:border-amber-700';
 
   return (
     <div className="p-3 rounded-xl bg-paper-50 dark:bg-ink-850 border border-paper-200 dark:border-ink-700 flex flex-col justify-between">
@@ -139,7 +139,7 @@ export const SleepWakeCard: React.FC<SleepWakeCardProps> = ({
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pt-1">
         {/* Sleep Time Box */}
         <TimePresetBox
-          icon={<Moon className="w-3.5 h-3.5 text-indigo-500" />}
+          icon={<Moon className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />}
           urduLabel="سونے کا وقت:"
           englishLabel="Sleep"
           time={sleepTime}
@@ -151,7 +151,7 @@ export const SleepWakeCard: React.FC<SleepWakeCardProps> = ({
 
         {/* Wake Time Box */}
         <TimePresetBox
-          icon={<Sun className="w-3.5 h-3.5 text-amber-500" />}
+          icon={<Sun className="w-3.5 h-3.5 text-amber-600/70 dark:text-amber-400/80" />}
           urduLabel="جاگنے کا وقت:"
           englishLabel="Wake"
           time={wakeTime}

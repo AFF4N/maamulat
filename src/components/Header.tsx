@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Sparkles, SlidersHorizontal } from 'lucide-react';
+import { Menu, Sparkles, SlidersHorizontal, RotateCcw, Clock } from 'lucide-react';
 import { formatEnglishDate, formatHijriDate } from '../utils/dateUtils';
 import { MenuDrawer } from './MenuDrawer';
 import { GoalEditorModal } from './GoalEditorModal';
@@ -18,6 +18,9 @@ interface HeaderProps {
   onResetToday?: () => void;
   onResetToDefault?: () => void;
   onUpdateMurrabiContact?: (contact: string) => void;
+  isViewingPastDay?: boolean;
+  isYesterday?: boolean;
+  onReturnToToday?: () => void;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -33,6 +36,9 @@ export const Header: React.FC<HeaderProps> = ({
   onResetToday,
   onResetToDefault,
   onUpdateMurrabiContact,
+  isViewingPastDay = false,
+  isYesterday = false,
+  onReturnToToday,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditingGoal, setIsEditingGoal] = useState(false);
@@ -59,7 +65,7 @@ export const Header: React.FC<HeaderProps> = ({
     <header className="relative pt-3 standalone:pt-[calc(0.75rem+env(safe-area-inset-top,0px))] pb-3">
       {/* Fixed Sticky Date Bar (Revealed smoothly on scroll without layout shift or border artifacts) */}
       <div
-        className={`fixed top-0 left-0 right-0 z-30 transition-all duration-300 transform bg-paper-50/95 dark:bg-[#121514]/95 backdrop-blur-md border-b border-paper-300/80 dark:border-ink-800 shadow-soft-sm pt-2 standalone:pt-[calc(0.5rem+env(safe-area-inset-top,0px))] pb-2.5 ${
+        className={`fixed top-0 left-0 right-0 z-30 transition-all duration-300 transform bg-paper-50/95 dark:bg-[#121514]/95 backdrop-blur-md border-b border-paper-300/80 dark:border-ink-800 shadow-soft-sm pt-2.5 standalone:pt-[calc(0.5rem+env(safe-area-inset-top,0px))] pb-2.5 ${
           isScrolled
             ? 'translate-y-0 opacity-100 pointer-events-auto'
             : '-translate-y-full opacity-0 pointer-events-none'
@@ -67,9 +73,20 @@ export const Header: React.FC<HeaderProps> = ({
       >
         <div className="max-w-xl mx-auto px-3.5 sm:px-5 flex items-center justify-between">
           <div className="min-w-0">
-            <h2 className="text-sm sm:text-base font-bold text-ink-900 dark:text-white tracking-tight truncate leading-tight">
-              {englishDate}
-            </h2>
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <h2 className="text-sm sm:text-base font-bold text-ink-900 dark:text-white tracking-tight truncate leading-tight">
+                {englishDate}
+              </h2>
+              {isViewingPastDay && (
+                <span
+                  title={isYesterday ? 'Yesterday (سابقہ دن)' : 'Historic date (سابقہ دن)'}
+                  className="inline-flex items-center justify-center p-1 rounded-full bg-amber-500/15 text-amber-700 dark:text-amber-400 border border-amber-300/80 dark:border-amber-700/60 shrink-0"
+                  aria-label="Viewing historic date"
+                >
+                  <Clock className="w-3.5 h-3.5" />
+                </span>
+              )}
+            </div>
             {hijriDate && (
               <p className="text-xs font-semibold text-sage-700 dark:text-sage-400 truncate mt-0.5">
                 {hijriDate}
@@ -77,13 +94,26 @@ export const Header: React.FC<HeaderProps> = ({
             )}
           </div>
 
-          <button
-            onClick={() => setIsMenuOpen(true)}
-            aria-label="Open settings and navigation menu"
-            className="p-1.5 rounded-full border border-paper-300 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:text-ink-950 dark:hover:text-white hover:border-sage-400 dark:hover:border-sage-600 transition-all tap-bounce shadow-soft-sm shrink-0 ml-3"
-          >
-            <Menu className="w-4 h-4" />
-          </button>
+          <div className="flex items-center gap-2 shrink-0 ml-3">
+            {isViewingPastDay && onReturnToToday && (
+              <button
+                type="button"
+                onClick={onReturnToToday}
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sage-100 hover:bg-sage-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-sage-800 dark:text-sage-200 border border-sage-300 dark:border-ink-700 text-[11px] font-bold transition-all tap-bounce shadow-soft-sm"
+                title="Return to today"
+              >
+                <RotateCcw className="w-3 h-3" />
+                <span>Today</span>
+              </button>
+            )}
+            <button
+              onClick={() => setIsMenuOpen(true)}
+              aria-label="Open settings and navigation menu"
+              className="p-1.5 rounded-full border border-paper-300 dark:border-ink-700 bg-white dark:bg-ink-800 text-ink-700 dark:text-ink-200 hover:text-ink-950 dark:hover:text-white hover:border-sage-400 dark:hover:border-sage-600 transition-all tap-bounce shadow-soft-sm shrink-0"
+            >
+              <Menu className="w-4 h-4" />
+            </button>
+          </div>
         </div>
       </div>
 
@@ -107,16 +137,43 @@ export const Header: React.FC<HeaderProps> = ({
         </button>
       </div>
 
-      {/* Main In-Page Date Block (Stable, no font-scaling jumps or layout shifts) */}
-      <div className="text-left mb-8">
-        <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-ink-900 dark:text-white leading-tight">
-          {englishDate}
-        </h1>
-        {hijriDate && (
-          <p className="text-sm sm:text-base font-semibold text-sage-700 dark:text-sage-400 mt-1">
-            {hijriDate}
-          </p>
-        )}
+      {/* Main In-Page Date Block (Compact, stable, zero extra height) */}
+      <div className="mb-5 sm:mb-6">
+        <div className="flex items-center justify-between gap-2">
+          <div className="min-w-0">
+            <div className="flex items-center gap-1.5">
+              <h1 className="text-2xl sm:text-3xl font-black tracking-tight text-ink-900 dark:text-white leading-tight">
+                {englishDate}
+              </h1>
+              {isViewingPastDay && (
+                <span
+                  title={isYesterday ? 'Yesterday (سابقہ دن)' : 'Historic date (سابقہ دن)'}
+                  className="inline-flex items-center justify-center p-1 rounded-full bg-amber-500/15 text-amber-600 dark:text-amber-400 border border-amber-300/80 dark:border-amber-700/60 shrink-0"
+                  aria-label="Viewing historic date"
+                >
+                  <Clock className="w-3 h-3" />
+                </span>
+              )}
+            </div>
+            {hijriDate && (
+              <p className="text-xs sm:text-sm font-semibold text-sage-700 dark:text-sage-400 mt-0.5">
+                {hijriDate}
+              </p>
+            )}
+          </div>
+
+          {isViewingPastDay && onReturnToToday && (
+            <button
+              type="button"
+              onClick={onReturnToToday}
+              className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sage-100 hover:bg-sage-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-sage-800 dark:text-sage-200 border border-sage-300/90 dark:border-ink-700 text-[11px] font-bold shadow-soft-sm tap-bounce transition-all group"
+              title="Return to today's sheet"
+            >
+              <RotateCcw className="w-3 h-3 transition-transform duration-200 group-hover:-rotate-45" />
+              <span>Today</span>
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Customizable Spiritual Goal Tracker Banner */}

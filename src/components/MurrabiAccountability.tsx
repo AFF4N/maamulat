@@ -28,7 +28,7 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
   currentStreak,
   isViewingPastDay,
   activeDateLabel,
-  onSelectYesterday,
+  onSelectYesterday: _onSelectYesterday,
 }) => {
   const [showWhyModal, setShowWhyModal] = useState(false);
   const [isCopied, setIsCopied] = useState(false);
@@ -89,88 +89,95 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
   return (
     <section className="rounded-2xl p-4 bg-gradient-to-br from-white to-sage-50/30 dark:from-ink-800 dark:to-ink-850 border border-sage-200 dark:border-sage-900/60 shadow-soft-md my-4 space-y-3.5">
       {/* Header */}
-      <div className="flex items-start justify-between gap-2">
-        <div className="flex items-center gap-2.5 min-w-0 flex-1">
-          <span className="p-2 rounded-xl bg-sage-100 dark:bg-sage-950/60 text-sage-700 dark:text-sage-300 flex-shrink-0">
-            <HeartHandshake className="w-5 h-5" />
-          </span>
-          <div className="min-w-0 flex-1">
+      <div className="space-y-1.5">
+        <div className="flex items-center justify-between gap-2">
+          <div className="flex items-center gap-2.5 min-w-0">
+            <span className="p-1.5 sm:p-2 rounded-xl bg-sage-100 dark:bg-sage-950/60 text-sage-700 dark:text-sage-300 shrink-0">
+              <HeartHandshake className="w-4 h-4 sm:w-5 sm:h-5" />
+            </span>
             <h3 className="text-base sm:text-lg font-bold text-ink-900 dark:text-white leading-tight">
               Murrabi Report <span className="arabic-text text-sm font-normal opacity-75">(ارسال برائے مربی)</span>
             </h3>
-            {isViewingPastDay ? (
-              <p className="text-[11px] font-medium text-amber-700 dark:text-amber-300 mt-0.5">
-                Selected: {activeDateLabel || state.todayDate} Report · منتخب رپورٹ. Review or edit tasks above, then send to your mentor.
-              </p>
-            ) : (
-              <p className="text-[11px] text-ink-600 dark:text-ink-400 mt-0.5">
-                Share your daily sheet with your spiritual mentor or accountability partner. (مربی سے روزانہ شیٹ شیئر کریں)
-              </p>
-            )}
           </div>
+
+          {/* Why Involve Another Person Button */}
+          <button
+            type="button"
+            onClick={() => setShowWhyModal(true)}
+            className="text-[11px] font-semibold text-sage-700 dark:text-sage-300 hover:text-sage-900 dark:hover:text-white flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sage-50 dark:bg-sage-900/40 border border-sage-200/80 dark:border-sage-800/80 transition-colors tap-bounce shrink-0"
+          >
+            <HelpCircle className="w-3.5 h-3.5" />
+            <span>Why a Murrabi?</span>
+          </button>
         </div>
 
-        {/* Why Involve Another Person Button */}
-        <button
-          onClick={() => setShowWhyModal(true)}
-          className="text-[11px] font-semibold text-sage-700 dark:text-sage-300 hover:text-sage-900 dark:hover:text-white flex items-center gap-1 px-2.5 py-1 rounded-lg bg-sage-50 dark:bg-sage-900/40 border border-sage-200/80 dark:border-sage-800/80 transition-colors tap-bounce"
-        >
-          <HelpCircle className="w-3.5 h-3.5" />
-          <span>Why a Murrabi?</span>
-        </button>
+        {/* Full-width descriptive text that utilizes horizontal space naturally */}
+        {isViewingPastDay ? (
+          <p className="text-xs text-amber-800 dark:text-amber-300 leading-relaxed pt-0.5">
+            Selected: <span className="font-semibold">{activeDateLabel || state.todayDate} Report</span> · <span className="arabic-text">منتخب رپورٹ</span>. Review or edit tasks above, then send to your mentor.
+          </p>
+        ) : (
+          <p className="text-xs text-ink-600 dark:text-ink-400 leading-relaxed pt-0.5">
+            Share your daily sheet with your spiritual mentor or accountability partner.{' '}
+            <span className="arabic-text opacity-75">(مربی سے روزانہ شیٹ شیئر کریں)</span>
+          </p>
+        )}
       </div>
 
       {/* Murrabi Contact Row */}
-      <div className="p-3 rounded-xl bg-paper-50 dark:bg-ink-900 border border-paper-200 dark:border-ink-700 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs">
+      <div className="p-3 rounded-xl bg-paper-50 dark:bg-ink-900 border border-paper-200 dark:border-ink-700 text-xs space-y-1.5">
         <div>
-          <span className="text-[10px] uppercase font-bold text-ink-400 tracking-wider">
+          <span className="text-[10px] uppercase font-bold text-ink-400 tracking-wider block">
             Murrabi WhatsApp / Contact
           </span>
           <div className="font-semibold text-ink-800 dark:text-ink-200 flex items-center gap-1.5 mt-0.5">
             {state.murrabiContact ? (
-              <span className="font-mono text-sage-700 dark:text-sage-300">
+              <span className="font-mono text-sage-700 dark:text-sage-300 text-sm">
                 {state.murrabiContact}
               </span>
             ) : (
-              <span className="text-ink-500 italic">No number set (can copy report or add below)</span>
+              <span className="text-ink-500 italic text-xs">No number set (can copy report or add below)</span>
             )}
           </div>
         </div>
 
         {isContactEditing ? (
-          <form onSubmit={handleSaveContact} className="flex items-center gap-1.5">
+          <form onSubmit={handleSaveContact} className="flex items-center gap-2 pt-0.5">
             <input
               type="text"
               placeholder="+923001234567"
               value={contactInput}
               onChange={(e) => setContactInput(e.target.value)}
-              className="text-xs px-2 py-1 rounded border border-sage-400 bg-white dark:bg-ink-800 text-ink-900 dark:text-white w-36 font-mono"
+              className="text-xs px-2.5 py-1.5 rounded-lg border border-sage-400 bg-white dark:bg-ink-800 text-ink-900 dark:text-white w-48 font-mono focus:outline-none focus:ring-1 focus:ring-sage-500"
               autoFocus
             />
             <button
               type="submit"
-              className="px-2 py-1 rounded bg-sage-600 text-white font-medium hover:bg-sage-700"
+              className="px-3 py-1.5 rounded-lg bg-sage-600 text-white font-medium hover:bg-sage-700 text-xs shadow-sm tap-bounce"
             >
               Save
             </button>
             <button
               type="button"
               onClick={() => setIsContactEditing(false)}
-              className="px-1.5 py-1 text-ink-400 hover:text-ink-600"
+              className="px-2 py-1.5 text-ink-500 hover:text-ink-700 dark:text-ink-400 dark:hover:text-ink-200 text-xs tap-bounce"
             >
               Cancel
             </button>
           </form>
         ) : (
-          <button
-            onClick={() => {
-              setContactInput(state.murrabiContact || '');
-              setIsContactEditing(true);
-            }}
-            className="text-[11px] font-medium text-sage-700 dark:text-sage-300 hover:underline self-start sm:self-auto"
-          >
-            {state.murrabiContact ? 'Change Contact' : '+ Set Contact Number'}
-          </button>
+          <div>
+            <button
+              type="button"
+              onClick={() => {
+                setContactInput(state.murrabiContact || '');
+                setIsContactEditing(true);
+              }}
+              className="text-[11px] font-medium text-sage-700 dark:text-sage-300 hover:text-sage-900 dark:hover:text-white hover:underline transition-colors"
+            >
+              {state.murrabiContact ? 'Change Contact' : '+ Set Contact Number'}
+            </button>
+          </div>
         )}
       </div>
 
@@ -196,7 +203,7 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
           className="flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl bg-sage-700 hover:bg-sage-800 text-white text-xs font-bold transition-all shadow-sm tap-bounce"
         >
           <Send className="w-3.5 h-3.5" />
-          <span>{isViewingPastDay ? 'Send Selected Day via WhatsApp' : 'Send via WhatsApp'}</span>
+          <span>Send via WhatsApp</span>
         </button>
 
         <button
@@ -221,7 +228,7 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
       </div>
 
       {/* Yesterday's Quick Switch Button (if on today) */}
-      {!isViewingPastDay && onSelectYesterday && (
+      {/* {!isViewingPastDay && onSelectYesterday && (
         <button
           onClick={onSelectYesterday}
           className="w-full flex flex-col items-center justify-center gap-1.5 py-2 px-3 rounded-xl bg-amber-50 dark:bg-amber-950/30 hover:bg-amber-100 dark:hover:bg-amber-900/40 text-amber-900 dark:text-amber-300 border border-amber-200 dark:border-amber-800/50 text-xs font-semibold tap-bounce transition-all"
@@ -229,7 +236,7 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
           <span>Switch to Yesterday's Report ➔</span>
           <span className='arabic-text'>(کل کی رپورٹ دیکھیں و بھیجیں) </span>
         </button>
-      )}
+      )} */}
 
       {/* Toggle Live Report Preview */}
       <div className="pt-1">

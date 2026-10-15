@@ -1,5 +1,6 @@
 import React from 'react';
 import { Award } from 'lucide-react';
+import { STREAK_PASS_PERCENTAGE, getStreakPassTarget } from '../constants';
 
 interface DailyProgressBarProps {
   completedCount: number;
@@ -19,6 +20,8 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
   isViewingPastDay,
 }) => {
   const isAllComplete = completedCount === totalCount && totalCount > 0;
+  const passTarget = getStreakPassTarget(totalCount);
+  const isPassed = totalCount > 0 && completedCount >= passTarget;
 
   const titleEnglish = isViewingPastDay && dateLabel
     ? `${dateLabel}'s Progress`
@@ -43,6 +46,17 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
               ({percentage}%)
             </span>
           </div>
+          <div className="mt-1">
+            {isPassed ? (
+              <span className="text-[11px] font-medium text-sage-600 dark:text-sage-400 flex items-center gap-1">
+                <span>✓</span> Daily Streak Goal Passed (≥{STREAK_PASS_PERCENTAGE}%)
+              </span>
+            ) : (
+              <span className="text-[11px] text-ink-500 dark:text-ink-400">
+                <span className="font-semibold text-amberGold-600 dark:text-amberGold-400">{Math.max(0, passTarget - completedCount)} more</span> to qualify streak
+              </span>
+            )}
+          </div>
         </div>
 
         <div className="text-right">
@@ -56,7 +70,7 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
       </div>
 
       {/* Progress Track */}
-      <div className="w-full bg-paper-200 dark:bg-ink-700/80 rounded-full h-2.5 overflow-hidden p-0.5">
+      <div className="w-full bg-paper-200 dark:bg-ink-700/80 rounded-full h-2.5 overflow-hidden p-0.5 relative">
         <div
           className={`h-full rounded-full transition-all duration-500 ease-out ${
             isAllComplete
@@ -74,7 +88,7 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
           <div className="leading-snug">
             <span className="font-bold">ما شاء الله تبارك الله · Alhamdulillah!</span>
             <p className="text-[11px] text-sage-700 dark:text-sage-300">
-              All 23 daily Maamulat completed. May Allah accept your devotion and bless your time.
+              All {totalCount} daily Maamulat completed. May Allah accept your devotion and bless your time.
             </p>
           </div>
         </div>

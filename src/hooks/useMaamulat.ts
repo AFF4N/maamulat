@@ -5,7 +5,14 @@ import {
   getTodayLocalDateString,
   formatUrduDate,
   getDayDifference,
+  addDays,
 } from '../utils/dateUtils';
+import {
+  calculateStreakDetails,
+} from '../utils/streakUtils';
+import {
+  isCompletionQualified,
+} from '../constants';
 import confetti from 'canvas-confetti';
 import { generateWhatsAppReport } from '../utils/reportGenerator';
 
@@ -93,6 +100,19 @@ function getInitialState(): MaamulatState {
       return performRollover(parsed, todayStr);
     }
 
+    // Always recalculate streak dynamically from history + today's progress to ensure consistency
+    const streakInfo = calculateStreakDetails(
+      parsed.history || [],
+      parsed.tasks || [],
+      todayStr,
+      parsed.streak?.highest || 0
+    );
+    parsed.streak = {
+      current: streakInfo.currentStreak,
+      highest: streakInfo.highestStreak,
+      lastActiveDate: todayStr,
+    };
+
     return parsed as MaamulatState;
   } catch (e) {
     console.error('Error reading localStorage for Maamulat:', e);
@@ -101,8 +121,8 @@ function getInitialState(): MaamulatState {
 }
 
 /**
- * Rollover engine: saves previous day to history, updates streak,
- * increments goal day, and resets daily checks.
+ * Rollover engine: saves previous day to history, backfills missed days if any,
+ * updates dynamic streak, increments goal day, and resets daily checks.
  */
 function performRollover(oldState: MaamulatState, newTodayStr: string): MaamulatState {
   const daysPassed = getDayDifference(newTodayStr, oldState.todayDate);
@@ -116,7 +136,11 @@ function performRollover(oldState: MaamulatState, newTodayStr: string): Maamulat
     .reduce((sum, t) => sum + t.hasanat, 0);
 
   const status: 'completed' | 'partial' | 'missed' =
-    completedCount >= Math.ceil(totalCount * 0.6) ? 'completed' : completedCount > 0 ? 'partial' : 'missed';
+    isCompletionQualified(completedCount, totalCount)
+      ? 'completed'
+      : completedCount > 0
+        ? 'partial'
+        : 'missed';
 
   const currentGoalDay = oldState.goalDay ?? oldState.chillaDay ?? 1;
   const currentGoalMax = oldState.goalMaxDays ?? oldState.chillaMaxDays ?? 40;
@@ -137,26 +161,62 @@ function performRollover(oldState: MaamulatState, newTodayStr: string): Maamulat
     tasks: JSON.parse(JSON.stringify(oldState.tasks)),
   };
 
-  const updatedHistory = [oldDayRecord, ...(oldState.history || [])].slice(0, 90);
+  // Reset daily task checks for the new day
+  const resetTasks = oldState.tasks.map(t => ({
+    ...t,
+    completed: false,
+    completedAt: undefined,
+  }));
 
-  // Calculate new streak
-  let newCurrentStreak = oldState.streak.current;
-  const wasConsecutive = daysPassed === 1;
-  const qualifiedYesterday = completedCount >= 8; // gentle reasonable threshold (8 of 23)
-
-  if (wasConsecutive) {
-    if (qualifiedYesterday) {
-      newCurrentStreak += 1;
-    } else {
-      // Kept open, but didn't meet threshold - preserve at 1 rather than punishing harshly
-      newCurrentStreak = 1;
+  // If daysPassed > 1, backfill missing calendar days as 'missed' so history has no gaps
+  const gapRecords: DayRecord[] = [];
+  if (daysPassed > 1) {
+    for (let i = 1; i < daysPassed; i++) {
+      const gapDate = addDays(oldState.todayDate, i);
+      const gapGoalDay = Math.min(currentGoalMax, currentGoalDay + i);
+      gapRecords.push({
+        date: gapDate,
+        urduDate: formatUrduDate(gapDate),
+        goalDay: gapGoalDay,
+        goalMaxDays: currentGoalMax,
+        completedCount: 0,
+        totalCount,
+        hasanatEarned: 0,
+        takbeerOola: 0,
+        sleepTime: '--',
+        wakeTime: '--',
+        status: 'missed',
+        reportText: '',
+        tasks: JSON.parse(JSON.stringify(resetTasks)),
+      });
     }
-  } else {
-    // Gap of more than 1 day
-    newCurrentStreak = 1;
   }
 
-  const newHighestStreak = Math.max(oldState.streak.highest, newCurrentStreak);
+  // Combine newest dates first
+  const combinedHistory = [
+    ...gapRecords.reverse(),
+    oldDayRecord,
+    ...(oldState.history || []),
+  ];
+
+  // Deduplicate records by date
+  const seenDates = new Set<string>();
+  const updatedHistory: DayRecord[] = [];
+  for (const r of combinedHistory) {
+    if (r && r.date && !seenDates.has(r.date)) {
+      seenDates.add(r.date);
+      updatedHistory.push(r);
+    }
+  }
+  const trimmedHistory = updatedHistory.slice(0, 90);
+
+  // Dynamically calculate accurate streak
+  const streakInfo = calculateStreakDetails(
+    trimmedHistory,
+    resetTasks,
+    newTodayStr,
+    oldState.streak?.highest || 0
+  );
 
   // Goal day progresses forward
   let nextGoalDay = currentGoalDay + (daysPassed > 0 ? daysPassed : 1);
@@ -164,26 +224,19 @@ function performRollover(oldState: MaamulatState, newTodayStr: string): Maamulat
     nextGoalDay = currentGoalMax;
   }
 
-  // Reset daily task checks
-  const resetTasks = oldState.tasks.map(t => ({
-    ...t,
-    completed: false,
-    completedAt: undefined,
-  }));
-
   const newState: MaamulatState = {
     ...oldState,
     todayDate: newTodayStr,
     goalDay: nextGoalDay,
     goalMaxDays: currentGoalMax,
     streak: {
-      current: newCurrentStreak,
-      highest: newHighestStreak,
+      current: streakInfo.currentStreak,
+      highest: streakInfo.highestStreak,
       lastActiveDate: newTodayStr,
     },
     takbeerOola: 0,
     tasks: resetTasks,
-    history: updatedHistory,
+    history: trimmedHistory,
   };
 
   try {
@@ -211,10 +264,24 @@ export function useMaamulat() {
     }
   }, [state.todayDate]);
 
-  // Persist state to localStorage on modification
+  // Persist state to localStorage on modification with dynamic streak sync
   const saveState = useCallback((updater: (prev: MaamulatState) => MaamulatState) => {
     setState(prev => {
-      const next = updater(prev);
+      const nextRaw = updater(prev);
+      const streakInfo = calculateStreakDetails(
+        nextRaw.history || [],
+        nextRaw.tasks || [],
+        nextRaw.todayDate,
+        nextRaw.streak?.highest || 0
+      );
+      const next: MaamulatState = {
+        ...nextRaw,
+        streak: {
+          current: streakInfo.currentStreak,
+          highest: streakInfo.highestStreak,
+          lastActiveDate: nextRaw.todayDate,
+        },
+      };
       try {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
       } catch (err) {
@@ -365,7 +432,7 @@ export function useMaamulat() {
         const totalCount = activeT.length;
         const earnedHasanat = activeT.filter(t => t.completed).reduce((sum, t) => sum + t.hasanat, 0);
         const status: 'completed' | 'partial' | 'missed' =
-          completedCount >= Math.ceil(totalCount * 0.6) ? 'completed' : completedCount > 0 ? 'partial' : 'missed';
+          isCompletionQualified(completedCount, totalCount) ? 'completed' : completedCount > 0 ? 'partial' : 'missed';
 
         // Synthesize state to regenerate updated WhatsApp report text
         const mockState: MaamulatState = {
@@ -641,6 +708,16 @@ export function useMaamulat() {
     activeTasks,
   ]);
 
+  // Dynamically computed streak metrics
+  const streakDetails = useMemo(() => {
+    return calculateStreakDetails(
+      state.history || [],
+      state.tasks || [],
+      state.todayDate,
+      state.streak?.highest || 0
+    );
+  }, [state.history, state.tasks, state.todayDate, state.streak?.highest]);
+
   return {
     state,
     selectedDate,
@@ -660,6 +737,7 @@ export function useMaamulat() {
     todayEarnedHasanat,
     completionPercentage,
     recentHasanatPop,
+    streakDetails,
     toggleTask,
     updateTaskMeasure,
     updateCategoriesAndTasks,

@@ -68,6 +68,19 @@ export function getYesterdayLocalDateString(dateStr: string): string {
 }
 
 /**
+ * Adds or subtracts days from a YYYY-MM-DD date string
+ */
+export function addDays(dateStr: string, days: number): string {
+  const [year, month, day] = dateStr.split('-').map(Number);
+  const d = new Date(year, month - 1, day);
+  d.setDate(d.getDate() + days);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const da = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${da}`;
+}
+
+/**
  * Calculates calendar day difference (d1 - d2 in days)
  */
 export function getDayDifference(dateStr1: string, dateStr2: string): number {

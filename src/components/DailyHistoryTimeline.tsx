@@ -2,11 +2,15 @@ import React from 'react';
 import type { DayRecord } from '../types';
 import { Check, X, Calendar } from 'lucide-react';
 import { formatShortDate } from '../utils/dateUtils';
+import { isDayQualified } from '../utils/streakUtils';
+import { STREAK_PASS_PERCENTAGE } from '../constants';
 
 interface DailyHistoryTimelineProps {
   history: DayRecord[];
   todayDate: string;
   completedTodayCount: number;
+  totalTodayCount?: number;
+  isTodayQualified?: boolean;
   selectedDate: string;
   onSelectDate: (date: string) => void;
 }
@@ -15,6 +19,8 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
   history,
   todayDate,
   completedTodayCount,
+  totalTodayCount = 25,
+  isTodayQualified = false,
   selectedDate,
   onSelectDate,
 }) => {
@@ -33,7 +39,7 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
           </span>
         </div>
         <span className="text-[10px] text-ink-400 dark:text-ink-500">
-          Last 7 Days · Tap to select
+          Last 7 Days
         </span>
       </div>
 
@@ -43,11 +49,11 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
         {Array.from({ length: Math.max(0, 6 - recentDays.length) }).map((_, i) => (
           <div
             key={`placeholder-${i}`}
-            className="flex flex-col items-center py-2 px-1 rounded-xl border border-dashed border-paper-300 dark:border-ink-700/60 bg-paper-50/40 dark:bg-ink-800/40 text-ink-300 dark:text-ink-600 text-center"
+            className="flex flex-col items-center py-2 px-1 rounded-xl border-2 border-dashed border-paper-300 dark:border-ink-700/60 bg-paper-50/40 dark:bg-ink-800/40 text-ink-300 dark:text-ink-600 text-center"
           >
             <span className="text-[10px] font-normal mb-1 opacity-50">—</span>
-            <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs">
-              ·
+            <span className="w-5 h-5 rounded-full flex items-center justify-center">
+              <span className="w-1.5 h-1.5 rounded-full bg-paper-300/80 dark:bg-ink-700/60" />
             </span>
             <span className="text-[9px] mt-1 opacity-40">—</span>
           </div>
@@ -55,28 +61,37 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
 
         {/* Past days (ordered oldest -> yesterday right before Today) */}
         {recentDays.map((rec) => {
-          const isPassed = rec.status === 'completed';
-          const isPartial = rec.status === 'partial';
+          const isPassed = isDayQualified(rec);
+          const isPartial = !isPassed && rec.completedCount > 0;
           const isSelected = selectedDate === rec.date;
+
+          const stateStyles = isPassed
+            ? {
+                base: 'bg-sage-50/90 dark:bg-sage-950/40 text-sage-800 dark:text-sage-300',
+                selected: 'border-sage-600 dark:border-sage-400 z-10',
+                unselected: 'border-sage-200/90 dark:border-sage-800/80 hover:border-sage-400',
+              }
+            : isPartial
+              ? {
+                  base: 'bg-amberGold-50/90 dark:bg-amberGold-950/30 text-amberGold-800 dark:text-amberGold-300',
+                  selected: 'border-amberGold-500 dark:border-amberGold-400 z-10',
+                  unselected: 'border-amberGold-200/90 dark:border-amberGold-800/80 hover:border-amberGold-400',
+                }
+              : {
+                  base: 'bg-terracotta-50/90 dark:bg-terracotta-950/30 text-terracotta-600 dark:text-terracotta-400',
+                  selected: 'border-terracotta-500 dark:border-terracotta-400 z-10',
+                  unselected: 'border-terracotta-200/70 dark:border-terracotta-900/50 hover:border-terracotta-400',
+                };
 
           return (
             <button
               key={rec.date}
               onClick={() => onSelectDate(rec.date)}
-              className={`flex flex-col items-center py-2 px-1 rounded-xl border text-center transition-all tap-bounce relative ${isSelected
-                  ? 'ring-2 ring-sage-600 dark:ring-sage-400 shadow-sm scale-[1.03] z-10 '
-                  : 'hover:border-sage-400 '
-                } ${isPassed
-                  ? 'bg-sage-50/90 dark:bg-sage-950/40 border-sage-200 dark:border-sage-800 text-sage-800 dark:text-sage-300'
-                  : isPartial
-                    ? 'bg-amberGold-50/90 dark:bg-amberGold-950/30 border-amberGold-200 dark:border-amberGold-800 text-amberGold-800 dark:text-amberGold-300'
-                    : 'bg-terracotta-50/90 dark:bg-terracotta-950/30 border-terracotta-100 dark:border-terracotta-900/50 text-terracotta-600 dark:text-terracotta-400'
-                }`}
-              title={`${rec.date} (${rec.completedCount}/${rec.totalCount})`}
+              className={`flex flex-col items-center py-2 px-1 rounded-xl border-2 text-center transition-colors tap-bounce relative ${stateStyles.base} ${
+                isSelected ? stateStyles.selected : stateStyles.unselected
+              }`}
+              title={`${rec.date} (${rec.completedCount}/${rec.totalCount}) - ${isPassed ? `Passed (≥${STREAK_PASS_PERCENTAGE}%)` : isPartial ? `Partial (<${STREAK_PASS_PERCENTAGE}%)` : 'Missed (0)'}`}
             >
-              {isSelected && (
-                <span className="absolute -top-1 w-1.5 h-1.5 rounded-full bg-sage-600 dark:bg-sage-400" />
-              )}
               <span className={`text-[10px] font-medium mb-1 ${isSelected ? 'font-bold text-ink-900 dark:text-white' : 'opacity-80'}`}>
                 {formatShortDate(rec.date)}
               </span>
@@ -99,25 +114,54 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
         {/* Today Pill */}
         <button
           onClick={() => onSelectDate(todayDate)}
-          className={`flex flex-col items-center py-2 px-1 rounded-xl border text-center transition-all tap-bounce relative ${isTodaySelected
-              ? 'border-sage-600 bg-sage-100/90 dark:bg-sage-900/60 text-sage-900 dark:text-white ring-2 ring-sage-600 dark:ring-sage-400 shadow-sm scale-[1.03] z-10'
-              : 'border-sage-400/60 bg-sage-50/50 dark:bg-sage-950/20 text-sage-800 dark:text-sage-300 hover:border-sage-500'
-            }`}
-          title="آج کا دن (Today)"
+          className={`flex flex-col items-center py-2 px-1 rounded-xl border-2 text-center transition-colors tap-bounce relative ${
+            isTodaySelected
+              ? 'border-sage-600 dark:border-sage-400 bg-sage-100/90 dark:bg-sage-900/60 text-sage-900 dark:text-white z-10'
+              : 'border-sage-300 dark:border-sage-700/80 bg-sage-50/50 dark:bg-sage-950/20 text-sage-800 dark:text-sage-300 hover:border-sage-400'
+          }`}
+          title={`آج کا دن (Today) - ${completedTodayCount}/${totalTodayCount} ${isTodayQualified ? '(Passed)' : '(In Progress)'}`}
         >
-          {isTodaySelected && (
-            <span className="absolute -top-1 w-1.5 h-1.5 rounded-full bg-sage-600 dark:bg-sage-400" />
-          )}
           <span className={`text-[10px] mb-1 ${isTodaySelected ? 'font-bold text-sage-800 dark:text-sage-200' : 'font-medium'}`}>
             Today
           </span>
-          <span className="w-5 h-5 rounded-full bg-sage-600 text-white flex items-center justify-center text-[10px] font-bold">
-            ◐
+          <span
+            className={`w-5 h-5 rounded-full flex items-center justify-center transition-all ${
+              isTodayQualified
+                ? 'bg-sage-600 dark:bg-sage-500 text-white shadow-xs'
+                : completedTodayCount > 0
+                  ? 'bg-sage-600 dark:bg-sage-500 text-white text-[10px] font-bold shadow-xs'
+                  : 'border border-sage-400/60 dark:border-sage-600/60 bg-sage-500/10 dark:bg-sage-400/10'
+            }`}
+          >
+            {isTodayQualified ? (
+              <Check className="w-3.5 h-3.5 stroke-[2.5]" />
+            ) : completedTodayCount > 0 ? (
+              <span className="text-[10px] leading-none">◐</span>
+            ) : (
+              <span className="w-1.5 h-1.5 rounded-full bg-sage-500/80 dark:bg-sage-400/80" />
+            )}
           </span>
           <span className="text-[9px] font-bold mt-1 text-sage-700 dark:text-sage-300">
             {completedTodayCount}
           </span>
         </button>
+      </div>
+      {/* Legend & Guidance */}
+      <div className="flex items-center justify-between pt-2 px-1 text-[10px] text-ink-400 dark:text-ink-500 border-t border-paper-200/60 dark:border-ink-700/40 mt-2.5">
+        <div className="flex items-center gap-2.5 flex-wrap">
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-sage-500 inline-block" /> Pass 
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-amberGold-500 inline-block" /> Partial 
+          </span>
+          <span className="flex items-center gap-1">
+            <span className="w-2 h-2 rounded-full bg-terracotta-500 inline-block" /> Missed
+          </span>
+        </div>
+        <span className="font-medium text-ink-400 dark:text-ink-500">
+          Tap to select
+        </span>
       </div>
     </div>
   );

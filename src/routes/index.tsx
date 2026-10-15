@@ -11,7 +11,6 @@ import { MurrabiAccountability } from '../components/MurrabiAccountability';
 import { PrivacyFooter } from '../components/PrivacyFooter';
 import { TaskCustomizerScreen } from '../components/TaskCustomizerScreen';
 import { ScrollToTop } from '../components/ScrollToTop';
-import { PastDayAlertBanner } from '../components/PastDayAlertBanner';
 import { formatShortDate } from '../utils/dateUtils';
 
 interface AppRouterProps {
@@ -44,6 +43,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     todayEarnedHasanat,
     completionPercentage,
     recentHasanatPop,
+    streakDetails,
     toggleTask,
     updateTaskMeasure,
     updateCategoriesAndTasks,
@@ -106,6 +106,9 @@ export const AppRouter: React.FC<AppRouterProps> = ({
           onResetToday={resetToday}
           onResetToDefault={resetCategoriesAndTasksToDefault}
           onUpdateMurrabiContact={setMurrabiContact}
+          isViewingPastDay={isViewingPastDay}
+          isYesterday={selectedDate === yesterdayDate}
+          onReturnToToday={() => setSelectedDate(state.todayDate)}
         />
 
         {/* 2. Streak and Hasanat Stat Cards with Halal Wit / Encouragements */}
@@ -115,6 +118,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
           totalHasanat={state.totalHasanat}
           todayHasanat={todayEarnedHasanat}
           dateLabel={friendlyDateLabel}
+          isTodayQualified={streakDetails.isTodayQualified}
+          neededForToday={streakDetails.neededForToday}
         />
 
         {/* 3. Daily Completion Progress Bar (shows 4 Oct's Progress when viewing 4 Oct) */}
@@ -136,18 +141,11 @@ export const AppRouter: React.FC<AppRouterProps> = ({
               ? completedTasksCount
               : state.tasks.filter((t) => !t.hidden && t.completed).length
           }
+          totalTodayCount={totalTasksCount}
+          isTodayQualified={streakDetails.isTodayQualified}
           selectedDate={selectedDate}
           onSelectDate={setSelectedDate}
         />
-
-        {/* 4b. Alert banner when viewing a past day */}
-        {isViewingPastDay && (
-          <PastDayAlertBanner
-            dateLabel={friendlyDateLabel || selectedDate}
-            isYesterday={selectedDate === yesterdayDate}
-            onReturnToToday={() => setSelectedDate(state.todayDate)}
-          />
-        )}
 
         {/* 5. Daily Maamulat Task Categories (renders active date's tasks) */}
         <div className="space-y-3.5 pt-1">

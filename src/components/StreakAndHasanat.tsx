@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import { Flame, Sparkles, RefreshCw } from 'lucide-react';
+import { Flame, Sparkles, RefreshCw, Info } from 'lucide-react';
 import { ENCOURAGEMENT_QUOTES } from '../utils/defaultTasks';
+import { STREAK_PASS_PERCENTAGE } from '../constants';
+import { Tooltip } from './Tooltip';
 
 interface StreakAndHasanatProps {
   currentStreak: number;
@@ -8,6 +10,8 @@ interface StreakAndHasanatProps {
   totalHasanat: number;
   todayHasanat: number;
   dateLabel?: string;
+  isTodayQualified?: boolean;
+  neededForToday?: number;
 }
 
 export const StreakAndHasanat: React.FC<StreakAndHasanatProps> = ({
@@ -16,9 +20,12 @@ export const StreakAndHasanat: React.FC<StreakAndHasanatProps> = ({
   totalHasanat,
   todayHasanat,
   dateLabel,
+  isTodayQualified,
+  neededForToday,
 }) => {
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [fade, setFade] = useState(true);
+  const [showThresholdTip, setShowThresholdTip] = useState(false);
 
   const rotateQuote = () => {
     setFade(false);
@@ -42,17 +49,17 @@ export const StreakAndHasanat: React.FC<StreakAndHasanatProps> = ({
       {/* 2-Column Stat Cards */}
       <div className="grid grid-cols-2 gap-2.5">
         {/* Streak Card */}
-        <div className="rounded-2xl p-3.5 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm relative overflow-hidden group">
+        <div className="rounded-2xl p-3 sm:p-3.5 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm relative group">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold tracking-wider uppercase text-ink-500 dark:text-ink-400">
               Current Streak
             </span>
-            <span className="p-1.5 rounded-full bg-amberGold-50 dark:bg-amberGold-950/40 text-amberGold-600 dark:text-amberGold-400">
-              <Flame className="w-4 h-4 fill-amberGold-500 text-amberGold-600 animate-pulse" />
+            <span className="p-1 rounded-full bg-amberGold-50 dark:bg-amberGold-950/40 text-amberGold-600 dark:text-amberGold-400">
+              <Flame className="w-3.5 h-3.5 fill-amberGold-500 text-amberGold-600 animate-pulse" />
             </span>
           </div>
 
-          <div className="mt-1 flex items-baseline gap-1.5">
+          <div className="mt-1 flex items-baseline gap-1">
             <span className="text-2xl font-bold text-ink-900 dark:text-white tracking-tight">
               {currentStreak}
             </span>
@@ -61,33 +68,83 @@ export const StreakAndHasanat: React.FC<StreakAndHasanatProps> = ({
             </span>
           </div>
 
-          <div className="mt-1 text-[10px] text-ink-500 dark:text-ink-400">
-            Personal Best: <span className="font-semibold text-ink-700 dark:text-ink-200">{highestStreak} days</span>
+          <div className="mt-1.5 flex items-center justify-between text-[10px] text-ink-500 dark:text-ink-400">
+            <span>
+              Best: <span className="font-semibold text-ink-700 dark:text-ink-200">{highestStreak} {highestStreak === 1 ? 'day' : 'days'}</span>
+            </span>
+
+            {isTodayQualified !== undefined && (
+              <div className="relative inline-flex items-center gap-1">
+                {isTodayQualified ? (
+                  <>
+                    <span className="font-bold text-sage-600 dark:text-sage-400">
+                      ✓ Passed
+                    </span>
+                    <span
+                      onMouseEnter={() => setShowThresholdTip(true)}
+                      onMouseLeave={() => setShowThresholdTip(false)}
+                      className="p-0.5 rounded-full text-ink-400 hover:text-sage-600 dark:hover:text-sage-300 cursor-help inline-flex items-center"
+                      aria-label="Streak threshold info"
+                    >
+                      <Info className="w-3 h-3" />
+                    </span>
+                  </>
+                ) : neededForToday && neededForToday > 0 ? (
+                  <>
+                    <span className="font-medium text-amberGold-700 dark:text-amberGold-400">
+                      {neededForToday} left
+                    </span>
+                    <span
+                      onMouseEnter={() => setShowThresholdTip(true)}
+                      onMouseLeave={() => setShowThresholdTip(false)}
+                      className="p-0.5 rounded-full text-ink-400 hover:text-amberGold-600 dark:hover:text-amberGold-400 cursor-help inline-flex items-center"
+                      aria-label="Streak threshold info"
+                    >
+                      <Info className="w-3 h-3" />
+                    </span>
+                  </>
+                ) : null}
+
+                {/* Simple hover tooltip */}
+                <Tooltip
+                  isOpen={showThresholdTip}
+                  position="above"
+                  align="center"
+                  arrowPosition="center"
+                  className="w-36 text-[9.5px]"
+                >
+                  <span>
+                    <strong className="text-amberGold-600 dark:text-amberGold-400 font-semibold">≥{STREAK_PASS_PERCENTAGE}%</strong> daily tasks needed to pass & extend.
+                  </span>
+                </Tooltip>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Hasanat Card */}
-        <div className="rounded-2xl p-3.5 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm relative overflow-hidden group">
+        <div className="rounded-2xl p-3 sm:p-3.5 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm relative group">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold tracking-wider uppercase text-ink-500 dark:text-ink-400">
               Total Hasanat
             </span>
-            <span className="p-1.5 rounded-full bg-sage-50 dark:bg-sage-950/40 text-sage-600 dark:text-sage-400">
-              <Sparkles className="w-4 h-4 text-sage-600 dark:text-sage-400" />
+            <span className="p-1 rounded-full bg-sage-50 dark:bg-sage-950/40 text-sage-600 dark:text-sage-400">
+              <Sparkles className="w-3.5 h-3.5 text-sage-600 dark:text-sage-400" />
             </span>
           </div>
 
-          <div className="mt-1 flex items-baseline gap-1.5">
+          <div className="mt-1 flex items-baseline gap-1">
             <span className="text-2xl font-bold text-ink-900 dark:text-white tracking-tight">
               {totalHasanat.toLocaleString()}
             </span>
-            <span className="text-[10px] uppercase font-bold text-sage-700 dark:text-sage-300 bg-sage-100 dark:bg-sage-900/60 px-1.5 py-0.5 rounded-md">
-              +{todayHasanat} {dateLabel || 'today'}
-            </span>
           </div>
 
-          <div className="mt-1 text-[10px] text-ink-500 dark:text-ink-400">
-            Recorded privately with sincerity
+          <div className="mt-1.5 flex items-center justify-between text-[10px] text-ink-500 dark:text-ink-400">
+            <span>
+              {dateLabel ? `${dateLabel}:` : 'Today:'}{' '}
+              <span className="font-semibold text-sage-700 dark:text-sage-300">+{todayHasanat}</span>
+            </span>
+            <span className="text-ink-400 truncate">Sincerity</span>
           </div>
         </div>
       </div>
