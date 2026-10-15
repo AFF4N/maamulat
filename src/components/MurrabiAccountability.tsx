@@ -26,8 +26,8 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
   state,
   onUpdateMurrabiContact,
   currentStreak,
-  isViewingPastDay,
-  activeDateLabel,
+  isViewingPastDay: _isViewingPastDay,
+  activeDateLabel: _activeDateLabel,
   onSelectYesterday: _onSelectYesterday,
 }) => {
   const [showWhyModal, setShowWhyModal] = useState(false);

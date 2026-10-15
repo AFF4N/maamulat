@@ -1,9 +1,10 @@
-import React from 'react';
+import React, { useState, useMemo } from 'react';
 import type { DayRecord } from '../types';
 import { Check, X, Calendar } from 'lucide-react';
 import { formatShortDate } from '../utils/dateUtils';
 import { isDayQualified } from '../utils/streakUtils';
 import { STREAK_PASS_PERCENTAGE } from '../constants';
+import { DatePickerModal } from './DatePickerModal';
 
 interface DailyHistoryTimelineProps {
   history: DayRecord[];
@@ -24,10 +25,31 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
   selectedDate,
   onSelectDate,
 }) => {
+  const [isPickerOpen, setIsPickerOpen] = useState(false);
+
   // Take up to the last 6 days from history (newest first in array, so slice(0, 6) and reverse for chronological left-to-right)
   const recentDays = (history || []).slice(0, 6).reverse();
 
   const isTodaySelected = selectedDate === todayDate;
+
+  // Compute all available dates (history entries + today)
+  const availableDates = useMemo(() => {
+    const dates = (history || []).map((h) => h.date);
+    if (!dates.includes(todayDate)) {
+      dates.push(todayDate);
+    }
+    return dates;
+  }, [history, todayDate]);
+
+  // Compute status map for dots in the date picker
+  const dateStatusMap = useMemo(() => {
+    const map: Record<string, 'passed' | 'partial' | 'missed' | 'today'> = {};
+    (history || []).forEach((h) => {
+      map[h.date] = isDayQualified(h) ? 'passed' : h.completedCount > 0 ? 'partial' : 'missed';
+    });
+    map[todayDate] = 'today';
+    return map;
+  }, [history, todayDate]);
 
   return (
     <div className="rounded-2xl p-3.5 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm my-3">
@@ -38,9 +60,15 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
             Recent Days (سابقہ ایام)
           </span>
         </div>
-        <span className="text-[10px] text-ink-400 dark:text-ink-500">
-          Last 7 Days
-        </span>
+        <button
+          type="button"
+          onClick={() => setIsPickerOpen(true)}
+          className="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-semibold text-sage-700 dark:text-sage-300 bg-sage-50 dark:bg-sage-950/60 hover:bg-sage-100 dark:hover:bg-sage-900/60 border border-sage-200/90 dark:border-sage-800 transition-colors tap-bounce cursor-pointer"
+          title="Browse all available historic dates"
+        >
+          <Calendar className="w-3 h-3 text-sage-600 dark:text-sage-400" />
+          <span>Pick Date ▾</span>
+        </button>
       </div>
 
       {/* 7-Day Pill Row */}
@@ -163,6 +191,16 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
           Tap to select
         </span>
       </div>
+
+      <DatePickerModal
+        isOpen={isPickerOpen}
+        onClose={() => setIsPickerOpen(false)}
+        selectedDate={selectedDate}
+        onSelectDate={onSelectDate}
+        availableDates={availableDates}
+        dateStatusMap={dateStatusMap}
+        title="Select Historic Day"
+      />
     </div>
   );
 };
