@@ -463,7 +463,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
               </div>
 
               <p className="text-[10px] text-ink-500 dark:text-ink-400 leading-snug">
-                Adjust by up to ±3 days to match your regional moon sighting. Automatically updates your daily sheet header and exported WhatsApp reports.
+                Adjust by ±3 days to match your regional moon sighting
               </p>
             </div>
           </div>

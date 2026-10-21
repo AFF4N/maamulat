@@ -1,5 +1,5 @@
 import type { MaamulatState, DayRecord } from '../types';
-import { formatUrduDate, formatUrduHijriDate } from './dateUtils';
+import { formatUrduDate, formatUrduHijriDate, getUrduDayName } from './dateUtils';
 
 /**
  * Generates the authentic WhatsApp formatted text report
@@ -7,6 +7,7 @@ import { formatUrduDate, formatUrduHijriDate } from './dateUtils';
  */
 export function generateWhatsAppReport(state: MaamulatState): string {
   const urduDate = formatUrduDate(state.todayDate);
+  const dayName = getUrduDayName(state.todayDate);
   const hijriDate = formatUrduHijriDate(state.todayDate, state.hijriAdjustment ?? 0);
 
   const lines: string[] = [];
@@ -15,7 +16,7 @@ export function generateWhatsAppReport(state: MaamulatState): string {
   const currentDay = state.goalDay ?? state.chillaDay ?? 1;
   const targetDays = state.goalMaxDays ?? state.chillaMaxDays ?? 40;
   lines.push(`*ہدف یوم:* ${currentDay}/${targetDays}`);
-  lines.push(`*تاریخ:* ${urduDate}`);
+  lines.push(`*تاریخ:* ${urduDate}${dayName ? ` (${dayName})` : ''}`);
   if (hijriDate) {
     lines.push(hijriDate);
   }
@@ -95,7 +96,9 @@ export function getReportForDayRecord(record: DayRecord, state: MaamulatState): 
   // Fallback for legacy day records without full task snapshot
   const lines: string[] = [];
   lines.push(`*ہدف یوم:* ${record.goalDay || 1}/${record.goalMaxDays || 40}`);
-  lines.push(`*تاریخ:* ${record.urduDate || record.date}`);
+  const dayName = record.date ? getUrduDayName(record.date) : '';
+  const dateStr = record.urduDate || record.date;
+  lines.push(`*تاریخ:* ${dateStr}${dayName ? ` (${dayName})` : ''}`);
   const hijriDate = record.hijriDate || (record.date ? formatUrduHijriDate(record.date, state.hijriAdjustment ?? 0) : '');
   if (hijriDate) {
     lines.push(hijriDate);
