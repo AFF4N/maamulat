@@ -26,8 +26,7 @@ import {
   isPushNotificationSupported,
   subscribeToPushNotifications,
   unsubscribeFromPushNotifications,
-  checkIsSubscribed,
-  triggerTestNotification
+  checkIsSubscribed
 } from '../utils/notificationUtils';
 
 interface MenuDrawerProps {
@@ -73,7 +72,6 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
   const [isPushSupported] = useState(() => isPushNotificationSupported());
   const [isPushEnabled, setIsPushEnabled] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
-  const [testStatus, setTestStatus] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -109,17 +107,6 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
     }
   };
 
-  const handleSendTest = async () => {
-    setTestStatus('Sending test notification...');
-    const res = await triggerTestNotification();
-    if (res.success) {
-      setTestStatus('Notification sent! Check your notification tray / lock screen 🔔');
-      setTimeout(() => setTestStatus(null), 5000);
-    } else {
-      setTestStatus(res.error || 'Failed to deliver notification');
-      setTimeout(() => setTestStatus(null), 5000);
-    }
-  };
 
   const currentAdjustment = state?.hijriAdjustment ?? 0;
   const todayDateStr = state?.todayDate || '';
@@ -480,26 +467,15 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                 Fires an evening browser push reminder so you never miss recording your spiritual habits, alongside rotating Duas and verses of the day.
               </p>
 
-              {/* Active Scheduled Badge & Test Trigger */}
+              {/* Active Scheduled Badge */}
               {isPushEnabled && (
-                <div className="pt-2 border-t border-paper-200 dark:border-ink-800 space-y-2">
-                  <div className="flex items-center justify-between gap-2 flex-wrap">
-                    <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                      <Check className="w-3 h-3" /> Scheduled daily for 9:00 PM
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleSendTest}
-                      className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-paper-100 hover:bg-paper-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-ink-800 dark:text-ink-200 transition-colors tap-bounce"
-                    >
-                      Send Test Notification
-                    </button>
-                  </div>
-                  {testStatus && (
-                    <p className="text-[11px] font-medium text-amber-700 dark:text-amber-400">
-                      {testStatus}
-                    </p>
-                  )}
+                <div className="pt-2 border-t border-paper-200 dark:border-ink-800 flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                    <Check className="w-3 h-3" /> Scheduled daily for 9:00 PM
+                  </span>
+                  <span className="text-[10px] font-medium text-sage-800 dark:text-sage-300 bg-sage-100 dark:bg-sage-950/80 px-2 py-0.5 rounded-full">
+                    Active
+                  </span>
                 </div>
               )}
             </div>
