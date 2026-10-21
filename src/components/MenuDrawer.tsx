@@ -256,7 +256,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
               <h2 className="text-sm font-bold text-ink-900 dark:text-white leading-tight">
                 Menu & Settings
               </h2>
-              <p className="arabic-text text-xs text-sage-700 dark:text-sage-400 text-left">
+              <p className="arabic-text text-xs text-sage-700 dark:text-ink-300 text-left">
                 ترتیبات و تخصیص
               </p>
             </div>
@@ -294,7 +294,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                     <span className="text-xs font-bold text-ink-900 dark:text-white block truncate">
                       Customize Maamulat
                     </span>
-                    <span className="arabic-text text-[11px] text-sage-700 dark:text-sage-400 block truncate">
+                    <span className="arabic-text text-[11px] text-sage-700 dark:text-ink-300 block truncate">
                       معمولات و اسباق کی تخصیص
                     </span>
                   </div>
@@ -430,7 +430,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                     <span className="text-xs font-bold text-ink-900 dark:text-white block truncate">
                       Daily Reminders & Duas
                     </span>
-                    <span className="arabic-text text-[11px] text-sage-700 dark:text-sage-400 block truncate">
+                    <span className="arabic-text text-[11px] text-sage-700 dark:text-ink-300 block truncate">
                       روزانہ شام کے معمولات کی یاد دہانی
                     </span>
                   </div>
@@ -504,7 +504,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                     <span className="text-xs font-bold text-ink-900 dark:text-white block truncate">
                       Moon Sighting Offset (رویتِ ہلال)
                     </span>
-                    <span className="text-[11px] font-semibold text-sage-700 dark:text-sage-400 block truncate mt-0.5">
+                    <span className="text-[11px] font-semibold text-sage-700 dark:text-ink-300 block truncate mt-0.5">
                       {previewHijriUrdu}
                     </span>
                   </div>
@@ -731,7 +731,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
               <ShieldCheck className="w-4 h-4 text-sage-600 dark:text-sage-400 shrink-0" />
               <span>100% Private & Offline-First</span>
             </div>
-            <p className="text-[11px] text-sage-800 dark:text-sage-400 leading-relaxed opacity-90">
+            <p className="text-[11px] text-sage-800 dark:text-ink-300 leading-relaxed opacity-90">
               No account, no cloud servers, and no tracking. All data is kept securely on this device alone.
             </p>
           </div>
