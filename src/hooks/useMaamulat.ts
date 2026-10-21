@@ -634,6 +634,66 @@ export function useMaamulat() {
     });
   }, [saveState]);
 
+  // Restore state from a valid backup
+  const restoreBackup = useCallback((backupState: MaamulatState) => {
+    const todayStr = getTodayLocalDateString();
+    let sanitized: MaamulatState = { ...backupState };
+
+    // Validate tasks
+    if (!Array.isArray(sanitized.tasks) || sanitized.tasks.length === 0) {
+      throw new Error('Invalid backup: Missing tasks list.');
+    }
+
+    // Default categories if missing
+    if (!Array.isArray(sanitized.categories) || sanitized.categories.length === 0) {
+      sanitized.categories = DEFAULT_CATEGORIES;
+    }
+
+    // Merge tasks with defaults if new attributes were added
+    sanitized.tasks = sanitized.tasks.map((existing: any) => {
+      const dt = DEFAULT_TASKS.find(x => x.id === existing.id);
+      return {
+        ...dt,
+        ...existing,
+      };
+    });
+
+    // Ensure version and fields
+    sanitized.version = 2;
+    sanitized.history = Array.isArray(sanitized.history) ? sanitized.history : [];
+    sanitized.goalDay = sanitized.goalDay ?? sanitized.chillaDay ?? 1;
+    sanitized.goalMaxDays = sanitized.goalMaxDays ?? sanitized.chillaMaxDays ?? 40;
+    sanitized.totalHasanat = typeof sanitized.totalHasanat === 'number' ? sanitized.totalHasanat : 0;
+    sanitized.takbeerOola = typeof sanitized.takbeerOola === 'number' ? sanitized.takbeerOola : 0;
+    sanitized.sleepTime = sanitized.sleepTime || '11:30 PM';
+    sanitized.wakeTime = sanitized.wakeTime || '05:00 AM';
+    sanitized.hijriAdjustment = typeof sanitized.hijriAdjustment === 'number' ? sanitized.hijriAdjustment : 0;
+
+    // If backup is from a previous date, perform rollover to today so history and streaks are retained
+    if (sanitized.todayDate && sanitized.todayDate !== todayStr) {
+      sanitized = performRollover(sanitized, todayStr);
+    } else {
+      sanitized.todayDate = todayStr;
+    }
+
+    // Recalculate streak
+    const streakInfo = calculateStreakDetails(
+      sanitized.history || [],
+      sanitized.tasks || [],
+      todayStr,
+      sanitized.streak?.highest || 0
+    );
+    sanitized.streak = {
+      current: streakInfo.currentStreak,
+      highest: streakInfo.highestStreak,
+      lastActiveDate: todayStr,
+    };
+
+    saveState(() => sanitized);
+    setSelectedDateOverride(null);
+    return true;
+  }, [saveState]);
+
   // Update customizable task measure (e.g. Tilawat portion)
   const updateTaskMeasure = useCallback((taskId: string, measure: string) => {
     saveState(prev => ({
@@ -764,6 +824,7 @@ export function useMaamulat() {
     setMurrabiContact,
     setHijriAdjustment,
     simulateNextDay,
+    restoreBackup,
     resetToday,
   };
 }

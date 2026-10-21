@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { Lock } from 'lucide-react';
 import type { MaamulatState } from '../types';
+import { exportBackupJSON } from '../utils/backupUtils';
 
 interface PrivacyFooterProps {
   state?: MaamulatState;
@@ -17,17 +18,19 @@ export const PrivacyFooter: React.FC<PrivacyFooterProps> = ({
   const [showTools, setShowTools] = useState(false);
   const [copiedStatus, setCopiedStatus] = useState<string | null>(null);
 
-  const handleExportJSON = () => {
+  const handleExportJSON = async () => {
     if (!state) return;
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', `maamulat-backup-${state.todayDate}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
-    setCopiedStatus('Backup downloaded!');
-    setTimeout(() => setCopiedStatus(null), 2000);
+    const result = await exportBackupJSON(state);
+    if (result.success && !result.cancelled) {
+      setCopiedStatus(
+        result.method === 'share'
+          ? 'Saved to Files!'
+          : result.method === 'copy'
+          ? 'Copied to clipboard!'
+          : 'Backup downloaded!'
+      );
+      setTimeout(() => setCopiedStatus(null), 2000);
+    }
   };
 
   const handleClearAll = () => {

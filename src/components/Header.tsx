@@ -19,6 +19,7 @@ interface HeaderProps {
   onResetToDefault?: () => void;
   onUpdateMurrabiContact?: (contact: string) => void;
   onUpdateHijriAdjustment?: (adjustment: number) => void;
+  onRestoreBackup?: (backup: MaamulatState) => void;
   isViewingPastDay?: boolean;
   isYesterday?: boolean;
   onReturnToToday?: () => void;
@@ -38,6 +39,7 @@ export const Header: React.FC<HeaderProps> = ({
   onResetToDefault,
   onUpdateMurrabiContact,
   onUpdateHijriAdjustment,
+  onRestoreBackup,
   isViewingPastDay = false,
   isYesterday = false,
   onReturnToToday,
@@ -235,6 +237,7 @@ export const Header: React.FC<HeaderProps> = ({
         onResetToDefault={onResetToDefault}
         onUpdateMurrabiContact={onUpdateMurrabiContact}
         onUpdateHijriAdjustment={onUpdateHijriAdjustment}
+        onRestoreBackup={onRestoreBackup}
       />
     </header>
   );

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   X,
   SlidersHorizontal,
@@ -7,6 +7,7 @@ import {
   Target,
   RotateCcw,
   Download,
+  Upload,
   ShieldCheck,
   ChevronRight,
   Sparkles,
@@ -14,9 +15,11 @@ import {
   HeartHandshake,
   Plus,
   Minus,
+  Check,
 } from 'lucide-react';
 import type { MaamulatState } from '../types';
 import { formatUrduHijriDate } from '../utils/dateUtils';
+import { exportBackupJSON, validateBackupJSON, readUploadedFileAsText } from '../utils/backupUtils';
 
 interface MenuDrawerProps {
   isOpen: boolean;
@@ -32,6 +35,7 @@ interface MenuDrawerProps {
   onResetToDefault?: () => void;
   onUpdateMurrabiContact?: (contact: string) => void;
   onUpdateHijriAdjustment?: (adjustment: number) => void;
+  onRestoreBackup?: (backup: MaamulatState) => void;
 }
 
 export const MenuDrawer: React.FC<MenuDrawerProps> = ({
@@ -48,9 +52,13 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
   onResetToDefault,
   onUpdateMurrabiContact,
   onUpdateHijriAdjustment,
+  onRestoreBackup,
 }) => {
   const [murrabiInput, setMurrabiInput] = useState(state?.murrabiContact || '');
   const [isMurrabiSaved, setIsMurrabiSaved] = useState(false);
+  const [exportStatus, setExportStatus] = useState<string | null>(null);
+  const [restoreStatus, setRestoreStatus] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   const currentAdjustment = state?.hijriAdjustment ?? 0;
   const todayDateStr = state?.todayDate || '';
@@ -92,15 +100,66 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
     };
   }, [isOpen]);
 
-  const handleExportJSON = () => {
+  const handleExportJSON = async () => {
     if (!state) return;
-    const dataStr = 'data:text/json;charset=utf-8,' + encodeURIComponent(JSON.stringify(state, null, 2));
-    const downloadAnchor = document.createElement('a');
-    downloadAnchor.setAttribute('href', dataStr);
-    downloadAnchor.setAttribute('download', `maamulat-backup-${state.todayDate}.json`);
-    document.body.appendChild(downloadAnchor);
-    downloadAnchor.click();
-    downloadAnchor.remove();
+    try {
+      const result = await exportBackupJSON(state);
+      if (result.success) {
+        if (!result.cancelled) {
+          const msg =
+            result.method === 'share'
+              ? 'Saved to Files!'
+              : result.method === 'copy'
+              ? 'Copied to Clipboard!'
+              : 'Backup Downloaded!';
+          setExportStatus(msg);
+          setTimeout(() => setExportStatus(null), 2500);
+        }
+      } else {
+        alert(result.error || 'Failed to export backup.');
+      }
+    } catch (err) {
+      console.error('Export error', err);
+    }
+  };
+
+  const handleRestoreClick = () => {
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+      fileInputRef.current.click();
+    }
+  };
+
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    try {
+      const rawText = await readUploadedFileAsText(file);
+      const validation = validateBackupJSON(rawText);
+
+      if (!validation.valid || !validation.state) {
+        alert(validation.error || 'The chosen file is not a valid Maamulat backup file.');
+        return;
+      }
+
+      const backup = validation.state;
+      const backupDate = backup.todayDate || 'previous date';
+      const historyCount = Array.isArray(backup.history) ? backup.history.length : 0;
+
+      const confirmed = window.confirm(
+        `Restore Maamulat backup (${backupDate})?\n\nThis will restore ${historyCount} past day records, custom tasks, and habits. Your current sheet will be updated.`
+      );
+
+      if (!confirmed) return;
+
+      onRestoreBackup?.(backup);
+      setRestoreStatus('Restored!');
+      setTimeout(() => setRestoreStatus(null), 3000);
+    } catch (err: any) {
+      console.error('Failed to restore backup:', err);
+      alert('Failed to read or restore backup file: ' + (err?.message || 'Unknown error'));
+    }
   };
 
   const handleConfirmResetToday = () => {
@@ -434,7 +493,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                   }}
                   className="px-2.5 py-1 text-xs font-bold text-sage-700 dark:text-sage-300 hover:text-white bg-sage-50 dark:bg-sage-950/60 hover:bg-sage-600 dark:hover:bg-sage-600 border border-sage-300 dark:border-sage-800 rounded-xl transition-all tap-bounce"
                 >
-                  Edit Goal
+                  Edit
                 </button>
               </div>
             </div>
@@ -484,8 +543,54 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                       </span>
                     </div>
                   </div>
-                  <ChevronRight className="w-3.5 h-3.5 text-ink-400" />
+                  {exportStatus ? (
+                    <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full animate-fadeIn">
+                      <Check className="w-3 h-3" />
+                      <span>{exportStatus}</span>
+                    </span>
+                  ) : (
+                    <ChevronRight className="w-3.5 h-3.5 text-ink-400" />
+                  )}
                 </button>
+              )}
+
+              {/* Restore Backup */}
+              {onRestoreBackup && (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".json,application/json"
+                    onChange={handleFileSelect}
+                    className="hidden"
+                    aria-label="Upload backup JSON file"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleRestoreClick}
+                    className="w-full px-3.5 py-3 text-left hover:bg-paper-100 dark:hover:bg-ink-800 flex items-center justify-between transition-colors tap-bounce"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <Upload className="w-4 h-4 text-sage-600 dark:text-sage-400" />
+                      <div>
+                        <span className="text-xs font-bold text-ink-900 dark:text-white block">
+                          Restore Backup (JSON)
+                        </span>
+                        <span className="text-[10px] text-ink-500 dark:text-ink-400">
+                          Load history & tasks from a backup file
+                        </span>
+                      </div>
+                    </div>
+                    {restoreStatus ? (
+                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-600 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 rounded-full animate-fadeIn">
+                        <Check className="w-3 h-3" />
+                        <span>{restoreStatus}</span>
+                      </span>
+                    ) : (
+                      <ChevronRight className="w-3.5 h-3.5 text-ink-400" />
+                    )}
+                  </button>
+                </>
               )}
 
               {/* Reset All to Factory Defaults */}
