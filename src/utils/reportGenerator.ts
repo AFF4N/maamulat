@@ -1,5 +1,5 @@
 import type { MaamulatState, DayRecord } from '../types';
-import { formatUrduDate } from './dateUtils';
+import { formatUrduDate, formatUrduHijriDate } from './dateUtils';
 
 /**
  * Generates the authentic WhatsApp formatted text report
@@ -7,6 +7,7 @@ import { formatUrduDate } from './dateUtils';
  */
 export function generateWhatsAppReport(state: MaamulatState): string {
   const urduDate = formatUrduDate(state.todayDate);
+  const hijriDate = formatUrduHijriDate(state.todayDate, state.hijriAdjustment ?? 0);
 
   const lines: string[] = [];
 
@@ -15,6 +16,9 @@ export function generateWhatsAppReport(state: MaamulatState): string {
   const targetDays = state.goalMaxDays ?? state.chillaMaxDays ?? 40;
   lines.push(`*ہدف یوم:* ${currentDay}/${targetDays}`);
   lines.push(`*تاریخ:* ${urduDate}`);
+  if (hijriDate) {
+    lines.push(hijriDate);
+  }
   lines.push('');
 
   // Active categories & tasks
@@ -92,6 +96,10 @@ export function getReportForDayRecord(record: DayRecord, state: MaamulatState): 
   const lines: string[] = [];
   lines.push(`*ہدف یوم:* ${record.goalDay || 1}/${record.goalMaxDays || 40}`);
   lines.push(`*تاریخ:* ${record.urduDate || record.date}`);
+  const hijriDate = record.hijriDate || (record.date ? formatUrduHijriDate(record.date, state.hijriAdjustment ?? 0) : '');
+  if (hijriDate) {
+    lines.push(hijriDate);
+  }
   lines.push('');
   lines.push(`*📊 تکمیل معمولات:* ${record.completedCount}/${record.totalCount}`);
   lines.push(`*🔸 تکبیر اولی:* ${record.takbeerOola}/5`);

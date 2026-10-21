@@ -95,10 +95,13 @@ export function getDayDifference(dateStr1: string, dateStr2: string): number {
  * Formats a YYYY-MM-DD date into Islamic Hijri date:
  * e.g. "23 Rabiʻ II 1448 AH (23 ربیع الثانی 1448ھ)"
  */
-export function formatHijriDate(dateStr: string): string {
+export function formatHijriDate(dateStr: string, adjustmentDays: number = 0): string {
   try {
     const [year, month, day] = dateStr.split('-').map(Number);
     const d = new Date(year, month - 1, day);
+    if (adjustmentDays !== 0) {
+      d.setDate(d.getDate() + adjustmentDays);
+    }
 
     // English Hijri
     const enFormatter = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
@@ -117,6 +120,29 @@ export function formatHijriDate(dateStr: string): string {
     const urHijri = urFormatter.format(d).replace('ہجری', 'ھ');
 
     return `${enHijri} (${urHijri})`;
+  } catch {
+    return '';
+  }
+}
+
+/**
+ * Formats a YYYY-MM-DD date into Urdu Islamic Hijri date:
+ * e.g. "10 جمادی الاول، 1448 ھ"
+ */
+export function formatUrduHijriDate(dateStr: string, adjustmentDays: number = 0): string {
+  try {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const d = new Date(year, month - 1, day);
+    if (adjustmentDays !== 0) {
+      d.setDate(d.getDate() + adjustmentDays);
+    }
+
+    const urFormatter = new Intl.DateTimeFormat('ur-PK-u-ca-islamic-umalqura', {
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+    return urFormatter.format(d).replace('ہجری', 'ھ').trim();
   } catch {
     return '';
   }

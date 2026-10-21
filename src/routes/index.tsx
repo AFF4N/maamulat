@@ -54,6 +54,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     setGoalCurrentDay,
     setGoalTargetDays,
     setMurrabiContact,
+    setHijriAdjustment,
     simulateNextDay,
     resetToday,
   } = maamulat;
@@ -106,6 +107,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
           onResetToday={resetToday}
           onResetToDefault={resetCategoriesAndTasksToDefault}
           onUpdateMurrabiContact={setMurrabiContact}
+          onUpdateHijriAdjustment={setHijriAdjustment}
           isViewingPastDay={isViewingPastDay}
           isYesterday={selectedDate === yesterdayDate}
           onReturnToToday={() => setSelectedDate(state.todayDate)}

@@ -38,6 +38,7 @@ export interface MaamulatTask {
 export interface DayRecord {
   date: string;               // YYYY-MM-DD
   urduDate: string;           // e.g. "03 اکتوبر 2026"
+  hijriDate?: string;         // e.g. "10 Jumada I 1448 AH (10 جمادی الاول، 1448 ھ)"
   goalDay: number;            // e.g. 7
   goalMaxDays: number;        // e.g. 40
   completedCount: number;
@@ -56,6 +57,7 @@ export interface MaamulatState {
   todayDate: string;          // YYYY-MM-DD
   goalDay: number;            // 1 to goalMaxDays
   goalMaxDays: number;        // user customizable: 7, 21, 40, 100, etc.
+  hijriAdjustment?: number;   // -3 to +3 days manual offset based on local moon sighting
   streak: {
     current: number;
     highest: number;

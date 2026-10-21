@@ -18,6 +18,7 @@ interface HeaderProps {
   onResetToday?: () => void;
   onResetToDefault?: () => void;
   onUpdateMurrabiContact?: (contact: string) => void;
+  onUpdateHijriAdjustment?: (adjustment: number) => void;
   isViewingPastDay?: boolean;
   isYesterday?: boolean;
   onReturnToToday?: () => void;
@@ -36,6 +37,7 @@ export const Header: React.FC<HeaderProps> = ({
   onResetToday,
   onResetToDefault,
   onUpdateMurrabiContact,
+  onUpdateHijriAdjustment,
   isViewingPastDay = false,
   isYesterday = false,
   onReturnToToday,
@@ -58,7 +60,7 @@ export const Header: React.FC<HeaderProps> = ({
   };
 
   const englishDate = formatEnglishDate(todayDate);
-  const hijriDate = formatHijriDate(todayDate);
+  const hijriDate = formatHijriDate(todayDate, state?.hijriAdjustment ?? 0);
   const progressPercent = Math.min(100, Math.round((goalDay / goalMaxDays) * 100));
 
   return (
@@ -232,6 +234,7 @@ export const Header: React.FC<HeaderProps> = ({
         onResetToday={onResetToday}
         onResetToDefault={onResetToDefault}
         onUpdateMurrabiContact={onUpdateMurrabiContact}
+        onUpdateHijriAdjustment={onUpdateHijriAdjustment}
       />
     </header>
   );

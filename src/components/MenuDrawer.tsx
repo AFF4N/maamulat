@@ -12,8 +12,11 @@ import {
   Sparkles,
   RefreshCw,
   HeartHandshake,
+  Plus,
+  Minus,
 } from 'lucide-react';
 import type { MaamulatState } from '../types';
+import { formatUrduHijriDate } from '../utils/dateUtils';
 
 interface MenuDrawerProps {
   isOpen: boolean;
@@ -28,6 +31,7 @@ interface MenuDrawerProps {
   onResetToday?: () => void;
   onResetToDefault?: () => void;
   onUpdateMurrabiContact?: (contact: string) => void;
+  onUpdateHijriAdjustment?: (adjustment: number) => void;
 }
 
 export const MenuDrawer: React.FC<MenuDrawerProps> = ({
@@ -43,9 +47,14 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
   onResetToday,
   onResetToDefault,
   onUpdateMurrabiContact,
+  onUpdateHijriAdjustment,
 }) => {
   const [murrabiInput, setMurrabiInput] = useState(state?.murrabiContact || '');
   const [isMurrabiSaved, setIsMurrabiSaved] = useState(false);
+
+  const currentAdjustment = state?.hijriAdjustment ?? 0;
+  const todayDateStr = state?.todayDate || '';
+  const previewHijriUrdu = todayDateStr ? formatUrduHijriDate(todayDateStr, currentAdjustment) : '';
 
   // Sync murrabiInput when state.murrabiContact changes
   useEffect(() => {
@@ -304,7 +313,103 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
             </div>
           </div>
 
-          {/* 4. Spiritual Goal Quick Control */}
+          {/* 4. Hijri Calendar Adjustment (±3 days for moon sighting) */}
+          <div className="space-y-1.5">
+            <div className="flex items-center justify-between">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">
+                Hijri Adjustment · ہجری تاریخ کی ترتیب
+              </span>
+              {currentAdjustment !== 0 && (
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sage-100 dark:bg-sage-950/60 text-sage-800 dark:text-sage-300">
+                  {currentAdjustment > 0 ? `+${currentAdjustment}` : currentAdjustment} {Math.abs(currentAdjustment) === 1 ? 'day' : 'days'}
+                </span>
+              )}
+            </div>
+
+            <div className="p-3.5 rounded-2xl bg-white dark:bg-ink-850 border border-paper-300 dark:border-ink-800 space-y-3 shadow-soft-sm">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-sage-100 dark:bg-sage-950/60 text-sage-700 dark:text-sage-300 flex items-center justify-center shrink-0">
+                    <Moon className="w-4 h-4" />
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-ink-900 dark:text-white block truncate">
+                      Moon Sighting Offset (رویتِ ہلال)
+                    </span>
+                    <span className="text-[11px] font-semibold text-sage-700 dark:text-sage-400 block truncate mt-0.5">
+                      {previewHijriUrdu}
+                    </span>
+                  </div>
+                </div>
+
+                {currentAdjustment !== 0 && (
+                  <button
+                    type="button"
+                    onClick={() => onUpdateHijriAdjustment?.(0)}
+                    className="text-[10px] font-bold text-amberGold-700 dark:text-amberGold-400 hover:underline px-1.5 py-0.5"
+                  >
+                    Reset
+                  </button>
+                )}
+              </div>
+
+              {/* Stepper with - and + buttons */}
+              <div className="flex items-center justify-between bg-paper-100 dark:bg-ink-800/80 p-1.5 rounded-xl border border-paper-200 dark:border-ink-700/80">
+                <button
+                  type="button"
+                  disabled={currentAdjustment <= -3}
+                  onClick={() => onUpdateHijriAdjustment?.(Math.max(-3, currentAdjustment - 1))}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-white dark:bg-ink-700 text-ink-700 dark:text-ink-200 disabled:opacity-30 disabled:pointer-events-none hover:bg-paper-200 dark:hover:bg-ink-600 transition-all shadow-sm tap-bounce"
+                  aria-label="Decrease Hijri date by 1 day"
+                >
+                  <Minus className="w-3.5 h-3.5" />
+                </button>
+
+                <div className="text-center px-2">
+                  <span className="text-xs font-bold text-ink-900 dark:text-white block">
+                    {currentAdjustment === 0 ? '0 Days (Default)' : `${currentAdjustment > 0 ? `+${currentAdjustment}` : currentAdjustment} ${Math.abs(currentAdjustment) === 1 ? 'Day' : 'Days'}`}
+                  </span>
+                  <span className="text-[10px] text-ink-500 dark:text-ink-400 block">
+                    {currentAdjustment === 0 ? 'Standard Umm al-Qura' : 'Custom Local Adjustment'}
+                  </span>
+                </div>
+
+                <button
+                  type="button"
+                  disabled={currentAdjustment >= 3}
+                  onClick={() => onUpdateHijriAdjustment?.(Math.min(3, currentAdjustment + 1))}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center bg-white dark:bg-ink-700 text-ink-700 dark:text-ink-200 disabled:opacity-30 disabled:pointer-events-none hover:bg-paper-200 dark:hover:bg-ink-600 transition-all shadow-sm tap-bounce"
+                  aria-label="Increase Hijri date by 1 day"
+                >
+                  <Plus className="w-3.5 h-3.5" />
+                </button>
+              </div>
+
+              {/* Quick Day Chips (-3 to +3) */}
+              <div className="grid grid-cols-7 gap-1 pt-0.5">
+                {[-3, -2, -1, 0, 1, 2, 3].map((val) => (
+                  <button
+                    key={val}
+                    type="button"
+                    onClick={() => onUpdateHijriAdjustment?.(val)}
+                    className={`py-1 rounded-lg text-[11px] font-bold transition-all tap-bounce text-center ${
+                      currentAdjustment === val
+                        ? 'bg-sage-600 text-white shadow-sm'
+                        : 'bg-paper-100 hover:bg-paper-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-ink-700 dark:text-ink-300'
+                    }`}
+                  >
+                    {val > 0 ? `+${val}` : val}
+                  </button>
+                ))}
+              </div>
+
+              <p className="text-[10px] text-ink-500 dark:text-ink-400 leading-snug">
+                Adjust by up to ±3 days to match your regional moon sighting. Automatically updates your daily sheet header and exported WhatsApp reports.
+              </p>
+            </div>
+          </div>
+
+          {/* 5. Spiritual Goal Quick Control */}
           <div className="space-y-1.5">
             <span className="text-[11px] font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">
               Spiritual Goal · ہدف یوم

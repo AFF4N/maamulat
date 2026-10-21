@@ -4,6 +4,7 @@ import { DEFAULT_TASKS, DEFAULT_CATEGORIES } from '../utils/defaultTasks';
 import {
   getTodayLocalDateString,
   formatUrduDate,
+  formatUrduHijriDate,
   getDayDifference,
   addDays,
 } from '../utils/dateUtils';
@@ -36,6 +37,7 @@ function getInitialState(): MaamulatState {
     todayDate: todayStr,
     goalDay: 1,
     goalMaxDays: 40,
+    hijriAdjustment: 0,
     streak: {
       current: 1,
       highest: 1,
@@ -148,6 +150,7 @@ function performRollover(oldState: MaamulatState, newTodayStr: string): Maamulat
   const oldDayRecord: DayRecord = {
     date: oldState.todayDate,
     urduDate: formatUrduDate(oldState.todayDate),
+    hijriDate: formatUrduHijriDate(oldState.todayDate, oldState.hijriAdjustment ?? 0),
     goalDay: currentGoalDay,
     goalMaxDays: currentGoalMax,
     completedCount,
@@ -177,6 +180,7 @@ function performRollover(oldState: MaamulatState, newTodayStr: string): Maamulat
       gapRecords.push({
         date: gapDate,
         urduDate: formatUrduDate(gapDate),
+        hijriDate: formatUrduHijriDate(gapDate, oldState.hijriAdjustment ?? 0),
         goalDay: gapGoalDay,
         goalMaxDays: currentGoalMax,
         completedCount: 0,
@@ -608,6 +612,15 @@ export function useMaamulat() {
     }));
   }, [saveState]);
 
+  // Hijri date manual offset adjustment (-3 to +3 days)
+  const setHijriAdjustment = useCallback((adjustment: number) => {
+    const clamped = Math.max(-3, Math.min(3, Math.round(adjustment)));
+    saveState(prev => ({
+      ...prev,
+      hijriAdjustment: clamped,
+    }));
+  }, [saveState]);
+
   // Simulating next day (for testing & verification)
   const simulateNextDay = useCallback(() => {
     saveState(prev => {
@@ -749,6 +762,7 @@ export function useMaamulat() {
     setGoalTargetDays,
     setChillaDay: setGoalCurrentDay, // alias
     setMurrabiContact,
+    setHijriAdjustment,
     simulateNextDay,
     resetToday,
   };
