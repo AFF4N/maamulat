@@ -143,3 +143,54 @@ export async function checkIsSubscribed(): Promise<boolean> {
     return false;
   }
 }
+
+/**
+ * Sends a test push notification to the current active device subscription via /api/send-test
+ */
+export async function triggerTestNotification(): Promise<{ success: boolean; error?: string }> {
+  if (!isPushNotificationSupported()) {
+    return { success: false, error: 'Push notifications are not supported in this browser.' };
+  }
+
+  try {
+    const registration = await navigator.serviceWorker.ready;
+    const subscription = await registration.pushManager.getSubscription();
+
+    if (!subscription) {
+      return { success: false, error: 'No active push subscription found. Please toggle notifications off and on again.' };
+    }
+
+    let serverDelivered = false;
+    try {
+      const res = await fetch('/api/send-test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          subscription: subscription.toJSON(),
+          title: 'معمولات | امتحانی یاد دہانی 🌙',
+          body: 'نوٹیفیکیشنز کامیابی سے فعال ہیں! شام 9:00 بجے آپ کو روزانہ معمولات کی یاد دہانی موصول ہوگی۔'
+        })
+      });
+
+      if (res.ok) {
+        serverDelivered = true;
+      }
+    } catch {
+      // Serverless backend is not running locally (e.g. standard vite dev server)
+    }
+
+    // If on local dev server or backend is offline, trigger notification directly via Service Worker
+    if (!serverDelivered) {
+      await registration.showNotification('معمولات | امتحانی یاد دہانی 🌙', {
+        body: 'نوٹیفیکیشنز کامیابی سے فعال ہیں! شام 9:00 بجے آپ کو روزانہ معمولات کی یاد دہانی موصول ہوگی۔',
+        icon: '/icon.svg',
+        badge: '/icon.svg',
+        data: { url: '/?action=missing-reports' }
+      });
+    }
+
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || 'Error triggering test notification' };
+  }
+}

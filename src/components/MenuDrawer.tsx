@@ -26,7 +26,8 @@ import {
   isPushNotificationSupported,
   subscribeToPushNotifications,
   unsubscribeFromPushNotifications,
-  checkIsSubscribed
+  checkIsSubscribed,
+  triggerTestNotification
 } from '../utils/notificationUtils';
 
 interface MenuDrawerProps {
@@ -72,6 +73,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
   const [isPushSupported] = useState(() => isPushNotificationSupported());
   const [isPushEnabled, setIsPushEnabled] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
+  const [testStatus, setTestStatus] = useState<string | null>(null);
 
   useEffect(() => {
     let isMounted = true;
@@ -104,6 +106,18 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
       alert('Notification error: ' + (err?.message || 'Unknown error'));
     } finally {
       setPushLoading(false);
+    }
+  };
+
+  const handleSendTest = async () => {
+    setTestStatus('Sending test notification...');
+    const res = await triggerTestNotification();
+    if (res.success) {
+      setTestStatus('Notification sent! Check your notification tray / lock screen 🔔');
+      setTimeout(() => setTestStatus(null), 5000);
+    } else {
+      setTestStatus(res.error || 'Failed to deliver notification');
+      setTimeout(() => setTestStatus(null), 5000);
     }
   };
 
@@ -272,9 +286,9 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
 
         {/* Scrollable Body */}
         <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
-          {/* 1. Customise Tasks Card (Primary CTA) */}
+          {/* 1. Customise Tasks Card */}
           <div className="space-y-1.5">
-            <span className="text-[11px] font-bold uppercase tracking-wider text-sage-700 dark:text-sage-400">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">
               Customization · تخصیص
             </span>
             <button
@@ -282,32 +296,27 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                 onClose();
                 onNavigateToCustomize();
               }}
-              className="w-full text-left p-3.5 rounded-2xl bg-gradient-to-br from-white to-sage-50/50 dark:from-ink-850 dark:to-ink-800 border-2 border-sage-300/80 dark:border-sage-700/60 hover:border-sage-500 dark:hover:border-sage-500 shadow-soft-sm hover:shadow-soft-md transition-all tap-bounce group"
+              className="w-full text-left p-3.5 rounded-2xl bg-white dark:bg-ink-850 border border-paper-300 dark:border-ink-800 hover:border-sage-400 dark:hover:border-sage-600 shadow-soft-sm space-y-2 transition-all tap-bounce group"
             >
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <div className="w-9 h-9 rounded-xl bg-sage-600 text-white flex items-center justify-center shrink-0 shadow-sm group-hover:scale-105 transition-transform">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className="w-8 h-8 rounded-xl bg-sage-100 dark:bg-sage-950/60 text-sage-700 dark:text-sage-300 flex items-center justify-center shrink-0">
                     <SlidersHorizontal className="w-4 h-4" />
                   </div>
-                  <div>
-                    <div className="flex items-center gap-1.5">
-                      <span className="text-xs font-bold text-ink-900 dark:text-white">
-                        Customize Maamulat
-                      </span>
-                      <span className="px-1.5 py-0.2 rounded-md bg-sage-100 dark:bg-sage-950 text-[10px] font-semibold text-sage-800 dark:text-sage-300">
-                        New
-                      </span>
-                    </div>
-                    <p className="arabic-text text-xs text-ink-700 dark:text-ink-300 font-semibold mt-0.5">
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-ink-900 dark:text-white block truncate">
+                      Customize Maamulat
+                    </span>
+                    <span className="arabic-text text-[11px] text-sage-700 dark:text-sage-400 block truncate">
                       معمولات و اسباق کی تخصیص
-                    </p>
-                    <p className="text-[11px] text-ink-500 dark:text-ink-400 mt-1 leading-snug">
-                      Add, edit, reorder or hide daily tasks, prayers, and Hasanat rewards.
-                    </p>
+                    </span>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-sage-600 dark:text-sage-400 mt-1 group-hover:translate-x-1 transition-transform shrink-0" />
+                <ChevronRight className="w-4 h-4 text-ink-400 dark:text-ink-500 group-hover:text-sage-600 dark:group-hover:text-sage-400 group-hover:translate-x-0.5 transition-all shrink-0 mt-0.5" />
               </div>
+              <p className="text-[11px] text-ink-600 dark:text-ink-400 leading-snug">
+                Add, edit, reorder or hide daily tasks, prayers, and Hasanat rewards.
+              </p>
             </button>
           </div>
 
@@ -428,7 +437,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
               <div className="flex items-start justify-between gap-2">
                 <div className="flex items-center gap-2.5 min-w-0">
                   <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isPushEnabled ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400' : 'bg-paper-100 dark:bg-ink-800 text-ink-500 dark:text-ink-400'}`}>
-                    {isPushEnabled ? <BellRing className="w-4 h-4 animate-bounce" /> : <Bell className="w-4 h-4" />}
+                    {isPushEnabled ? <BellRing className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
                   </div>
                   <div className="min-w-0">
                     <span className="text-xs font-bold text-ink-900 dark:text-white block truncate">
@@ -471,15 +480,26 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                 Fires an evening browser push reminder so you never miss recording your spiritual habits, alongside rotating Duas and verses of the day.
               </p>
 
-              {/* Active Scheduled Badge */}
+              {/* Active Scheduled Badge & Test Trigger */}
               {isPushEnabled && (
-                <div className="pt-2 border-t border-paper-200 dark:border-ink-800 flex items-center justify-between gap-2">
-                  <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                    <Check className="w-3 h-3" /> Scheduled daily for 9:00 PM
-                  </span>
-                  <span className="text-[10px] font-medium text-sage-800 dark:text-sage-300 bg-sage-100 dark:bg-sage-950/80 px-2 py-0.5 rounded-full">
-                    Active
-                  </span>
+                <div className="pt-2 border-t border-paper-200 dark:border-ink-800 space-y-2">
+                  <div className="flex items-center justify-between gap-2 flex-wrap">
+                    <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                      <Check className="w-3 h-3" /> Scheduled daily for 9:00 PM
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleSendTest}
+                      className="text-[10px] font-bold px-2.5 py-1 rounded-lg bg-paper-100 hover:bg-paper-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-ink-800 dark:text-ink-200 transition-colors tap-bounce"
+                    >
+                      Send Test Notification
+                    </button>
+                  </div>
+                  {testStatus && (
+                    <p className="text-[11px] font-medium text-amber-700 dark:text-amber-400">
+                      {testStatus}
+                    </p>
+                  )}
                 </div>
               )}
             </div>

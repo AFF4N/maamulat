@@ -132,60 +132,105 @@ export const AppRouter: React.FC<AppRouterProps> = ({
           onReturnToToday={() => setSelectedDate(state.todayDate)}
         />
 
-        {/* Missing Reports Notification Banner (Triggered by Web Push Notification tap) */}
+        {/* Floating Missing Reports Toast (Triggered on click to notification) */}
         {showMissingBanner && (
-          <div className="p-4 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-300/80 dark:border-amber-700/60 shadow-soft-sm space-y-2.5 transition-all">
-            <div className="flex items-start justify-between gap-2">
-              <div className="flex items-center gap-2.5">
-                <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+          <div
+            role="alert"
+            aria-live="polite"
+            className="fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-1.5rem)] max-w-lg bg-white/95 dark:bg-[#121514]/95 backdrop-blur-2xl text-ink-900 dark:text-white border border-paper-300 dark:border-ink-800 shadow-[0_15px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-2xl p-4 sm:p-4.5 space-y-3 transition-all animate-in fade-in slide-in-from-bottom-5 duration-300"
+          >
+            <div className="flex items-start justify-between gap-3">
+              <div className="flex items-start gap-3 min-w-0">
+                <div
+                  className={`w-9 h-9 sm:w-10 sm:h-10 rounded-xl flex items-center justify-center shrink-0 shadow-sm border ${
+                    uncheckedTasks.length === 0
+                      ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-700 dark:text-emerald-400 border-emerald-200/80 dark:border-emerald-800/80'
+                      : 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400 border-amber-200/80 dark:border-amber-800/80'
+                  }`}
+                >
                   {uncheckedTasks.length === 0 ? (
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    <CheckCircle2 className="w-5 h-5" />
                   ) : (
-                    <BellRing className="w-4 h-4" />
+                    <BellRing className="w-5 h-5" />
                   )}
                 </div>
-                <div>
-                  <h3 className="text-xs font-bold text-ink-900 dark:text-white">
-                    {uncheckedTasks.length === 0
-                      ? 'All Reports Complete! 🎉'
-                      : `Missing Reports Check (${uncheckedTasks.length} Pending)`}
-                  </h3>
-                  <p className="arabic-text text-xs text-sage-700 dark:text-sage-400">
+
+                <div className="min-w-0">
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-xs sm:text-sm font-bold text-ink-900 dark:text-white tracking-tight">
+                      {uncheckedTasks.length === 0 ? 'All Reports Complete! 🎉' : 'Missing Daily Reports'}
+                    </span>
+                    <span
+                      className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                        uncheckedTasks.length === 0
+                          ? 'bg-emerald-100 dark:bg-emerald-500/20 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-500/30'
+                          : 'bg-amber-100 dark:bg-amber-500/20 text-amber-900 dark:text-amber-300 border border-amber-300 dark:border-amber-500/30'
+                      }`}
+                    >
+                      {uncheckedTasks.length === 0 ? 'مکمل' : `${uncheckedTasks.length} Pending`}
+                    </span>
+                  </div>
+
+                  <p className="arabic-text text-xs text-sage-700 dark:text-sage-300 mt-0.5">
                     {uncheckedTasks.length === 0
                       ? 'ماشاء اللہ! آج کے تمام معمولات مکمل ہو چکے ہیں۔'
-                      : 'آج کے نامکمل معمولات کا جائزہ'}
+                      : 'آج کے نامکمل معمولات کی فہرست'}
                   </p>
                 </div>
               </div>
+
               <button
+                type="button"
                 onClick={() => setShowMissingBanner(false)}
-                aria-label="Dismiss banner"
-                className="p-1 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-white"
+                aria-label="Close notification"
+                className="p-1 rounded-lg text-ink-400 hover:text-ink-800 dark:text-white/50 dark:hover:text-white hover:bg-paper-100 dark:hover:bg-white/10 transition-colors shrink-0"
               >
                 <X className="w-4 h-4" />
               </button>
             </div>
 
             {uncheckedTasks.length > 0 ? (
-              <div className="space-y-1.5 pt-1">
-                <p className="text-[11px] text-ink-600 dark:text-ink-300">
-                  You still have pending items recorded for today. Tap each to complete:
-                </p>
-                <div className="flex flex-wrap gap-1.5 pt-0.5">
+              <div className="space-y-2 pt-1 border-t border-paper-200 dark:border-white/10">
+                <div className="flex flex-wrap gap-1.5 max-h-24 overflow-y-auto pr-1">
                   {uncheckedTasks.map((task) => (
                     <span
                       key={task.id}
-                      className="px-2 py-0.5 rounded-lg bg-white/90 dark:bg-ink-850/90 border border-amber-200 dark:border-ink-700 text-[11px] font-medium text-ink-800 dark:text-ink-200 shadow-2xs"
+                      className="px-2.5 py-1 rounded-lg bg-paper-100 dark:bg-white/10 hover:bg-paper-200 dark:hover:bg-white/15 border border-paper-300/80 dark:border-white/10 text-[11px] font-medium text-ink-800 dark:text-white/90 backdrop-blur-sm transition-colors"
                     >
                       {task.urduTitle || task.englishTitle}
                     </span>
                   ))}
                 </div>
+
+                <div className="flex items-center justify-between gap-2 pt-1">
+                  <span className="text-[11px] text-ink-500 dark:text-white/60">
+                    Tap any habit on your sheet to record it
+                  </span>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowMissingBanner(false);
+                      window.scrollTo({ top: 380, behavior: 'smooth' });
+                    }}
+                    className="text-[11px] font-bold px-3 py-1 rounded-xl bg-sage-600 hover:bg-sage-500 text-white transition-colors tap-bounce shadow-sm"
+                  >
+                    Complete Now ↓
+                  </button>
+                </div>
               </div>
             ) : (
-              <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
-                Great discipline! You have completed all recorded items for this date.
-              </p>
+              <div className="pt-1 border-t border-paper-200 dark:border-white/10 flex items-center justify-between">
+                <span className="text-[11px] text-emerald-700 dark:text-emerald-300">
+                  Great habit discipline! Keep up your daily streak.
+                </span>
+                <button
+                  type="button"
+                  onClick={() => setShowMissingBanner(false)}
+                  className="text-[11px] font-bold px-2.5 py-1 rounded-lg bg-paper-100 hover:bg-paper-200 dark:bg-white/10 dark:hover:bg-white/20 text-ink-800 dark:text-white transition-colors"
+                >
+                  Close
+                </button>
+              </div>
             )}
           </div>
         )}
