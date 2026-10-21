@@ -16,7 +16,7 @@ import {
 interface MurrabiAccountabilityProps {
   state: MaamulatState;
   onUpdateMurrabiContact: (contact: string) => void;
-  currentStreak: number;
+  currentStreak?: number;
   isViewingPastDay?: boolean;
   activeDateLabel?: string;
   onSelectYesterday?: () => void;
@@ -25,7 +25,7 @@ interface MurrabiAccountabilityProps {
 export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
   state,
   onUpdateMurrabiContact,
-  currentStreak,
+  currentStreak: _currentStreak,
   isViewingPastDay: _isViewingPastDay,
   activeDateLabel: _activeDateLabel,
   onSelectYesterday: _onSelectYesterday,
@@ -36,9 +36,6 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
   const [contactInput, setContactInput] = useState(state.murrabiContact || '');
   const [userNote, setUserNote] = useState('');
   const [showPreview, setShowPreview] = useState(false);
-
-  // Is unlocked? If streak >= 3 or if Murrabi query param was explicitly supplied in URL
-  const isUnlocked = currentStreak >= 3 || !!state.murrabiContact;
 
   const rawReport = generateWhatsAppReport(state);
   const finalReportWithNote = userNote.trim()
@@ -65,26 +62,6 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
     onUpdateMurrabiContact(contactInput);
     setIsContactEditing(false);
   };
-
-  // If locked (early streak < 3 days and no ?murrabi= parameter), show a peaceful teaser
-  if (!isUnlocked) {
-    return (
-      <section className="rounded-2xl p-4 bg-paper-100/70 dark:bg-ink-800/50 border border-dashed border-paper-300 dark:border-ink-700 text-center my-4 space-y-2">
-        <div className="w-8 h-8 rounded-full bg-paper-200 dark:bg-ink-700 mx-auto flex items-center justify-center text-ink-500">
-          <HeartHandshake className="w-4 h-4" />
-        </div>
-        <h3 className="arabic-text text-base font-bold text-ink-800 dark:text-ink-200">
-          مربی و رفیقِ احتساب (Accountability Partner)
-        </h3>
-        <p className="text-xs text-ink-600 dark:text-ink-400 max-w-sm mx-auto leading-relaxed">
-          Build your personal consistency for <strong>3 days</strong> to unlock the Murrabi accountability report. Consistency begins quietly in the heart first.
-        </p>
-        <span className="inline-block text-[11px] font-semibold text-amberGold-600 dark:text-amberGold-400">
-          Current: {currentStreak} / 3 days streak
-        </span>
-      </section>
-    );
-  }
 
   return (
     <section className="rounded-2xl p-4 bg-gradient-to-br from-white to-sage-50/30 dark:from-ink-800 dark:to-ink-850 border border-sage-200 dark:border-sage-900/60 shadow-soft-md my-4 space-y-3.5">
@@ -121,7 +98,7 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
       {/* Murrabi Contact Row */}
       <div className="p-3 rounded-xl bg-paper-50 dark:bg-ink-900 border border-paper-200 dark:border-ink-700 text-xs space-y-1.5">
         <div>
-          <span className="text-[10px] uppercase font-bold text-ink-400 tracking-wider block">
+          <span className="text-[10px] uppercase font-bold text-ink-500 tracking-wider block">
             Murrabi WhatsApp / Contact
           </span>
           <div className="font-semibold text-ink-800 dark:text-ink-200 flex items-center gap-1.5 mt-0.5">
@@ -130,7 +107,9 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
                 {state.murrabiContact}
               </span>
             ) : (
-              <span className="text-ink-500 italic text-xs">No number set (can copy report or add below)</span>
+              <span className="text-ink-400 dark:text-ink-600 text-xs">
+                Not linked · Set contact to send reports
+              </span>
             )}
           </div>
         </div>
@@ -139,7 +118,7 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
           <form onSubmit={handleSaveContact} className="flex items-center gap-2 pt-0.5">
             <input
               type="text"
-              placeholder="+923001234567"
+              placeholder="e.g. +92 300 1234567"
               value={contactInput}
               onChange={(e) => setContactInput(e.target.value)}
               className="text-xs px-2.5 py-1.5 rounded-lg border border-sage-400 bg-white dark:bg-ink-800 text-ink-900 dark:text-white w-48 font-mono focus:outline-none focus:ring-1 focus:ring-sage-500"

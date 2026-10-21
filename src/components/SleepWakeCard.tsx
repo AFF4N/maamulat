@@ -70,8 +70,8 @@ const TimePresetBox: React.FC<TimePresetBoxProps> = ({
         <div className="flex items-center justify-between mb-1.5">
           <div className="flex items-center gap-1.5 text-xs font-semibold text-ink-700 dark:text-ink-300">
             {icon}
-            <span className="arabic-text text-sm font-bold">{urduLabel}</span>
             <span>{englishLabel}</span>
+            <span className="arabic-text text-sm font-bold">{urduLabel}</span>
           </div>
           <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${badgeClasses}`}>
             {time}
@@ -140,8 +140,8 @@ export const SleepWakeCard: React.FC<SleepWakeCardProps> = ({
         {/* Sleep Time Box */}
         <TimePresetBox
           icon={<Moon className="w-3.5 h-3.5 text-slate-500 dark:text-slate-400" />}
-          urduLabel="سونے کا وقت:"
-          englishLabel="Sleep"
+          urduLabel="سونے کا وقت"
+          englishLabel="Sleep:"
           time={sleepTime}
           presets={SLEEP_PRESETS}
           colorTheme="indigo"
@@ -152,8 +152,8 @@ export const SleepWakeCard: React.FC<SleepWakeCardProps> = ({
         {/* Wake Time Box */}
         <TimePresetBox
           icon={<Sun className="w-3.5 h-3.5 text-amber-600/70 dark:text-amber-400/80" />}
-          urduLabel="جاگنے کا وقت:"
-          englishLabel="Wake"
+          urduLabel="جاگنے کا وقت"
+          englishLabel="Wake:"
           time={wakeTime}
           presets={WAKE_PRESETS}
           colorTheme="amber"

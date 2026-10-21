@@ -280,13 +280,13 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                       Murrabi Details (مربی کا رابطہ)
                     </span>
                     <span className="text-[10px] text-ink-500 dark:text-ink-400 block">
-                      {state?.murrabiContact ? '✓ Linked & Report Unlocked' : 'Add phone to unlock WhatsApp report'}
+                      {state?.murrabiContact ? '✓ Linked for direct WhatsApp sending' : 'Add phone to send reports directly'}
                     </span>
                   </div>
                 </div>
                 {state?.murrabiContact && (
                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 shrink-0">
-                    Unlocked
+                    Linked
                   </span>
                 )}
               </div>
@@ -312,7 +312,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                   </button>
                 </div>
                 <p className="text-[10px] text-ink-500 dark:text-ink-400 leading-snug">
-                  Adding your Murrabi's WhatsApp number immediately unlocks the accountability section on your sheet even if your streak is under 3 days.
+                  Adding your Murrabi's WhatsApp number lets you send your daily sheet directly to them with one tap. You can also copy or send the report anytime even without a number set.
                 </p>
               </form>
             </div>
