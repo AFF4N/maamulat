@@ -1,0 +1,9 @@
+{
+  "framework": "vite",
+  "crons": [
+    {
+      "path": "/api/cron-remind",
+      "schedule": "0 16 * * *"
+    }
+  ]
+}

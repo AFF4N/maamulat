@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { BellRing, CheckCircle2, X } from 'lucide-react';
 import type { useMaamulat } from '../hooks/useMaamulat';
 import { useRouter } from './useRouter';
 import { Header } from '../components/Header';
@@ -60,6 +61,20 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     resetToday,
   } = maamulat;
 
+  const [showMissingBanner, setShowMissingBanner] = useState<boolean>(() => {
+    if (typeof window !== 'undefined') {
+      return window.location.search.includes('action=missing-reports');
+    }
+    return false;
+  });
+
+  useEffect(() => {
+    if (showMissingBanner && typeof window !== 'undefined') {
+      const cleanUrl = window.location.pathname;
+      window.history.replaceState({}, '', cleanUrl);
+    }
+  }, [showMissingBanner]);
+
   // 1. Route: /customize (Task & Section Customizer)
   if (currentRoute === '/customize') {
     return (
@@ -90,6 +105,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     ? formatShortDate(selectedDate)
     : undefined;
 
+  const uncheckedTasks = activeTasks.filter((t) => !t.hidden && !t.completed);
+
   return (
     <div className="min-h-screen bg-paper-50 dark:bg-[#121514] text-ink-900 dark:text-[#E8ECE9] transition-colors duration-300">
       {/* Mobile-first centered container with safe-area spacing */}
@@ -114,6 +131,64 @@ export const AppRouter: React.FC<AppRouterProps> = ({
           isYesterday={selectedDate === yesterdayDate}
           onReturnToToday={() => setSelectedDate(state.todayDate)}
         />
+
+        {/* Missing Reports Notification Banner (Triggered by Web Push Notification tap) */}
+        {showMissingBanner && (
+          <div className="p-4 rounded-2xl bg-amber-500/10 dark:bg-amber-500/15 border border-amber-300/80 dark:border-amber-700/60 shadow-soft-sm space-y-2.5 transition-all">
+            <div className="flex items-start justify-between gap-2">
+              <div className="flex items-center gap-2.5">
+                <div className="w-8 h-8 rounded-xl bg-amber-500/20 text-amber-700 dark:text-amber-300 flex items-center justify-center shrink-0">
+                  {uncheckedTasks.length === 0 ? (
+                    <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                  ) : (
+                    <BellRing className="w-4 h-4" />
+                  )}
+                </div>
+                <div>
+                  <h3 className="text-xs font-bold text-ink-900 dark:text-white">
+                    {uncheckedTasks.length === 0
+                      ? 'All Reports Complete! 🎉'
+                      : `Missing Reports Check (${uncheckedTasks.length} Pending)`}
+                  </h3>
+                  <p className="arabic-text text-xs text-sage-700 dark:text-sage-400">
+                    {uncheckedTasks.length === 0
+                      ? 'ماشاء اللہ! آج کے تمام معمولات مکمل ہو چکے ہیں۔'
+                      : 'آج کے نامکمل معمولات کا جائزہ'}
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => setShowMissingBanner(false)}
+                aria-label="Dismiss banner"
+                className="p-1 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-white"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {uncheckedTasks.length > 0 ? (
+              <div className="space-y-1.5 pt-1">
+                <p className="text-[11px] text-ink-600 dark:text-ink-300">
+                  You still have pending items recorded for today. Tap each to complete:
+                </p>
+                <div className="flex flex-wrap gap-1.5 pt-0.5">
+                  {uncheckedTasks.map((task) => (
+                    <span
+                      key={task.id}
+                      className="px-2 py-0.5 rounded-lg bg-white/90 dark:bg-ink-850/90 border border-amber-200 dark:border-ink-700 text-[11px] font-medium text-ink-800 dark:text-ink-200 shadow-2xs"
+                    >
+                      {task.urduTitle || task.englishTitle}
+                    </span>
+                  ))}
+                </div>
+              </div>
+            ) : (
+              <p className="text-[11px] text-emerald-700 dark:text-emerald-400">
+                Great discipline! You have completed all recorded items for this date.
+              </p>
+            )}
+          </div>
+        )}
 
         {/* 2. Streak and Hasanat Stat Cards with Halal Wit / Encouragements */}
         <StreakAndHasanat

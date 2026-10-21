@@ -16,10 +16,18 @@ import {
   Plus,
   Minus,
   Check,
+  Bell,
+  BellRing,
 } from 'lucide-react';
 import type { MaamulatState } from '../types';
 import { formatUrduHijriDate } from '../utils/dateUtils';
 import { exportBackupJSON, validateBackupJSON, readUploadedFileAsText } from '../utils/backupUtils';
+import {
+  isPushNotificationSupported,
+  subscribeToPushNotifications,
+  unsubscribeFromPushNotifications,
+  checkIsSubscribed
+} from '../utils/notificationUtils';
 
 interface MenuDrawerProps {
   isOpen: boolean;
@@ -59,6 +67,45 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
   const [exportStatus, setExportStatus] = useState<string | null>(null);
   const [restoreStatus, setRestoreStatus] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
+
+  // Push notifications state
+  const [isPushSupported] = useState(() => isPushNotificationSupported());
+  const [isPushEnabled, setIsPushEnabled] = useState(false);
+  const [pushLoading, setPushLoading] = useState(false);
+
+  useEffect(() => {
+    let isMounted = true;
+    checkIsSubscribed().then((subscribed) => {
+      if (isMounted) {
+        setIsPushEnabled(subscribed);
+      }
+    });
+    return () => {
+      isMounted = false;
+    };
+  }, [isOpen]);
+
+  const handleTogglePush = async () => {
+    setPushLoading(true);
+    try {
+      if (isPushEnabled) {
+        await unsubscribeFromPushNotifications();
+        setIsPushEnabled(false);
+      } else {
+        const res = await subscribeToPushNotifications();
+        if (res.success) {
+          setIsPushEnabled(true);
+        } else {
+          alert(res.error || 'Permission denied for notifications.');
+        }
+      }
+    } catch (err: any) {
+      console.error(err);
+      alert('Notification error: ' + (err?.message || 'Unknown error'));
+    } finally {
+      setPushLoading(false);
+    }
+  };
 
   const currentAdjustment = state?.hijriAdjustment ?? 0;
   const todayDateStr = state?.todayDate || '';
@@ -369,6 +416,72 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                   <span className="text-[11px]">Dark</span>
                 </button>
               </div>
+            </div>
+          </div>
+
+          {/* 3b. Push Reminders & Notifications */}
+          <div className="space-y-1.5">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">
+              Reminders & Duas · یاد دہانیاں و اطلاعات
+            </span>
+            <div className="p-3.5 rounded-2xl bg-white dark:bg-ink-850 border border-paper-300 dark:border-ink-800 space-y-3 shadow-soft-sm">
+              <div className="flex items-start justify-between gap-2">
+                <div className="flex items-center gap-2.5 min-w-0">
+                  <div className={`w-8 h-8 rounded-xl flex items-center justify-center shrink-0 ${isPushEnabled ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-700 dark:text-amber-400' : 'bg-paper-100 dark:bg-ink-800 text-ink-500 dark:text-ink-400'}`}>
+                    {isPushEnabled ? <BellRing className="w-4 h-4 animate-bounce" /> : <Bell className="w-4 h-4" />}
+                  </div>
+                  <div className="min-w-0">
+                    <span className="text-xs font-bold text-ink-900 dark:text-white block truncate">
+                      Daily Reminders & Duas
+                    </span>
+                    <span className="arabic-text text-[11px] text-sage-700 dark:text-sage-400 block truncate">
+                      روزانہ شام کے معمولات کی یاد دہانی
+                    </span>
+                  </div>
+                </div>
+
+                {/* Toggle switch */}
+                {isPushSupported ? (
+                  <button
+                    type="button"
+                    disabled={pushLoading}
+                    onClick={handleTogglePush}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${
+                      isPushEnabled ? 'bg-sage-600' : 'bg-paper-300 dark:bg-ink-700'
+                    }`}
+                    role="switch"
+                    aria-checked={isPushEnabled}
+                    aria-label="Toggle push notifications"
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
+                        isPushEnabled ? 'translate-x-5' : 'translate-x-0'
+                      }`}
+                    />
+                  </button>
+                ) : (
+                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-paper-200 dark:bg-ink-800 text-ink-500">
+                    Not Supported
+                  </span>
+                )}
+              </div>
+
+              <p className="text-[11px] text-ink-600 dark:text-ink-400 leading-snug">
+                Fires an evening browser push reminder so you never miss recording your spiritual habits, alongside rotating Duas and verses of the day.
+              </p>
+
+              {/* Active Scheduled Badge */}
+              {isPushEnabled && (
+                <div className="pt-2 border-t border-paper-200 dark:border-ink-800 flex items-center justify-between gap-2">
+                  <span className="text-[10px] font-semibold text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                    <Check className="w-3 h-3" /> Scheduled daily for 9:00 PM
+                  </span>
+                  <span className="text-[10px] font-medium text-sage-800 dark:text-sage-300 bg-sage-100 dark:bg-sage-950/80 px-2 py-0.5 rounded-full">
+                    Active
+                  </span>
+                </div>
+              )}
             </div>
           </div>
 

@@ -69,3 +69,75 @@ self.addEventListener('fetch', (event) => {
     })
   );
 });
+
+// ==========================================
+// Web Push Notifications & Background Sync
+// ==========================================
+
+self.addEventListener('push', (event) => {
+  let payload = {
+    title: 'معمولات | Maamulat Reminder',
+    body: 'آج کے معمولات کا اندراج یاد سے کر لیں۔ (Don\'t forget your daily report)',
+    url: '/?action=missing-reports',
+    icon: '/icon.svg',
+    badge: '/icon.svg'
+  };
+
+  if (event.data) {
+    try {
+      const data = event.data.json();
+      payload = { ...payload, ...data };
+    } catch {
+      payload.body = event.data.text() || payload.body;
+    }
+  }
+
+  const notificationOptions = {
+    body: payload.body,
+    icon: payload.icon || '/icon.svg',
+    badge: payload.badge || '/icon.svg',
+    dir: 'auto',
+    lang: 'ur',
+    vibrate: [100, 50, 100],
+    data: {
+      url: payload.url || '/?action=missing-reports',
+      dateOfArrival: Date.now()
+    },
+    actions: [
+      { action: 'open', title: 'دیکھیں (Open)' },
+      { action: 'close', title: 'بند کریں (Dismiss)' }
+    ]
+  };
+
+  event.waitUntil(
+    self.registration.showNotification(payload.title, notificationOptions)
+  );
+});
+
+self.addEventListener('notificationclick', (event) => {
+  event.notification.close();
+
+  if (event.action === 'close') {
+    return;
+  }
+
+  const targetUrl = event.notification.data?.url || '/?action=missing-reports';
+
+  event.waitUntil(
+    clients.matchAll({ type: 'window', includeUncontrolled: true }).then((windowClients) => {
+      // If a tab is already open, focus it and navigate
+      for (const client of windowClients) {
+        if ('focus' in client) {
+          if (client.url && client.url.includes(self.origin)) {
+            client.navigate(targetUrl);
+            return client.focus();
+          }
+        }
+      }
+      // Otherwise open a new window
+      if (clients.openWindow) {
+        return clients.openWindow(targetUrl);
+      }
+    })
+  );
+});

@@ -1,0 +1,147 @@
+import type { VercelRequest, VercelResponse } from '@vercel/node';
+import webpush from 'web-push';
+
+// Curated rotation of daily spiritual reminders, Hadiths, Quranic verses, and Duas
+const DAILY_REMINDERS = [
+  {
+    title: 'معمولات | آج کا محاسبہ 🌙',
+    body: 'سونے سے پہلے آج کے معمولات و تلاوت کا اندراج یاد سے کر لیں۔ (Don\'t forget your daily report)',
+    url: '/?action=missing-reports'
+  },
+  {
+    title: 'فرمانِ نبوی ﷺ | ہمیشگی کی فضیلت 💫',
+    body: 'أَحَبُّ الْأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ — اللہ کو سب سے پسندیدہ عمل وہ ہے جو ہمیشگی سے کیا جائے اگرچہ کم ہو۔',
+    url: '/?action=missing-reports'
+  },
+  {
+    title: 'قرآنی تذکیر | ذکرِ الٰہی 📖',
+    body: 'أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ — سن لو! دلوں کو اطمینان اللہ ہی کے ذکر سے حاصل ہوتا ہے۔ معمولات چیک کریں۔',
+    url: '/?action=missing-reports'
+  },
+  {
+    title: 'مسنون دعا | شام کا ورد 🤲',
+    body: 'اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ الْمَصِيرُ',
+    url: '/?action=missing-reports'
+  },
+  {
+    title: 'محاسبہ نفس | حضرت عمرؓ کا قول ⚖️',
+    body: 'حَاسِبُوا أَنْفُسَكُمْ قَبْلَ أَنْ تُحَاسَبُوا — اپنا محاسبہ کرو اس سے پہلے کہ تمہارا حساب لیا جائے۔ معمولات درج فرمائیں۔',
+    url: '/?action=missing-reports'
+  },
+  {
+    title: 'درود شریف کی فضیلت 🌹',
+    body: 'مَنْ صَلَّى عَلَيَّ صَلَاةً صَلَّى اللَّهُ عَلَيْهِ بِهَا عَشْرًا — آج درود شریف اور اذکار کا ہدف مکمل کیجیے۔',
+    url: '/?action=missing-reports'
+  },
+  {
+    title: 'سید الاستغفار 🤲✨',
+    body: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ — سونے سے قبل استغفار اور توبہ کا اہتمام فرمائیں۔',
+    url: '/?action=missing-reports'
+  }
+];
+
+export default async function handler(req: VercelRequest, res: VercelResponse) {
+  // 1. Verify VAPID server configuration
+  const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
+  const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
+  const vapidMailto = process.env.VAPID_MAILTO;
+
+  if (!vapidPublicKey || !vapidPrivateKey || !vapidMailto) {
+    return res.status(500).json({
+      error: 'Missing VAPID configuration. Please set VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, and VAPID_MAILTO in Vercel.'
+    });
+  }
+
+  try {
+    webpush.setVapidDetails(vapidMailto, vapidPublicKey, vapidPrivateKey);
+  } catch (e: any) {
+    return res.status(500).json({ error: `VAPID configuration error: ${e?.message || e}` });
+  }
+
+  // 2. Optional security: verify cron secret if configured
+  const cronSecret = process.env.CRON_SECRET;
+  if (cronSecret) {
+    const authHeader = req.headers['authorization'];
+    if (authHeader !== `Bearer ${cronSecret}`) {
+      return res.status(401).json({ error: 'Unauthorized cron trigger' });
+    }
+  }
+
+  const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+
+  if (!redisUrl || !redisToken) {
+    return res.status(500).json({
+      error: 'Missing Upstash Redis configuration. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Vercel.'
+    });
+  }
+
+  try {
+    // 3. Fetch all subscriptions from Upstash Redis Set
+    const listRes = await fetch(`${redisUrl}/smembers/maamulat_push_subscriptions`, {
+      headers: { Authorization: `Bearer ${redisToken}` }
+    });
+    const data = await listRes.json();
+    const rawSubs: string[] = data.result || [];
+
+    if (!rawSubs || rawSubs.length === 0) {
+      return res.status(200).json({
+        success: true,
+        sentCount: 0,
+        message: 'No active push subscriptions found.'
+      });
+    }
+
+    // 4. Pick today's reminder based on day of year
+    const dayOfYear = Math.floor(
+      (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24)
+    );
+    const reminder = DAILY_REMINDERS[dayOfYear % DAILY_REMINDERS.length];
+
+    const payload = JSON.stringify({
+      title: reminder.title,
+      body: reminder.body,
+      url: reminder.url,
+      icon: '/icon.svg',
+      badge: '/icon.svg'
+    });
+
+    let sentCount = 0;
+    let prunedCount = 0;
+    let failedCount = 0;
+
+    // 5. Dispatch web push to all active devices
+    await Promise.all(
+      rawSubs.map(async (subStr) => {
+        try {
+          const sub = JSON.parse(subStr);
+          await webpush.sendNotification(sub, payload);
+          sentCount++;
+        } catch (err: any) {
+          // If expired (404/410), prune from Redis automatically
+          if (err?.statusCode === 404 || err?.statusCode === 410) {
+            try {
+              await fetch(`${redisUrl}/srem/maamulat_push_subscriptions/${encodeURIComponent(subStr)}`, {
+                headers: { Authorization: `Bearer ${redisToken}` }
+              });
+              prunedCount++;
+            } catch {}
+          } else {
+            failedCount++;
+          }
+        }
+      })
+    );
+
+    return res.status(200).json({
+      success: true,
+      sentCount,
+      prunedCount,
+      failedCount,
+      reminder
+    });
+  } catch (error: any) {
+    console.error('Error executing cron push:', error);
+    return res.status(500).json({ error: error.message || 'Internal server error' });
+  }
+}
