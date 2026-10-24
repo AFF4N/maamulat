@@ -95,20 +95,20 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
 
           const stateStyles = isPassed
             ? {
-                base: 'bg-sage-50/90 dark:bg-sage-950/40 text-sage-800 dark:text-sage-300',
-                selected: 'border-sage-600 dark:border-sage-400 z-10',
-                unselected: 'border-sage-200/90 dark:border-sage-800/80 hover:border-sage-400',
+                base: 'bg-sage-50/70 dark:bg-sage-950/30 text-sage-800 dark:text-sage-300',
+                selected: 'border-sage-600 dark:border-sage-500/70 dark:bg-sage-950/50 z-10 shadow-soft-sm',
+                unselected: 'border-sage-200/80 dark:border-sage-800/60 hover:border-sage-400/60 dark:hover:border-sage-700/60',
               }
             : isPartial
               ? {
-                  base: 'bg-amberGold-50/90 dark:bg-amberGold-950/30 text-amberGold-800 dark:text-amberGold-300',
-                  selected: 'border-amberGold-500 dark:border-amberGold-400 z-10',
-                  unselected: 'border-amberGold-200/90 dark:border-amberGold-800/80 hover:border-amberGold-400',
+                  base: 'bg-amberGold-50/70 dark:bg-amberGold-950/20 text-amberGold-800 dark:text-amberGold-400/85',
+                  selected: 'border-amberGold-600/80 dark:border-amberGold-600/60 dark:bg-amberGold-950/40 z-10 shadow-soft-sm',
+                  unselected: 'border-amberGold-200/70 dark:border-amberGold-900/50 hover:border-amberGold-500/50 dark:hover:border-amberGold-800/50',
                 }
               : {
-                  base: 'bg-terracotta-50/90 dark:bg-terracotta-950/30 text-terracotta-600 dark:text-terracotta-400',
-                  selected: 'border-terracotta-500 dark:border-terracotta-400 z-10',
-                  unselected: 'border-terracotta-200/70 dark:border-terracotta-900/50 hover:border-terracotta-400',
+                  base: 'bg-terracotta-50/70 dark:bg-terracotta-950/25 text-terracotta-600 dark:text-terracotta-300/80',
+                  selected: 'border-terracotta-500 dark:border-terracotta-500/70 dark:bg-terracotta-950/45 z-10 shadow-soft-sm',
+                  unselected: 'border-terracotta-200/60 dark:border-terracotta-900/50 hover:border-terracotta-400/50 dark:hover:border-terracotta-800/50',
                 };
 
           return (
@@ -120,19 +120,29 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
               }`}
               title={`${rec.date} (${rec.completedCount}/${rec.totalCount}) - ${isPassed ? `Passed (≥${STREAK_PASS_PERCENTAGE}%)` : isPartial ? `Partial (<${STREAK_PASS_PERCENTAGE}%)` : 'Missed (0)'}`}
             >
-              <span className={`text-[10px] font-medium mb-1 ${isSelected ? 'font-bold text-ink-900 dark:text-white' : 'opacity-80'}`}>
+              <span
+                className={`text-[10px] font-medium mb-1 transition-colors ${
+                  isSelected
+                    ? isPassed
+                      ? 'font-bold text-sage-900 dark:text-sage-200'
+                      : isPartial
+                        ? 'font-bold text-amberGold-900 dark:text-amberGold-200/90'
+                        : 'font-bold text-terracotta-900 dark:text-terracotta-200'
+                    : 'opacity-80'
+                }`}
+              >
                 {formatShortDate(rec.date)}
               </span>
               <span className="w-5 h-5 rounded-full flex items-center justify-center text-xs font-bold">
                 {isPassed ? (
                   <Check className="w-3.5 h-3.5 stroke-[2.5]" />
                 ) : isPartial ? (
-                  <span className="text-[10px]">◐</span>
+                  <span className="text-[10px] text-amberGold-700 dark:text-amberGold-400/90 leading-none">◐</span>
                 ) : (
                   <X className="w-3 h-3 stroke-[2.5]" />
                 )}
               </span>
-              <span className="text-[9px] mt-1 opacity-70">
+              <span className={`text-[9px] mt-1 ${isSelected ? 'font-semibold opacity-95' : 'opacity-70'}`}>
                 {rec.completedCount}
               </span>
             </button>
@@ -144,8 +154,8 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
           onClick={() => onSelectDate(todayDate)}
           className={`flex flex-col items-center py-2 px-1 rounded-xl border-2 text-center transition-colors tap-bounce relative ${
             isTodaySelected
-              ? 'border-sage-600 dark:border-sage-400 bg-sage-100/90 dark:bg-sage-900/60 text-sage-900 dark:text-white z-10'
-              : 'border-sage-300 dark:border-sage-700/80 bg-sage-50/50 dark:bg-sage-950/20 text-sage-800 dark:text-sage-300 hover:border-sage-400'
+              ? 'border-sage-600 dark:border-sage-500/70 bg-sage-100/90 dark:bg-sage-900/50 text-sage-900 dark:text-sage-200 z-10 shadow-soft-sm'
+              : 'border-sage-300 dark:border-sage-800/80 bg-sage-50/50 dark:bg-sage-950/20 text-sage-800 dark:text-sage-300 hover:border-sage-400'
           }`}
           title={`آج کا دن (Today) - ${completedTodayCount}/${totalTodayCount} ${isTodayQualified ? '(Passed)' : '(In Progress)'}`}
         >

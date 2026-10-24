@@ -142,6 +142,9 @@ export const AppRouter: React.FC<AppRouterProps> = ({
           isViewingPastDay={isViewingPastDay}
           isYesterday={selectedDate === yesterdayDate}
           onReturnToToday={() => setSelectedDate(state.todayDate)}
+          completedCount={completedTasksCount}
+          totalCount={totalTasksCount}
+          completionPercentage={completionPercentage}
         />
 
         {/* Floating Missing Reports Toast (Triggered on click to notification) */}

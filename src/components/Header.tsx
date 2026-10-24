@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Menu, Sparkles, SlidersHorizontal, RotateCcw, Clock } from 'lucide-react';
 import { formatEnglishDate, formatHijriDate } from '../utils/dateUtils';
+import { isCompletionQualified, STREAK_PASS_PERCENTAGE } from '../constants';
 import { MenuDrawer } from './MenuDrawer';
 import { GoalEditorModal } from './GoalEditorModal';
 import type { MaamulatState } from '../types';
@@ -24,6 +25,9 @@ interface HeaderProps {
   isViewingPastDay?: boolean;
   isYesterday?: boolean;
   onReturnToToday?: () => void;
+  completedCount?: number;
+  totalCount?: number;
+  completionPercentage?: number;
 }
 
 export const Header: React.FC<HeaderProps> = ({
@@ -45,6 +49,9 @@ export const Header: React.FC<HeaderProps> = ({
   isViewingPastDay = false,
   isYesterday = false,
   onReturnToToday,
+  completedCount,
+  totalCount,
+  completionPercentage,
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditingGoal, setIsEditingGoal] = useState(false);
@@ -67,9 +74,16 @@ export const Header: React.FC<HeaderProps> = ({
   const hijriDate = formatHijriDate(todayDate, state?.hijriAdjustment ?? 0);
   const progressPercent = Math.min(100, Math.round((goalDay / goalMaxDays) * 100));
 
+  const safeTotalCount = totalCount ?? 0;
+  const safeCompletedCount = completedCount ?? 0;
+  const isPassed = isCompletionQualified(safeCompletedCount, safeTotalCount);
+  const taskProgressPercent = safeTotalCount > 0
+    ? Math.min(100, Math.max(0, Math.round((safeCompletedCount / safeTotalCount) * 100)))
+    : (completionPercentage ?? 0);
+
   return (
     <header className="relative pt-1 standalone:pt-[calc(0.75rem+env(safe-area-inset-top,0px))] pb-3">
-      {/* Fixed Sticky Date Bar (Revealed smoothly on scroll without layout shift or border artifacts) */}
+      {/* Fixed Sticky Date Bar with Selection Progress Bar & Border Line */}
       <div
         className={`fixed top-0 left-0 right-0 z-30 transition-all duration-300 transform bg-paper-50/95 dark:bg-[#121514]/95 backdrop-blur-md border-b border-paper-300/80 dark:border-ink-800 shadow-soft-sm pt-2.5 standalone:pt-[calc(0.5rem+env(safe-area-inset-top,0px))] pb-2.5 ${
           isScrolled
@@ -120,6 +134,30 @@ export const Header: React.FC<HeaderProps> = ({
               <Menu className="w-4 h-4" />
             </button>
           </div>
+        </div>
+
+        {/* Selection Progress Border Bar: partial yellow when below pass threshold (60%), transitions to green on passing */}
+        <div
+          className="absolute -bottom-[1px] left-0 right-0 w-full h-[3px] bg-paper-200/90 dark:bg-ink-800/90 overflow-hidden"
+          role="progressbar"
+          aria-valuenow={taskProgressPercent}
+          aria-valuemin={0}
+          aria-valuemax={100}
+          aria-label="Daily tasks selection progress"
+        >
+          {/* Subtle 60% pass threshold marker */}
+          <span
+            className="absolute top-0 bottom-0 left-[60%] w-[1.5px] bg-ink-400/30 dark:bg-white/20 z-10 pointer-events-none"
+            title={`Pass threshold (${STREAK_PASS_PERCENTAGE}%)`}
+          />
+          <div
+            className={`h-full transition-all duration-500 ease-out ${
+              isPassed
+                ? 'bg-sage-500 dark:bg-sage-400 shadow-[0_0_8px_rgba(58,116,86,0.6)]'
+                : 'bg-amberGold-500 dark:bg-amberGold-400 shadow-[0_0_8px_rgba(201,147,59,0.5)]'
+            }`}
+            style={{ width: `${taskProgressPercent}%` }}
+          />
         </div>
       </div>
 
