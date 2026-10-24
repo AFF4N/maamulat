@@ -1,6 +1,7 @@
 export type AdminModule = 'notifications' | 'storage' | 'system';
 
 export interface ReminderItem {
+  id?: string;
   title: string;
   body: string;
   url?: string;

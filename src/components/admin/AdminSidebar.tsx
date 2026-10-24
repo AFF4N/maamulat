@@ -43,7 +43,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
           isMobileOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
-        <div className="p-4 space-y-6 overflow-y-auto flex-1">
+        <div className="p-4 pt-4 standalone:pt-[calc(1.25rem+env(safe-area-inset-top,0px))] space-y-6 overflow-y-auto flex-1">
           {/* Brand Header */}
           <div className="flex items-center justify-between pb-3 border-b border-paper-200 dark:border-ink-800">
             <div className="flex items-center gap-2.5">
@@ -149,7 +149,7 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
         </div>
 
         {/* Sidebar Footer Controls */}
-        <div className="p-4 border-t border-paper-200 dark:border-ink-800 space-y-2 shrink-0 bg-white dark:bg-ink-900">
+        <div className="p-4 pb-4 standalone:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] border-t border-paper-200 dark:border-ink-800 space-y-2 shrink-0 bg-white dark:bg-ink-900">
           <button
             onClick={onBackToApp}
             className="w-full text-left px-3 py-2 rounded-xl text-xs font-semibold text-ink-600 dark:text-ink-400 hover:text-sage-700 dark:hover:text-sage-300 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors flex items-center gap-2"

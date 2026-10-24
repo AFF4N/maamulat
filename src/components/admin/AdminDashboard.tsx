@@ -93,8 +93,8 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
   // 2. Authenticated Admin Dashboard Layout
   return (
     <div className="min-h-screen md:h-screen md:overflow-hidden bg-paper-50 dark:bg-ink-950 text-ink-900 dark:text-ink-100 flex flex-col md:flex-row">
-      {/* Mobile Top Header */}
-      <header className="md:hidden sticky top-0 z-30 bg-white/90 dark:bg-ink-900/90 backdrop-blur-md border-b border-paper-300 dark:border-ink-800 px-4 py-3 flex items-center justify-between">
+      {/* Mobile Top Header with PWA safe-area spacing */}
+      <header className="md:hidden sticky top-0 z-30 bg-white/95 dark:bg-ink-900/95 backdrop-blur-md border-b border-paper-300 dark:border-ink-800 px-4 pt-3.5 standalone:pt-[calc(1rem+env(safe-area-inset-top,0px))] pb-3.5 flex items-center justify-between">
         <div className="flex items-center gap-2.5">
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
@@ -145,7 +145,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
 
       {/* Main Content Area (Only right window scrolls) */}
       <main className="flex-1 md:h-screen md:overflow-y-auto">
-        <div className="max-w-4xl mx-auto px-4 py-6 sm:px-8 space-y-6">
+        <div className="max-w-4xl mx-auto px-4 py-6 standalone:pb-[calc(2rem+env(safe-area-inset-bottom,0px))] sm:px-8 space-y-6">
         {/* Desktop Top Bar */}
         <div className="hidden md:flex items-center justify-between pb-3 border-b border-paper-300 dark:border-ink-800">
           <div>

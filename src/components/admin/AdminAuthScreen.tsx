@@ -24,7 +24,7 @@ export const AdminAuthScreen: React.FC<AdminAuthScreenProps> = ({
   };
 
   return (
-    <div className="min-h-screen bg-paper-50 dark:bg-ink-950 text-ink-900 dark:text-ink-100 flex flex-col justify-center items-center px-4 py-8">
+    <div className="min-h-screen bg-paper-50 dark:bg-ink-950 text-ink-900 dark:text-ink-100 flex flex-col justify-center items-center px-4 py-8 standalone:pt-[calc(2rem+env(safe-area-inset-top,0px))] standalone:pb-[calc(2rem+env(safe-area-inset-bottom,0px))]">
       <div className="w-full max-w-sm bg-white dark:bg-ink-850 border border-paper-300 dark:border-ink-800 rounded-3xl p-6 shadow-xl space-y-6">
         <div className="flex items-center justify-between">
           <button

@@ -1,45 +1,19 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
-import webpush from 'web-push';
+import {
+  getRedisEnv,
+  runRedis,
+  getSubscriptions,
+  getStoredReminders,
+  saveStoredReminders,
+  updateStoredReminder,
+  setDefaultReminder,
+  addStoredReminder,
+  deleteStoredReminder,
+  resetStoredReminders
+} from '../src/utils/redisUtils.js';
+import { initVapid, dispatchWebPush } from '../src/utils/pushUtils.js';
 
-// Curated rotation of daily spiritual reminders, Hadiths, Quranic verses, and Duas
-const DAILY_REMINDERS = [
-  {
-    title: 'معمولات | آج کا محاسبہ 🌙',
-    body: 'سونے سے پہلے آج کے معمولات و تلاوت کا اندراج یاد سے کر لیں۔ (Don\'t forget your daily report)',
-    url: '/?action=missing-reports',
-    isDefault: true
-  },
-  {
-    title: 'فرمانِ نبوی ﷺ | ہمیشگی کی فضیلت 💫',
-    body: 'أَحَبُّ الْأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ — اللہ کو سب سے پسندیدہ عمل وہ ہے جو ہمیشگی سے کیا جائے اگرچہ کم ہو۔',
-    url: '/?action=missing-reports'
-  },
-  {
-    title: 'قرآنی تذکیر | ذکرِ الٰہی 📖',
-    body: 'أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ — سن لو! دلوں کو اطمینان اللہ ہی کے ذکر سے حاصل ہوتا ہے۔ معمولات چیک کریں۔',
-    url: '/?action=missing-reports'
-  },
-  {
-    title: 'مسنون دعا | شام کا ورد 🤲',
-    body: 'اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ الْمَصِيرُ',
-    url: '/?action=missing-reports'
-  },
-  {
-    title: 'محاسبہ نفس | حضرت عمرؓ کا قول ⚖️',
-    body: 'حَاسِبُوا أَنْفُسَكُمْ قَبْلَ أَنْ تُحَاسَبُوا — اپنا محاسبہ کرو اس سے پہلے کہ تمہارا حساب لیا جائے۔ معمولات درج فرمائیں۔',
-    url: '/?action=missing-reports'
-  },
-  {
-    title: 'درود شریف کی فضیلت 🌹',
-    body: 'مَنْ صَلَّى عَلَيَّ صَلَاةً صَلَّى اللَّهُ عَلَيْهِ بِهَا عَشْرًا — آج درود شریف اور اذکار کا ہدف مکمل کیجیے۔',
-    url: '/?action=missing-reports'
-  },
-  {
-    title: 'سید الاستغفار 🤲✨',
-    body: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ — سونے سے قبل استغفار اور توبہ کا اہتمام فرمائیں۔',
-    url: '/?action=missing-reports'
-  }
-];
+
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS & Methods
@@ -47,7 +21,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(405).json({ error: 'Method not allowed. Use GET or POST.' });
   }
 
-  // 1. PIN Security Validation (Strict: No hardcoded fallback)
+  // 1. PIN Security Validation
   const expectedPin = process.env.ADMIN_PIN;
   if (!expectedPin) {
     return res.status(500).json({
@@ -66,37 +40,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  const redisUrl = process.env.KV_REST_API_URL;
-  const redisToken = process.env.KV_REST_API_TOKEN;
+  const { isConfigured: redisConfigured } = getRedisEnv();
   const vapidPublicKey = process.env.VAPID_PUBLIC_KEY || process.env.VITE_VAPID_PUBLIC_KEY;
   const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
-  const vapidMailto = process.env.VAPID_MAILTO || 'mailto:admin@maamulat.app';
 
   const envStatus = {
-    redisConfigured: Boolean(redisUrl && redisToken),
+    redisConfigured,
     vapidConfigured: Boolean(vapidPublicKey && vapidPrivateKey),
     cronSecretConfigured: Boolean(process.env.CRON_SECRET),
     customPinSet: Boolean(process.env.ADMIN_PIN)
-  };
-
-  // Helper to execute Upstash Redis REST command
-  const runRedis = async (command: string[]) => {
-    if (!redisUrl || !redisToken) return null;
-    try {
-      const response = await fetch(redisUrl, {
-        method: 'POST',
-        headers: {
-          Authorization: `Bearer ${redisToken}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(command)
-      });
-      const data = await response.json();
-      return data.result;
-    } catch (e) {
-      console.error('Redis execution error:', e);
-      return null;
-    }
   };
 
   // ----------------------------------------------------------------------
@@ -104,72 +56,65 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   // ----------------------------------------------------------------------
   if (req.method === 'GET') {
     let subscriberCount = 0;
-    let subscribersSample: Array<{ endpoint: string; domain: string }> = [];
-    let customReminders = null;
+    let subscribersSample: Array<{ endpoint: string; domain: string; platform: string }> = [];
     let lastCronLog = null;
     let lastBroadcastLog = null;
     let scheduleConfig = null;
+    let remindersList: any[] = [];
 
     if (envStatus.redisConfigured) {
       try {
-        // 1. Fetch subscribers
-        const rawSubs = (await runRedis(['SMEMBERS', 'maamulat_push_subscriptions'])) || [];
-        subscriberCount = Array.isArray(rawSubs) ? rawSubs.length : 0;
-
-        // Detect platform & provider for registered devices
-        if (Array.isArray(rawSubs)) {
-          subscribersSample = rawSubs.slice(0, 50).map((subStr: string) => {
-            try {
-              const parsed = JSON.parse(subStr);
-              const url = new URL(parsed.endpoint);
-              let platform = 'Web Push Gateway';
-              if (url.hostname.includes('fcm.googleapis.com')) platform = 'Google Chrome / Android';
-              else if (url.hostname.includes('push.apple.com')) platform = 'Apple Safari / iOS';
-              else if (url.hostname.includes('mozilla.com')) platform = 'Mozilla Firefox';
-              else if (url.hostname.includes('windows.com') || url.hostname.includes('microsoft.com')) platform = 'Microsoft Edge';
-
-              return {
-                endpoint: parsed.endpoint.slice(0, 35) + '...',
-                domain: url.hostname,
-                platform
-              };
-            } catch {
-              return { endpoint: 'Device subscription', domain: 'push-service', platform: 'Web Browser' };
-            }
-          });
-        }
-
-        // 2. Fetch logs and custom reminders
-        const [customRemStr, cronLogStr, bcastLogStr, schedStr] = await Promise.all([
-          runRedis(['GET', 'maamulat_custom_reminders']),
+        const [rawSubs, cronLogStr, bcastLogStr, schedStr, storedReminders] = await Promise.all([
+          getSubscriptions(),
           runRedis(['GET', 'maamulat_last_cron_log']),
           runRedis(['GET', 'maamulat_last_broadcast_log']),
-          runRedis(['GET', 'maamulat_schedule_config'])
+          runRedis(['GET', 'maamulat_schedule_config']),
+          getStoredReminders()
         ]);
 
-        if (customRemStr) {
-          try {
-            customReminders = typeof customRemStr === 'string' ? JSON.parse(customRemStr) : customRemStr;
-          } catch {}
-        }
+        remindersList = storedReminders;
+        subscriberCount = rawSubs.length;
 
-        if (cronLogStr) {
+        subscribersSample = rawSubs.slice(0, 50).map((subStr: string) => {
           try {
-            lastCronLog = typeof cronLogStr === 'string' ? JSON.parse(cronLogStr) : cronLogStr;
-          } catch {}
-        }
+            const parsed = JSON.parse(subStr);
+            const url = new URL(parsed.endpoint);
+            let platform = 'Web Push Gateway';
+            if (url.hostname.includes('fcm.googleapis.com')) platform = 'Google Chrome / Android';
+            else if (url.hostname.includes('push.apple.com')) platform = 'Apple Safari / iOS';
+            else if (url.hostname.includes('mozilla.com')) platform = 'Mozilla Firefox';
+            else if (url.hostname.includes('windows.com') || url.hostname.includes('microsoft.com')) platform = 'Microsoft Edge';
 
-        if (bcastLogStr) {
-          try {
-            lastBroadcastLog = typeof bcastLogStr === 'string' ? JSON.parse(bcastLogStr) : bcastLogStr;
-          } catch {}
-        }
+            return {
+              endpoint: parsed.endpoint.slice(0, 35) + '...',
+              domain: url.hostname,
+              platform
+            };
+          } catch {
+            return { endpoint: 'Device subscription', domain: 'push-service', platform: 'Web Browser' };
+          }
+        });
 
-        if (schedStr) {
-          try {
-            scheduleConfig = typeof schedStr === 'string' ? JSON.parse(schedStr) : schedStr;
-          } catch {}
-        }
+        if (cronLogStr) try { lastCronLog = typeof cronLogStr === 'string' ? JSON.parse(cronLogStr) : cronLogStr; } catch {}
+        if (bcastLogStr) try { lastBroadcastLog = typeof bcastLogStr === 'string' ? JSON.parse(bcastLogStr) : bcastLogStr; } catch {}
+        if (schedStr) try { scheduleConfig = typeof schedStr === 'string' ? JSON.parse(schedStr) : schedStr; } catch {}
+
+        return res.status(200).json({
+          success: true,
+          env: envStatus,
+          subscriberCount,
+          subscribersSample,
+          isUsingCustomReminders: true,
+          reminders: remindersList,
+          lastCronLog,
+          lastBroadcastLog,
+          scheduleConfig: scheduleConfig || {
+            timePkt: '9:00 PM',
+            cronExpression: '0 16 * * *',
+            enabled: true,
+            description: 'Daily automated evening reminder'
+          }
+        });
       } catch (err: any) {
         console.error('Failed reading admin state from Redis:', err);
       }
@@ -178,18 +123,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     return res.status(200).json({
       success: true,
       env: envStatus,
-      subscriberCount,
-      subscribersSample,
-      isUsingCustomReminders: Boolean(customReminders && customReminders.length > 0),
-      reminders: ((customReminders && customReminders.length > 0) ? customReminders : DAILY_REMINDERS).map(
-        (r: any, i: number, arr: any[]) => ({
-          ...r,
-          isDefault: arr.some((item: any) => item.isDefault) ? Boolean(r.isDefault) : i === 0
-        })
-      ),
-      lastCronLog,
-      lastBroadcastLog,
-      scheduleConfig: scheduleConfig || {
+      subscriberCount: 0,
+      subscribersSample: [],
+      isUsingCustomReminders: true,
+      reminders: remindersList,
+      lastCronLog: null,
+      lastBroadcastLog: null,
+      scheduleConfig: {
         timePkt: '9:00 PM',
         cronExpression: '0 16 * * *',
         enabled: true,
@@ -199,9 +139,9 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   // ----------------------------------------------------------------------
-  // POST: Execute Actions (Broadcast, Trigger Cron, Save Reminders, Save Schedule)
+  // POST: Execute Actions
   // ----------------------------------------------------------------------
-  const { action, title, body, url, reminders, schedule } = req.body || {};
+  const { action, title, body, url, reminders, reminder, id, index, schedule } = req.body || {};
 
   if (!envStatus.redisConfigured) {
     return res.status(500).json({
@@ -209,67 +149,35 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  // Setup Web Push
+  // Web Push setup for dispatch actions
   if (action === 'broadcast' || action === 'trigger-cron') {
-    if (!vapidPublicKey || !vapidPrivateKey) {
-      return res.status(500).json({
-        error: 'VAPID cryptographic keys are missing in Vercel environment variables. Please set VAPID_PRIVATE_KEY and VAPID_PUBLIC_KEY.'
-      });
-    }
-
-    try {
-      webpush.setVapidDetails(vapidMailto, vapidPublicKey, vapidPrivateKey);
-    } catch (e: any) {
-      return res.status(500).json({ error: `VAPID configuration error: ${e?.message || e}` });
+    const vapid = initVapid();
+    if (!vapid.configured) {
+      return res.status(500).json({ error: vapid.error });
     }
   }
 
-  // 1. Broadcast custom notification worldwide
+  // 1. Worldwide Instant Broadcast
   if (action === 'broadcast') {
     if (!title || !body) {
       return res.status(400).json({ error: 'Title and body are required for broadcast.' });
     }
 
-    const rawSubs: string[] = (await runRedis(['SMEMBERS', 'maamulat_push_subscriptions'])) || [];
-
-    if (!rawSubs || rawSubs.length === 0) {
+    const rawSubs = await getSubscriptions();
+    if (rawSubs.length === 0) {
       return res.status(200).json({
         success: true,
         sentCount: 0,
-        message: 'No active subscribed devices found in Redis database.'
+        message: 'No subscribers registered yet.'
       });
     }
 
-    const payload = JSON.stringify({
-      title: title.trim(),
-      body: body.trim(),
-      url: url || '/?action=missing-reports',
-      icon: '/icon.svg',
-      badge: '/icon.svg'
+    const { sentCount, prunedCount, failedCount } = await dispatchWebPush(rawSubs, {
+      title,
+      body,
+      url
     });
 
-    let sentCount = 0;
-    let prunedCount = 0;
-    let failedCount = 0;
-
-    await Promise.all(
-      rawSubs.map(async (subStr) => {
-        try {
-          const sub = JSON.parse(subStr);
-          await webpush.sendNotification(sub, payload);
-          sentCount++;
-        } catch (err: any) {
-          if (err?.statusCode === 404 || err?.statusCode === 410) {
-            await runRedis(['SREM', 'maamulat_push_subscriptions', subStr]);
-            prunedCount++;
-          } else {
-            failedCount++;
-          }
-        }
-      })
-    );
-
-    // Save broadcast log
     const logData = {
       timestamp: new Date().toISOString(),
       title,
@@ -291,9 +199,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   // 2. Trigger Cron Reminder Immediately
   if (action === 'trigger-cron') {
-    const rawSubs: string[] = (await runRedis(['SMEMBERS', 'maamulat_push_subscriptions'])) || [];
-
-    if (!rawSubs || rawSubs.length === 0) {
+    const rawSubs = await getSubscriptions();
+    if (rawSubs.length === 0) {
       return res.status(200).json({
         success: true,
         sentCount: 0,
@@ -301,96 +208,118 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // Determine reminder
-    let activeReminders = DAILY_REMINDERS;
-    const customRemStr = await runRedis(['GET', 'maamulat_custom_reminders']);
-    if (customRemStr) {
-      try {
-        const parsed = typeof customRemStr === 'string' ? JSON.parse(customRemStr) : customRemStr;
-        if (Array.isArray(parsed) && parsed.length > 0) activeReminders = parsed;
-      } catch {}
-    }
+    const activeReminders = await getStoredReminders();
+    const reminderItem = activeReminders.find((r) => r.isDefault) || activeReminders[0];
 
-    // Use the default reminder selected by the admin (or fallback to first)
-    const reminder = activeReminders.find((r: any) => r.isDefault) || activeReminders[0] || DAILY_REMINDERS[0];
+    const { sentCount, prunedCount, failedCount } = await dispatchWebPush(rawSubs, reminderItem);
 
-    const payload = JSON.stringify({
-      title: reminder.title,
-      body: reminder.body,
-      url: reminder.url || '/?action=missing-reports',
-      icon: '/icon.svg',
-      badge: '/icon.svg'
-    });
-
-    let sentCount = 0;
-    let prunedCount = 0;
-    let failedCount = 0;
-
-    await Promise.all(
-      rawSubs.map(async (subStr) => {
-        try {
-          const sub = JSON.parse(subStr);
-          await webpush.sendNotification(sub, payload);
-          sentCount++;
-        } catch (err: any) {
-          if (err?.statusCode === 404 || err?.statusCode === 410) {
-            await runRedis(['SREM', 'maamulat_push_subscriptions', subStr]);
-            prunedCount++;
-          } else {
-            failedCount++;
-          }
-        }
-      })
-    );
-
-    // Save cron log
     const logData = {
       timestamp: new Date().toISOString(),
-      reminder,
+      reminder: reminderItem,
       sentCount,
       prunedCount,
       failedCount
     };
     await runRedis(['SET', 'maamulat_last_cron_log', JSON.stringify(logData)]);
 
+
     return res.status(200).json({
       success: true,
       message: `Triggered scheduled reminder to ${sentCount} device(s).`,
-      reminder,
+      reminder: reminderItem,
       sentCount,
       prunedCount,
       failedCount
     });
   }
 
-  // 3. Save Custom Reminders List
+  // 3. Save / Replace Entire Reminders List
   if (action === 'save-reminders') {
     if (!Array.isArray(reminders) || reminders.length === 0) {
       return res.status(400).json({ error: 'Reminders list must be a non-empty array.' });
     }
-
-    await runRedis(['SET', 'maamulat_custom_reminders', JSON.stringify(reminders)]);
+    const updated = await saveStoredReminders(reminders);
     return res.status(200).json({
       success: true,
-      message: `Successfully saved ${reminders.length} reminders to cloud.`
+      message: `Successfully saved ${updated.length} reminders to cloud.`,
+      reminders: updated
     });
   }
 
-  // 4. Reset Reminders to Default
+  // 4. Update Single Reminder In-place
+  if (action === 'update-reminder') {
+    if (!reminder || (!reminder.id && index === undefined)) {
+      return res.status(400).json({ error: 'Missing reminder data or id to update.' });
+    }
+    const updated = await updateStoredReminder(reminder, index);
+    return res.status(200).json({
+      success: true,
+      message: 'Reminder updated successfully in cloud.',
+      reminders: updated
+    });
+  }
+
+  // 5. Set Reminder as Default
+  if (action === 'set-default-reminder') {
+    const target = id !== undefined ? id : index;
+    if (target === undefined) {
+      return res.status(400).json({ error: 'Target id or index required.' });
+    }
+    const updated = await setDefaultReminder(target);
+    return res.status(200).json({
+      success: true,
+      message: 'Default reminder updated in cloud.',
+      reminders: updated
+    });
+  }
+
+  // 6. Add New Reminder
+  if (action === 'add-reminder') {
+    const itemToAdd = reminder || { title, body, url };
+    if (!itemToAdd.title?.trim() || !itemToAdd.body?.trim()) {
+      return res.status(400).json({ error: 'Title and body are required.' });
+    }
+    const updated = await addStoredReminder(itemToAdd);
+    return res.status(200).json({
+      success: true,
+      message: 'New reminder added to cloud.',
+      reminders: updated
+    });
+  }
+
+  // 7. Delete Reminder
+  if (action === 'delete-reminder') {
+    const target = id !== undefined ? id : index;
+    if (target === undefined) {
+      return res.status(400).json({ error: 'Target id or index required.' });
+    }
+    try {
+      const updated = await deleteStoredReminder(target);
+      return res.status(200).json({
+        success: true,
+        message: 'Reminder deleted from cloud.',
+        reminders: updated
+      });
+    } catch (err: any) {
+      return res.status(400).json({ error: err.message });
+    }
+  }
+
+  // 8. Reset Reminders to Default Curated Collection
   if (action === 'reset-reminders') {
-    await runRedis(['DEL', 'maamulat_custom_reminders']);
+    const updated = await resetStoredReminders();
     return res.status(200).json({
       success: true,
-      message: 'Reset back to default curated Islamic reminders.'
+      message: 'Reset back to default curated Islamic reminders.',
+      reminders: updated
     });
   }
 
-  // 5. Save Schedule Config
+  // 9. Save Schedule Config
   if (action === 'save-schedule') {
     if (!schedule) {
       return res.status(400).json({ error: 'Missing schedule configuration.' });
     }
-
     await runRedis(['SET', 'maamulat_schedule_config', JSON.stringify(schedule)]);
     return res.status(200).json({
       success: true,
