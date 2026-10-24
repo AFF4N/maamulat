@@ -14,6 +14,7 @@ import {
   Undo2
 } from 'lucide-react';
 import type { AdminState, ReminderItem } from '../types';
+import { parseJsonResponse } from '../../../utils/apiUtils';
 
 interface NotificationsModuleProps {
   adminData: AdminState | null;
@@ -84,7 +85,7 @@ export const NotificationsModule: React.FC<NotificationsModuleProps> = ({
           url: broadcastUrl
         })
       });
-      const data = await res.json();
+      const data = await parseJsonResponse(res, 'Failed to dispatch broadcast');
 
       if (res.ok) {
         setBroadcastResult(`✅ Sent to ${data.sentCount} device(s)! (${data.failedCount} failed, ${data.prunedCount} pruned)`);
@@ -117,7 +118,7 @@ export const NotificationsModule: React.FC<NotificationsModuleProps> = ({
           pin
         })
       });
-      const data = await res.json();
+      const data = await parseJsonResponse(res, 'Failed triggering scheduled reminder');
 
       if (res.ok) {
         setTriggerCronResult(`✅ Cron executed! Delivered to ${data.sentCount} device(s).`);
@@ -174,7 +175,7 @@ export const NotificationsModule: React.FC<NotificationsModuleProps> = ({
           reminders: editingReminders
         })
       });
-      const data = await res.json();
+      const data = await parseJsonResponse(res, 'Failed saving reminders.');
       if (res.ok) {
         alert('Custom reminders saved to cloud database!');
         setHasReminderChanges(false);
@@ -202,9 +203,12 @@ export const NotificationsModule: React.FC<NotificationsModuleProps> = ({
         },
         body: JSON.stringify({ action: 'reset-reminders', pin })
       });
+      const data = await parseJsonResponse(res, 'Failed to reset reminders');
       if (res.ok) {
         alert('Reset to default reminders successfully.');
         onRefresh();
+      } else {
+        alert(data.error || 'Failed resetting reminders');
       }
     } catch (e: any) {
       alert(e.message);

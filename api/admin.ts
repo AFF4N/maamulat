@@ -1,6 +1,44 @@
 import type { VercelRequest, VercelResponse } from '@vercel/node';
 import webpush from 'web-push';
-import { DAILY_REMINDERS } from './cron-remind';
+
+// Curated rotation of daily spiritual reminders, Hadiths, Quranic verses, and Duas
+const DAILY_REMINDERS = [
+  {
+    title: 'معمولات | آج کا محاسبہ 🌙',
+    body: 'سونے سے پہلے آج کے معمولات و تلاوت کا اندراج یاد سے کر لیں۔ (Don\'t forget your daily report)',
+    url: '/?action=missing-reports'
+  },
+  {
+    title: 'فرمانِ نبوی ﷺ | ہمیشگی کی فضیلت 💫',
+    body: 'أَحَبُّ الْأَعْمَالِ إِلَى اللَّهِ أَدْوَمُهَا وَإِنْ قَلَّ — اللہ کو سب سے پسندیدہ عمل وہ ہے جو ہمیشگی سے کیا جائے اگرچہ کم ہو۔',
+    url: '/?action=missing-reports'
+  },
+  {
+    title: 'قرآنی تذکیر | ذکرِ الٰہی 📖',
+    body: 'أَلَا بِذِكْرِ اللَّهِ تَطْمَئِنُّ الْقُلُوبُ — سن لو! دلوں کو اطمینان اللہ ہی کے ذکر سے حاصل ہوتا ہے۔ معمولات چیک کریں۔',
+    url: '/?action=missing-reports'
+  },
+  {
+    title: 'مسنون دعا | شام کا ورد 🤲',
+    body: 'اللَّهُمَّ بِكَ أَمْسَيْنَا، وَبِكَ أَصْبَحْنَا، وَبِكَ نَحْيَا، وَبِكَ نَمُوتُ، وَإِلَيْكَ الْمَصِيرُ',
+    url: '/?action=missing-reports'
+  },
+  {
+    title: 'محاسبہ نفس | حضرت عمرؓ کا قول ⚖️',
+    body: 'حَاسِبُوا أَنْفُسَكُمْ قَبْلَ أَنْ تُحَاسَبُوا — اپنا محاسبہ کرو اس سے پہلے کہ تمہارا حساب لیا جائے۔ معمولات درج فرمائیں۔',
+    url: '/?action=missing-reports'
+  },
+  {
+    title: 'درود شریف کی فضیلت 🌹',
+    body: 'مَنْ صَلَّى عَلَيَّ صَلَاةً صَلَّى اللَّهُ عَلَيْهِ بِهَا عَشْرًا — آج درود شریف اور اذکار کا ہدف مکمل کیجیے۔',
+    url: '/?action=missing-reports'
+  },
+  {
+    title: 'سید الاستغفار 🤲✨',
+    body: 'اللَّهُمَّ أَنْتَ رَبِّي لَا إِلَهَ إِلَّا أَنْتَ، خَلَقْتَنِي وَأَنَا عَبْدُكَ — سونے سے قبل استغفار اور توبہ کا اہتمام فرمائیں۔',
+    url: '/?action=missing-reports'
+  }
+];
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // CORS & Methods

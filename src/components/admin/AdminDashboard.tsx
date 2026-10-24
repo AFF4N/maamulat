@@ -6,6 +6,7 @@ import { AdminSidebar } from './AdminSidebar';
 import { NotificationsModule } from './modules/NotificationsModule';
 import { DatabaseModule } from './modules/DatabaseModule';
 import { SystemModule } from './modules/SystemModule';
+import { parseJsonResponse } from '../../utils/apiUtils';
 
 interface AdminDashboardProps {
   onBack: () => void;
@@ -36,7 +37,7 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
       const res = await fetch(`/api/admin?pin=${encodeURIComponent(adminPin)}`, {
         headers: { 'x-admin-pin': adminPin }
       });
-      const data = await res.json();
+      const data = await parseJsonResponse(res, 'Authentication failed. Please verify your PIN.');
 
       if (!res.ok) {
         setIsAuthenticated(false);

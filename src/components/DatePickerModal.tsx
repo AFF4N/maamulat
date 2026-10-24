@@ -219,7 +219,7 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
                 }}
                 className={`h-9 w-9 mx-auto rounded-xl text-xs font-semibold flex flex-col items-center justify-center text-center transition-all ${
                   item.isSelected
-                    ? 'bg-sage-600 text-white font-bold ring-2 ring-sage-400 dark:ring-white/80 shadow-soft-sm tap-bounce'
+                    ? 'bg-sage-600 text-white font-bold ring-2 ring-sage-400 shadow-soft-sm tap-bounce'
                     : isClickable
                     ? 'hover:bg-sage-100 dark:hover:bg-ink-750 text-ink-900 dark:text-white border border-paper-300 dark:border-ink-700/60 tap-bounce'
                     : 'text-ink-400 dark:text-ink-600 cursor-not-allowed font-medium'
