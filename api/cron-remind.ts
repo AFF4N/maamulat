@@ -2,7 +2,7 @@ import type { VercelRequest, VercelResponse } from '@vercel/node';
 import webpush from 'web-push';
 
 // Curated rotation of daily spiritual reminders, Hadiths, Quranic verses, and Duas
-const DAILY_REMINDERS = [
+export const DAILY_REMINDERS = [
   {
     title: 'معمولات | آج کا محاسبہ 🌙',
     body: 'سونے سے پہلے آج کے معمولات و تلاوت کا اندراج یاد سے کر لیں۔ (Don\'t forget your daily report)',
@@ -92,11 +92,27 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       });
     }
 
-    // 4. Pick today's reminder based on day of year
+    // 4. Determine reminders list (check if admin configured custom reminders in Redis)
+    let activeReminders = DAILY_REMINDERS;
+    try {
+      const customRes = await fetch(`${redisUrl}/get/maamulat_custom_reminders`, {
+        headers: { Authorization: `Bearer ${redisToken}` }
+      });
+      const customJson = await customRes.json();
+      if (customJson?.result) {
+        const parsed = typeof customJson.result === 'string' ? JSON.parse(customJson.result) : customJson.result;
+        if (Array.isArray(parsed) && parsed.length > 0) {
+          activeReminders = parsed;
+        }
+      }
+    } catch (e) {
+      console.warn('Failed to load custom reminders, using defaults:', e);
+    }
+
     const dayOfYear = Math.floor(
       (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24)
     );
-    const reminder = DAILY_REMINDERS[dayOfYear % DAILY_REMINDERS.length];
+    const reminder = activeReminders[dayOfYear % activeReminders.length];
 
     const payload = JSON.stringify({
       title: reminder.title,
@@ -132,6 +148,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         }
       })
     );
+
+    // 6. Log cron run in Redis for Admin Dashboard
+    try {
+      const logData = JSON.stringify({
+        timestamp: new Date().toISOString(),
+        reminder,
+        sentCount,
+        prunedCount,
+        failedCount
+      });
+      await fetch(redisUrl, {
+        method: 'POST',
+        headers: {
+          Authorization: `Bearer ${redisToken}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(['SET', 'maamulat_last_cron_log', logData])
+      });
+    } catch {}
 
     return res.status(200).json({
       success: true,

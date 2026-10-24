@@ -33,6 +33,7 @@ interface MenuDrawerProps {
   isOpen: boolean;
   onClose: () => void;
   onNavigateToCustomize: () => void;
+  onNavigateToAdmin?: () => void;
   isDark: boolean;
   onToggleTheme: () => void;
   goalDay: number;
@@ -50,6 +51,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
   isOpen,
   onClose,
   onNavigateToCustomize,
+  onNavigateToAdmin,
   isDark,
   onToggleTheme,
   goalDay,
@@ -739,7 +741,17 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
 
         {/* Footer info */}
         <div className="px-5 pt-3 border-t border-paper-200 dark:border-ink-800 flex items-center justify-between text-[11px] text-ink-400 dark:text-ink-500">
-          <span>معمولات · v1.0</span>
+          <button
+            type="button"
+            onClick={() => {
+              onClose();
+              onNavigateToAdmin?.();
+            }}
+            className="hover:text-sage-600 dark:hover:text-sage-300 transition-colors text-left tap-bounce"
+            title="Admin Notifications Dashboard"
+          >
+            معمولات · v1.0
+          </button>
           <span className="flex items-center gap-1">
             <Sparkles className="w-3 h-3 text-amberGold-500" />
             <span>Tazkiyah Companion</span>

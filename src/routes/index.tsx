@@ -11,6 +11,7 @@ import { SleepWakeCard } from '../components/SleepWakeCard';
 import { MurrabiAccountability } from '../components/MurrabiAccountability';
 import { PrivacyFooter } from '../components/PrivacyFooter';
 import { TaskCustomizerScreen } from '../components/TaskCustomizerScreen';
+import { AdminDashboard } from '../components/admin/AdminDashboard';
 import { ScrollToTop } from '../components/ScrollToTop';
 import { formatShortDate } from '../utils/dateUtils';
 
@@ -92,7 +93,17 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     );
   }
 
-  // 2. Home Page (with interactive 7-day selection directly on the main sheet)
+  // 2. Admin Portal & Management Dashboard
+  if (currentRoute === '/admin') {
+    return (
+      <AdminDashboard
+        onBack={() => navigateTo('/')}
+        isDark={isDark}
+      />
+    );
+  }
+
+  // 3. Home Page (with interactive 7-day selection directly on the main sheet)
   const activeCategories = state.categories && state.categories.length > 0
     ? state.categories.filter((c) => !c.hidden)
     : [];
@@ -121,6 +132,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
           isDark={isDark}
           onToggleTheme={onToggleTheme}
           onNavigateToCustomize={() => navigateTo('/customize')}
+          onNavigateToAdmin={() => navigateTo('/admin')}
           state={state}
           onResetToday={resetToday}
           onResetToDefault={resetCategoriesAndTasksToDefault}

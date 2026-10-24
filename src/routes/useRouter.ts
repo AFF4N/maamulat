@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 
-export type AppRoute = '/' | '/customize';
+export type AppRoute = '/' | '/customize' | '/admin';
 
 export function parseCurrentRoute(): AppRoute {
   if (typeof window === 'undefined') return '/';
@@ -8,6 +8,9 @@ export function parseCurrentRoute(): AppRoute {
   const search = window.location.search.toLowerCase();
   const hash = window.location.hash.toLowerCase();
 
+  if (path === '/admin' || search.includes('admin') || hash.includes('admin')) {
+    return '/admin';
+  }
   if (path === '/customize' || search.includes('customize') || hash.includes('customize')) {
     return '/customize';
   }

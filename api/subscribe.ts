@@ -46,6 +46,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
 
     if (action === 'subscribe' && subscription?.endpoint) {
+      // Remove any prior entry matching the exact endpoint to keep the set clean
+      try {
+        const listRes = await fetch(`${redisUrl}/smembers/maamulat_push_subscriptions`, {
+          headers: { Authorization: `Bearer ${redisToken}` }
+        });
+        const data = await listRes.json();
+        const allSubs: string[] = data.result || [];
+        for (const item of allSubs) {
+          try {
+            const parsed = JSON.parse(item);
+            if (parsed.endpoint === subscription.endpoint) {
+              await fetch(`${redisUrl}/srem/maamulat_push_subscriptions/${encodeURIComponent(item)}`, {
+                headers: { Authorization: `Bearer ${redisToken}` }
+              });
+            }
+          } catch {}
+        }
+      } catch {}
+
       const subString = JSON.stringify(subscription);
       await fetch(`${redisUrl}/sadd/maamulat_push_subscriptions/${encodeURIComponent(subString)}`, {
         headers: { Authorization: `Bearer ${redisToken}` }

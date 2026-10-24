@@ -14,6 +14,7 @@ interface HeaderProps {
   isDark: boolean;
   onToggleTheme: () => void;
   onNavigateToCustomize?: () => void;
+  onNavigateToAdmin?: () => void;
   state?: MaamulatState;
   onResetToday?: () => void;
   onResetToDefault?: () => void;
@@ -34,6 +35,7 @@ export const Header: React.FC<HeaderProps> = ({
   isDark,
   onToggleTheme,
   onNavigateToCustomize,
+  onNavigateToAdmin,
   state,
   onResetToday,
   onResetToDefault,
@@ -227,6 +229,7 @@ export const Header: React.FC<HeaderProps> = ({
         isOpen={isMenuOpen}
         onClose={() => setIsMenuOpen(false)}
         onNavigateToCustomize={onNavigateToCustomize || (() => { })}
+        onNavigateToAdmin={onNavigateToAdmin}
         isDark={isDark}
         onToggleTheme={onToggleTheme}
         goalDay={goalDay}
