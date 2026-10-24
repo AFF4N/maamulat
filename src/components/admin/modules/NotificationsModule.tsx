@@ -11,7 +11,8 @@ import {
   Plus,
   Trash2,
   CheckCircle2,
-  Undo2
+  Undo2,
+  Star
 } from 'lucide-react';
 import type { AdminState, ReminderItem } from '../types';
 import { parseJsonResponse } from '../../../utils/apiUtils';
@@ -41,16 +42,31 @@ export const NotificationsModule: React.FC<NotificationsModuleProps> = ({
   const [triggerCronResult, setTriggerCronResult] = useState<string | null>(null);
 
   // Reminder Management
-  const [editingReminders, setEditingReminders] = useState<ReminderItem[]>(() => adminData?.reminders || []);
+  const [editingReminders, setEditingReminders] = useState<ReminderItem[]>(() => {
+    const list = adminData?.reminders || [];
+    const hasDefault = list.some(r => r.isDefault);
+    return list.map((r, i) => ({
+      ...r,
+      isDefault: hasDefault ? Boolean(r.isDefault) : i === 0
+    }));
+  });
   const [hasReminderChanges, setHasReminderChanges] = useState(false);
   const [isSavingReminders, setIsSavingReminders] = useState(false);
   const [newTitle, setNewTitle] = useState('');
   const [newBody, setNewBody] = useState('');
+  const [sendingReminderIdx, setSendingReminderIdx] = useState<number | null>(null);
 
   // Sync reminders if adminData updates externally
   React.useEffect(() => {
     if (adminData?.reminders && !hasReminderChanges) {
-      setEditingReminders(adminData.reminders);
+      const list = adminData.reminders;
+      const hasDefault = list.some(r => r.isDefault);
+      setEditingReminders(
+        list.map((r, i) => ({
+          ...r,
+          isDefault: hasDefault ? Boolean(r.isDefault) : i === 0
+        }))
+      );
     }
   }, [adminData?.reminders, hasReminderChanges]);
 
@@ -150,7 +166,63 @@ export const NotificationsModule: React.FC<NotificationsModuleProps> = ({
   };
 
   const handleDeleteReminder = (index: number) => {
+    if (editingReminders.length <= 1) {
+      alert('You must keep at least one reminder in the list.');
+      return;
+    }
+    const wasDefault = editingReminders[index]?.isDefault;
     const updated = editingReminders.filter((_, i) => i !== index);
+    if (wasDefault && updated.length > 0) {
+      updated[0] = { ...updated[0], isDefault: true };
+    }
+    setEditingReminders(updated);
+    setHasReminderChanges(true);
+  };
+
+  // Broadcast a specific reminder immediately to all devices
+  const handleSendSpecificReminder = async (item: ReminderItem, idx: number) => {
+    const subscriberCount = adminData?.subscriberCount || 0;
+    const ok = window.confirm(
+      `Broadcast "${item.title}" now to all ${subscriberCount} subscribed device(s)?`
+    );
+    if (!ok) return;
+
+    setSendingReminderIdx(idx);
+    try {
+      const res = await fetch('/api/admin', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-admin-pin': pin
+        },
+        body: JSON.stringify({
+          action: 'broadcast',
+          pin,
+          title: item.title,
+          body: item.body,
+          url: item.url || '/?action=missing-reports'
+        })
+      });
+      const data = await parseJsonResponse(res, 'Failed to dispatch notification');
+      if (res.ok) {
+        alert(`✅ Sent! Delivered to ${data.sentCount} device(s).`);
+        onRefresh();
+      } else {
+        alert(`❌ Error: ${data.error || 'Failed sending reminder'}`);
+      }
+    } catch (e: any) {
+      alert(`Network error: ${e.message}`);
+    } finally {
+      setSendingReminderIdx(null);
+    }
+  };
+
+  // Set a specific reminder as the active default
+  const handleSetAsDefault = (idx: number) => {
+    const updated = editingReminders.map((r, i) => ({
+      ...r,
+      isDefault: i === idx
+    }));
     setEditingReminders(updated);
     setHasReminderChanges(true);
   };
@@ -545,34 +617,76 @@ export const NotificationsModule: React.FC<NotificationsModuleProps> = ({
           </div>
 
           <div className="space-y-2.5">
-            {editingReminders.map((item, idx) => (
-              <div
-                key={idx}
-                className="p-3.5 rounded-2xl bg-white dark:bg-ink-850 border border-paper-300 dark:border-ink-800 shadow-soft-sm flex items-start justify-between gap-3 group"
-              >
-                <div className="flex items-start gap-3 min-w-0">
-                  <span className="w-6 h-6 rounded-lg bg-paper-100 dark:bg-ink-800 text-[10px] font-bold text-ink-600 dark:text-ink-400 flex items-center justify-center shrink-0 mt-0.5">
-                    #{idx + 1}
-                  </span>
-                  <div className="space-y-1 min-w-0">
-                    <div className="text-xs font-bold text-ink-900 dark:text-white truncate">
-                      {item.title}
-                    </div>
-                    <p className="text-xs text-ink-600 dark:text-ink-300 leading-snug">
-                      {item.body}
-                    </p>
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleDeleteReminder(idx)}
-                  title="Delete reminder"
-                  className="p-1.5 rounded-lg text-ink-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors opacity-70 group-hover:opacity-100 shrink-0"
+            {editingReminders.map((item, idx) => {
+              const isDefault = Boolean(item.isDefault ?? (!editingReminders.some(r => r.isDefault) && idx === 0));
+              return (
+                <div
+                  key={idx}
+                  className={`p-4 rounded-2xl bg-white dark:bg-ink-850 border shadow-soft-sm flex flex-col sm:flex-row sm:items-start justify-between gap-3 group transition-all ${
+                    isDefault
+                      ? 'border-amber-300/80 dark:border-amber-700/60 ring-1 ring-amber-400/30 dark:ring-amber-500/20'
+                      : 'border-paper-300 dark:border-ink-800'
+                  }`}
                 >
-                  <Trash2 className="w-4 h-4" />
-                </button>
+                  <div className="flex items-start gap-3 min-w-0 flex-1">
+                    <span className="w-6 h-6 rounded-lg bg-paper-100 dark:bg-ink-800 text-[10px] font-bold text-ink-600 dark:text-ink-400 flex items-center justify-center shrink-0 mt-0.5">
+                      #{idx + 1}
+                    </span>
+                    <div className="space-y-1.5 min-w-0">
+                      <div className="flex flex-wrap items-center gap-2">
+                        <span className="text-xs font-bold text-ink-900 dark:text-white">
+                          {item.title}
+                        </span>
+                        {isDefault ? (
+                          <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/70 text-amber-800 dark:text-amber-300 flex items-center gap-1 shrink-0">
+                            <Star className="w-3 h-3 fill-current text-amber-500" />
+                            Default
+                          </span>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={() => handleSetAsDefault(idx)}
+                            className="text-[10px] text-ink-400 hover:text-amber-600 dark:hover:text-amber-400 font-semibold transition-colors underline decoration-dotted"
+                            title="Set as the default reminder"
+                          >
+                            Set as Default
+                          </button>
+                        )}
+                      </div>
+                      <p className="text-xs text-ink-600 dark:text-ink-300 leading-snug">
+                        {item.body}
+                      </p>
+                    </div>
+                  </div>
+
+                <div className="flex items-center gap-2 shrink-0 self-end sm:self-start pt-1 sm:pt-0">
+                  <button
+                    type="button"
+                    onClick={() => handleSendSpecificReminder(item, idx)}
+                    disabled={sendingReminderIdx === idx}
+                    title="Send this specific reminder now to all devices worldwide"
+                    className="px-2.5 py-1.5 rounded-xl bg-sage-50 hover:bg-sage-100 dark:bg-sage-950/50 dark:hover:bg-sage-900/60 text-sage-700 dark:text-sage-300 text-xs font-bold transition-all tap-bounce flex items-center gap-1.5 border border-sage-200/60 dark:border-sage-800/40 disabled:opacity-50"
+                  >
+                    {sendingReminderIdx === idx ? (
+                      <RotateCw className="w-3.5 h-3.5 animate-spin" />
+                    ) : (
+                      <Send className="w-3.5 h-3.5" />
+                    )}
+                    <span>Send Now</span>
+                  </button>
+
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteReminder(idx)}
+                    title="Delete reminder"
+                    className="p-1.5 rounded-lg text-ink-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-paper-100 dark:hover:bg-ink-800 transition-colors opacity-70 group-hover:opacity-100 shrink-0"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
               </div>
-            ))}
+            );
+          })}
           </div>
         </div>
       )}

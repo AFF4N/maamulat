@@ -1,5 +1,5 @@
 import React from 'react';
-import { Database, Server, RefreshCw } from 'lucide-react';
+import { Database, RefreshCw, Smartphone } from 'lucide-react';
 import type { AdminState } from '../types';
 
 interface DatabaseModuleProps {
@@ -70,30 +70,73 @@ export const DatabaseModule: React.FC<DatabaseModuleProps> = ({
           </div>
         </div>
 
-        {/* Sample Subscribed Endpoints */}
+        {/* Connected Subscribed Devices List */}
         {adminData?.subscribersSample && adminData.subscribersSample.length > 0 ? (
-          <div className="space-y-2 pt-2 border-t border-paper-200 dark:border-ink-800">
-            <span className="text-xs font-bold text-ink-900 dark:text-white flex items-center gap-1.5">
-              <Server className="w-3.5 h-3.5 text-sage-600 dark:text-sage-400" />
-              Connected Gateway Providers Sample:
-            </span>
-            <div className="space-y-1.5 font-mono text-[11px]">
-              {adminData.subscribersSample.map((s, i) => (
-                <div
-                  key={i}
-                  className="p-2.5 rounded-xl bg-paper-100 dark:bg-ink-800 flex items-center justify-between text-ink-600 dark:text-ink-300"
-                >
-                  <span className="truncate">{s.endpoint}</span>
-                  <span className="text-[10px] px-2 py-0.5 rounded bg-white dark:bg-ink-700 text-ink-500 shrink-0 ml-2">
-                    {s.domain}
-                  </span>
-                </div>
-              ))}
+          <div className="space-y-3 pt-3 border-t border-paper-200 dark:border-ink-800">
+            <div className="flex items-center justify-between">
+              <span className="text-xs font-bold text-ink-900 dark:text-white flex items-center gap-1.5">
+                <Smartphone className="w-3.5 h-3.5 text-sage-600 dark:text-sage-400" />
+                Registered Devices & Push Gateways ({adminData.subscribersSample.length}):
+              </span>
+              <span className="text-[11px] text-ink-400">
+                Encrypted anonymous tokens
+              </span>
+            </div>
+
+            <div className="space-y-2">
+              {adminData.subscribersSample.map((s, i) => {
+                const isGoogle = s.platform?.includes('Google') || s.domain?.includes('googleapis');
+                const isApple = s.platform?.includes('Apple') || s.domain?.includes('apple');
+                const isFirefox = s.platform?.includes('Mozilla') || s.domain?.includes('mozilla');
+
+                return (
+                  <div
+                    key={i}
+                    className="p-3 rounded-2xl bg-paper-100/70 dark:bg-ink-800/80 border border-paper-200 dark:border-ink-750 flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs"
+                  >
+                    <div className="flex items-center gap-2.5 min-w-0">
+                      <div className="w-7 h-7 rounded-xl bg-white dark:bg-ink-700 border border-paper-200 dark:border-ink-600 flex items-center justify-center shrink-0">
+                        <Smartphone className="w-3.5 h-3.5 text-ink-600 dark:text-ink-300" />
+                      </div>
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2">
+                          <span
+                            className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
+                              isGoogle
+                                ? 'bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300'
+                                : isApple
+                                ? 'bg-sky-100 dark:bg-sky-950/60 text-sky-800 dark:text-sky-300'
+                                : isFirefox
+                                ? 'bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300'
+                                : 'bg-paper-200 dark:bg-ink-700 text-ink-700 dark:text-ink-200'
+                            }`}
+                          >
+                            {s.platform || 'Web Push Device'}
+                          </span>
+                          <span className="text-[10px] text-ink-400 font-mono hidden sm:inline">
+                            {s.domain}
+                          </span>
+                        </div>
+                        <div className="text-[11px] font-mono text-ink-500 dark:text-ink-400 truncate mt-0.5">
+                          {s.endpoint}
+                        </div>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0 self-end sm:self-center">
+                      <span className="text-[10px] font-semibold text-emerald-600 dark:text-emerald-400 flex items-center gap-1 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200/50 dark:border-emerald-800/40">
+                        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                        Active
+                      </span>
+                    </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
         ) : (
-          <div className="p-3 rounded-xl bg-paper-50 dark:bg-ink-800 text-xs text-ink-500 dark:text-ink-400">
-            No devices currently registered in Redis. When users toggle Daily Reminders in the app, their tokens will be saved here automatically.
+          <div className="p-4 rounded-2xl bg-paper-50 dark:bg-ink-800 text-xs text-ink-500 dark:text-ink-400 text-center">
+            No devices currently registered in Redis. When users toggle Daily Reminders in the app, their tokens will appear here automatically.
           </div>
         )}
       </div>

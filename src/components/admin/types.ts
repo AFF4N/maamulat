@@ -4,6 +4,13 @@ export interface ReminderItem {
   title: string;
   body: string;
   url?: string;
+  isDefault?: boolean;
+}
+
+export interface SubscriberDevice {
+  endpoint: string;
+  domain: string;
+  platform?: string;
 }
 
 export interface AdminState {
@@ -14,7 +21,7 @@ export interface AdminState {
     customPinSet: boolean;
   };
   subscriberCount: number;
-  subscribersSample: Array<{ endpoint: string; domain: string }>;
+  subscribersSample: SubscriberDevice[];
   isUsingCustomReminders: boolean;
   reminders: ReminderItem[];
   lastCronLog: {

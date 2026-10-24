@@ -6,7 +6,8 @@ export const DAILY_REMINDERS = [
   {
     title: 'معمولات | آج کا محاسبہ 🌙',
     body: 'سونے سے پہلے آج کے معمولات و تلاوت کا اندراج یاد سے کر لیں۔ (Don\'t forget your daily report)',
-    url: '/?action=missing-reports'
+    url: '/?action=missing-reports',
+    isDefault: true
   },
   {
     title: 'فرمانِ نبوی ﷺ | ہمیشگی کی فضیلت 💫',
@@ -109,10 +110,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       console.warn('Failed to load custom reminders, using defaults:', e);
     }
 
-    const dayOfYear = Math.floor(
-      (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24)
-    );
-    const reminder = activeReminders[dayOfYear % activeReminders.length];
+    // Use the default reminder selected by the admin (or fallback to first)
+    const reminder = activeReminders.find((r: any) => r.isDefault) || activeReminders[0] || DAILY_REMINDERS[0];
 
     const payload = JSON.stringify({
       title: reminder.title,

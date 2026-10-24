@@ -6,7 +6,8 @@ const DAILY_REMINDERS = [
   {
     title: 'معمولات | آج کا محاسبہ 🌙',
     body: 'سونے سے پہلے آج کے معمولات و تلاوت کا اندراج یاد سے کر لیں۔ (Don\'t forget your daily report)',
-    url: '/?action=missing-reports'
+    url: '/?action=missing-reports',
+    isDefault: true
   },
   {
     title: 'فرمانِ نبوی ﷺ | ہمیشگی کی فضیلت 💫',
@@ -115,18 +116,25 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         const rawSubs = (await runRedis(['SMEMBERS', 'maamulat_push_subscriptions'])) || [];
         subscriberCount = Array.isArray(rawSubs) ? rawSubs.length : 0;
 
-        // Sample first 5 endpoints (masked for privacy)
+        // Detect platform & provider for registered devices
         if (Array.isArray(rawSubs)) {
-          subscribersSample = rawSubs.slice(0, 5).map((subStr: string) => {
+          subscribersSample = rawSubs.slice(0, 50).map((subStr: string) => {
             try {
               const parsed = JSON.parse(subStr);
               const url = new URL(parsed.endpoint);
+              let platform = 'Web Push Gateway';
+              if (url.hostname.includes('fcm.googleapis.com')) platform = 'Google Chrome / Android';
+              else if (url.hostname.includes('push.apple.com')) platform = 'Apple Safari / iOS';
+              else if (url.hostname.includes('mozilla.com')) platform = 'Mozilla Firefox';
+              else if (url.hostname.includes('windows.com') || url.hostname.includes('microsoft.com')) platform = 'Microsoft Edge';
+
               return {
-                endpoint: parsed.endpoint.slice(0, 30) + '...',
-                domain: url.hostname
+                endpoint: parsed.endpoint.slice(0, 35) + '...',
+                domain: url.hostname,
+                platform
               };
             } catch {
-              return { endpoint: 'Device subscription', domain: 'push-service' };
+              return { endpoint: 'Device subscription', domain: 'push-service', platform: 'Web Browser' };
             }
           });
         }
@@ -173,7 +181,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       subscriberCount,
       subscribersSample,
       isUsingCustomReminders: Boolean(customReminders && customReminders.length > 0),
-      reminders: customReminders && customReminders.length > 0 ? customReminders : DAILY_REMINDERS,
+      reminders: ((customReminders && customReminders.length > 0) ? customReminders : DAILY_REMINDERS).map(
+        (r: any, i: number, arr: any[]) => ({
+          ...r,
+          isDefault: arr.some((item: any) => item.isDefault) ? Boolean(r.isDefault) : i === 0
+        })
+      ),
       lastCronLog,
       lastBroadcastLog,
       scheduleConfig: scheduleConfig || {
@@ -298,10 +311,8 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       } catch {}
     }
 
-    const dayOfYear = Math.floor(
-      (Date.now() - new Date(new Date().getFullYear(), 0, 0).getTime()) / (1000 * 60 * 60 * 24)
-    );
-    const reminder = activeReminders[dayOfYear % activeReminders.length];
+    // Use the default reminder selected by the admin (or fallback to first)
+    const reminder = activeReminders.find((r: any) => r.isDefault) || activeReminders[0] || DAILY_REMINDERS[0];
 
     const payload = JSON.stringify({
       title: reminder.title,
