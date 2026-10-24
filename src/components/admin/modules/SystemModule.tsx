@@ -39,9 +39,9 @@ export const SystemModule: React.FC<SystemModuleProps> = ({ adminData }) => {
           {/* Upstash Redis */}
           <div className="p-3 rounded-xl bg-paper-50 dark:bg-ink-800 flex items-center justify-between">
             <div>
-              <div className="font-bold text-ink-900 dark:text-white">Upstash Redis REST Credentials</div>
+              <div className="font-bold text-ink-900 dark:text-white">Vercel KV / Redis REST Credentials</div>
               <div className="text-[11px] text-ink-500 dark:text-ink-400">
-                UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN
+                KV_REST_API_URL and KV_REST_API_TOKEN
               </div>
             </div>
             <span

@@ -42,13 +42,13 @@ export const DAILY_REMINDERS = [
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   // 1. Verify VAPID server configuration
-  const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
+  const vapidPublicKey = process.env.VAPID_PUBLIC_KEY || process.env.VITE_VAPID_PUBLIC_KEY;
   const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
-  const vapidMailto = process.env.VAPID_MAILTO;
+  const vapidMailto = process.env.VAPID_MAILTO || 'mailto:admin@maamulat.app';
 
-  if (!vapidPublicKey || !vapidPrivateKey || !vapidMailto) {
+  if (!vapidPublicKey || !vapidPrivateKey) {
     return res.status(500).json({
-      error: 'Missing VAPID configuration. Please set VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, and VAPID_MAILTO in Vercel.'
+      error: 'Missing VAPID configuration. Please set VAPID_PRIVATE_KEY and VAPID_PUBLIC_KEY in Vercel.'
     });
   }
 
@@ -67,12 +67,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     }
   }
 
-  const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
-  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+  const redisUrl = process.env.KV_REST_API_URL;
+  const redisToken = process.env.KV_REST_API_TOKEN;
 
   if (!redisUrl || !redisToken) {
     return res.status(500).json({
-      error: 'Missing Upstash Redis configuration. Set UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN in Vercel.'
+      error: 'Missing Redis configuration. Set KV_REST_API_URL and KV_REST_API_TOKEN in Vercel.'
     });
   }
 

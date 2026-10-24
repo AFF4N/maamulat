@@ -65,11 +65,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
     });
   }
 
-  const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
-  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
-  const vapidPublicKey = process.env.VAPID_PUBLIC_KEY;
+  const redisUrl = process.env.KV_REST_API_URL;
+  const redisToken = process.env.KV_REST_API_TOKEN;
+  const vapidPublicKey = process.env.VAPID_PUBLIC_KEY || process.env.VITE_VAPID_PUBLIC_KEY;
   const vapidPrivateKey = process.env.VAPID_PRIVATE_KEY;
-  const vapidMailto = process.env.VAPID_MAILTO;
+  const vapidMailto = process.env.VAPID_MAILTO || 'mailto:admin@maamulat.app';
 
   const envStatus = {
     redisConfigured: Boolean(redisUrl && redisToken),
@@ -192,15 +192,15 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
   if (!envStatus.redisConfigured) {
     return res.status(500).json({
-      error: 'Upstash Redis is not configured in Vercel environment variables (UPSTASH_REDIS_REST_URL and UPSTASH_REDIS_REST_TOKEN).'
+      error: 'Redis is not configured in Vercel environment variables (KV_REST_API_URL and KV_REST_API_TOKEN).'
     });
   }
 
   // Setup Web Push
   if (action === 'broadcast' || action === 'trigger-cron') {
-    if (!vapidPublicKey || !vapidPrivateKey || !vapidMailto) {
+    if (!vapidPublicKey || !vapidPrivateKey) {
       return res.status(500).json({
-        error: 'VAPID keys or VAPID_MAILTO are missing in Vercel environment variables (VAPID_PUBLIC_KEY, VAPID_PRIVATE_KEY, VAPID_MAILTO).'
+        error: 'VAPID cryptographic keys are missing in Vercel environment variables. Please set VAPID_PRIVATE_KEY and VAPID_PUBLIC_KEY.'
       });
     }
 
