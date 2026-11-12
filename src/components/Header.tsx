@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Menu, Sparkles, SlidersHorizontal, RotateCcw, Clock } from 'lucide-react';
+import { Menu, Sparkles, SlidersHorizontal, RotateCcw, Clock, Trophy, Target } from 'lucide-react';
+import confetti from 'canvas-confetti';
 import { formatEnglishDate, formatHijriDate } from '../utils/dateUtils';
 import { isCompletionQualified, STREAK_PASS_PERCENTAGE } from '../constants';
 import { MenuDrawer } from './MenuDrawer';
@@ -55,6 +56,7 @@ export const Header: React.FC<HeaderProps> = ({
 }) => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isEditingGoal, setIsEditingGoal] = useState(false);
+  const [showGoalGreetingModal, setShowGoalGreetingModal] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
 
   useEffect(() => {
@@ -66,8 +68,19 @@ export const Header: React.FC<HeaderProps> = ({
   }, []);
 
   const handleSaveGoal = (targetMax: number, currentDay: number) => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(`maamulat_goal_greeted_${todayDate}_${currentDay}_${targetMax}`);
+    }
     onUpdateGoalMaxDays(targetMax);
     onUpdateGoalDay(currentDay);
+  };
+
+  const handleResetGoalToDayOne = () => {
+    if (typeof window !== 'undefined') {
+      localStorage.removeItem(`maamulat_goal_greeted_${todayDate}_${goalMaxDays}_${goalMaxDays}`);
+    }
+    onUpdateGoalDay(1);
+    setShowGoalGreetingModal(false);
   };
 
   const englishDate = formatEnglishDate(todayDate);
@@ -81,15 +94,36 @@ export const Header: React.FC<HeaderProps> = ({
     ? Math.min(100, Math.max(0, Math.round((safeCompletedCount / safeTotalCount) * 100)))
     : (completionPercentage ?? 0);
 
+  const isGoalReached = goalDay >= goalMaxDays;
+
+  // Trigger celebratory greeting modal & confetti when goal is reached (7/7 or overflow)
+  useEffect(() => {
+    if (isViewingPastDay) return;
+    if (goalDay >= goalMaxDays) {
+      const milestoneKey = `maamulat_goal_greeted_${todayDate}_${goalDay}_${goalMaxDays}`;
+      if (typeof window !== 'undefined' && !localStorage.getItem(milestoneKey)) {
+        localStorage.setItem(milestoneKey, '1');
+        setShowGoalGreetingModal(true);
+        try {
+          confetti({
+            particleCount: 70,
+            spread: 70,
+            origin: { y: 0.6 },
+            colors: ['#2D5A43', '#C59438', '#E3EDE7'],
+          });
+        } catch { }
+      }
+    }
+  }, [goalDay, goalMaxDays, isViewingPastDay, todayDate]);
+
   return (
     <header className="relative pt-1 standalone:pt-[calc(0.75rem+env(safe-area-inset-top,0px))] pb-3">
       {/* Fixed Sticky Date Bar with Selection Progress Bar & Border Line */}
       <div
-        className={`fixed top-0 left-0 right-0 z-30 transition-all duration-300 transform bg-paper-50/95 dark:bg-[#121514]/95 backdrop-blur-md border-b border-paper-300/80 dark:border-ink-800 shadow-soft-sm pt-2.5 standalone:pt-[calc(0.5rem+env(safe-area-inset-top,0px))] pb-2.5 ${
-          isScrolled
-            ? 'translate-y-0 opacity-100 pointer-events-auto'
-            : '-translate-y-full opacity-0 pointer-events-none'
-        }`}
+        className={`fixed top-0 left-0 right-0 z-30 transition-all duration-300 transform bg-paper-50/95 dark:bg-[#121514]/95 backdrop-blur-md border-b border-paper-300/80 dark:border-ink-800 shadow-soft-sm pt-2.5 standalone:pt-[calc(0.5rem+env(safe-area-inset-top,0px))] pb-2.5 ${isScrolled
+          ? 'translate-y-0 opacity-100 pointer-events-auto'
+          : '-translate-y-full opacity-0 pointer-events-none'
+          }`}
       >
         <div className="max-w-xl mx-auto px-3.5 sm:px-5 flex items-center justify-between">
           <div className="min-w-0">
@@ -151,11 +185,10 @@ export const Header: React.FC<HeaderProps> = ({
             title={`Pass threshold (${STREAK_PASS_PERCENTAGE}%)`}
           />
           <div
-            className={`h-full transition-all duration-500 ease-out ${
-              isPassed
-                ? 'bg-sage-500 dark:bg-sage-400 shadow-[0_0_8px_rgba(58,116,86,0.6)]'
-                : 'bg-amberGold-500 dark:bg-amberGold-400 shadow-[0_0_8px_rgba(201,147,59,0.5)]'
-            }`}
+            className={`h-full transition-all duration-500 ease-out ${isPassed
+              ? 'bg-sage-500 dark:bg-sage-400 shadow-[0_0_8px_rgba(58,116,86,0.6)]'
+              : 'bg-amberGold-500 dark:bg-amberGold-400 shadow-[0_0_8px_rgba(201,147,59,0.5)]'
+              }`}
             style={{ width: `${taskProgressPercent}%` }}
           />
         </div>
@@ -203,7 +236,12 @@ export const Header: React.FC<HeaderProps> = ({
       </div>
 
       {/* Customizable Spiritual Goal Tracker Banner */}
-      <div className="rounded-2xl bg-gradient-to-br from-white to-paper-100 dark:from-ink-850 dark:to-ink-800 border border-paper-300/80 dark:border-ink-700/80 p-3.5 shadow-soft-sm">
+      <div
+        className={`rounded-2xl bg-gradient-to-br p-3.5 shadow-soft-sm border transition-colors ${isGoalReached
+          ? 'from-amberGold-50/90 via-white to-sage-50/80 dark:from-ink-850 dark:via-ink-800 dark:to-sage-950/30 border-amberGold-300 dark:border-amberGold-700/70'
+          : 'from-white to-paper-100 dark:from-ink-850 dark:to-ink-800 border-paper-300/80 dark:border-ink-700/80'
+          }`}
+      >
         <div className="flex items-center justify-between mb-2">
           <div className="flex items-center gap-2">
             <span className="flex h-2.5 w-2.5 relative">
@@ -226,7 +264,7 @@ export const Header: React.FC<HeaderProps> = ({
           <button
             onClick={() => setIsEditingGoal(true)}
             className="text-[11px] text-ink-500 dark:text-ink-400 hover:text-sage-700 dark:hover:text-sage-300 flex items-center gap-1 px-2 py-0.5 rounded-md hover:bg-paper-200 dark:hover:bg-ink-750 transition-colors tap-bounce"
-            title="Set custom spiritual goal"
+            title="Set custom goal"
           >
             <SlidersHorizontal className="w-3 h-3" />
             <span>Set Goal</span>
@@ -251,7 +289,104 @@ export const Header: React.FC<HeaderProps> = ({
           </span>
           <span>Day {goalMaxDays} (تکمیل)</span>
         </div>
+
+        {/* Inline Goal Reached Greeting & Action Prompt */}
+        {isGoalReached && (
+          <div className="mt-3 pt-2.5 border-t border-amberGold-200/80 dark:border-amberGold-800/50 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 animate-fadeIn">
+            <div className="flex items-start gap-2 min-w-0">
+              <span className="p-1.5 rounded-xl bg-amberGold-100 dark:bg-amberGold-950/60 text-amberGold-700 dark:text-amberGold-400 shrink-0 mt-0.5">
+                <Trophy className="w-3.5 h-3.5" />
+              </span>
+              <div className="min-w-0">
+                <p className="text-xs font-bold text-ink-900 dark:text-white leading-snug">
+                  Masha&apos;Allah! {goalMaxDays}-Day Goal Reached 🎉
+                </p>
+                <p className="text-[11px] text-ink-600 dark:text-ink-300 leading-snug mt-0.5">
+                  Reset for a fresh cycle or set a new goal anytime.
+                </p>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 shrink-0">
+              <button
+                type="button"
+                onClick={handleResetGoalToDayOne}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-white dark:bg-ink-800 hover:bg-paper-100 dark:hover:bg-ink-700 text-ink-800 dark:text-ink-200 border border-paper-300 dark:border-ink-650 transition-all tap-bounce shadow-soft-sm"
+              >
+                <RotateCcw className="w-3 h-3 text-amberGold-600" />
+                <span>Reset</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setIsEditingGoal(true)}
+                className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-[11px] font-bold bg-sage-600 hover:bg-sage-700 text-white transition-all tap-bounce shadow-soft-sm"
+              >
+                <Target className="w-3 h-3" />
+                <span>New Goal</span>
+              </button>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* Celebratory Goal Reached Greeting Modal */}
+      {showGoalGreetingModal && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="Goal Reached Celebration"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+        >
+          <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-sm w-full p-5 border border-amberGold-300 dark:border-amberGold-700/80 shadow-xl space-y-4 text-center">
+            <div className="mx-auto w-12 h-12 rounded-2xl bg-amberGold-100 dark:bg-amberGold-950/60 border border-amberGold-200 dark:border-amberGold-800 flex items-center justify-center text-amberGold-600 dark:text-amberGold-400 shadow-sm">
+              <Trophy className="w-6 h-6" />
+            </div>
+
+            <div className="space-y-1">
+              <p className="arabic-text text-lg font-bold text-amberGold-700 dark:text-amberGold-400">
+                ماشاء اللہ! بارک اللہ فیکم 🎉
+              </p>
+              <h3 className="text-base font-extrabold text-ink-900 dark:text-white">
+                Goal Reached! ({goalDay}/{goalMaxDays})
+              </h3>
+              <p className="text-xs text-ink-600 dark:text-ink-300 leading-relaxed pt-1">
+                Congratulations on reaching your <strong>{goalMaxDays}-day</strong> consistency target! May Allah accept your steadfastness (<em>Istiqaamah</em>). Would you like to reset this goal to Day 1 or set a new target?
+              </p>
+            </div>
+
+            <div className="flex flex-col gap-2 pt-1">
+              <button
+                type="button"
+                onClick={() => {
+                  setShowGoalGreetingModal(false);
+                  setIsEditingGoal(true);
+                }}
+                className="w-full py-2.5 px-4 rounded-xl bg-sage-600 hover:bg-sage-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 transition-colors tap-bounce shadow-sm"
+              >
+                <Target className="w-3.5 h-3.5" />
+                <span>Set New Goal</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={handleResetGoalToDayOne}
+                className="w-full py-2.5 px-4 rounded-xl bg-amberGold-50 dark:bg-amberGold-950/40 hover:bg-amberGold-100 dark:hover:bg-amberGold-900/50 text-amberGold-800 dark:text-amberGold-300 border border-amberGold-200 dark:border-amberGold-800/70 text-xs font-bold flex items-center justify-center gap-1.5 transition-colors tap-bounce"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset Goal to Day 1</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowGoalGreetingModal(false)}
+                className="w-full py-2 px-3 rounded-xl text-[11px] font-semibold text-ink-500 hover:text-ink-800 dark:text-ink-400 dark:hover:text-ink-200 transition-colors"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Goal Customization Modal */}
       <GoalEditorModal

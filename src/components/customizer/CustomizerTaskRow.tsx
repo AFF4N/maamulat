@@ -1,6 +1,6 @@
 import React from 'react';
 import type { MaamulatTask } from '../../types';
-import { Trash2, Eye, EyeOff, Info } from 'lucide-react';
+import { Trash2, Eye, EyeOff, Info, FileText, FileX } from 'lucide-react';
 
 interface CustomizerTaskRowProps {
   task: MaamulatTask;
@@ -19,6 +19,8 @@ export const CustomizerTaskRow: React.FC<CustomizerTaskRowProps> = ({
   onToggleVisibility,
   onDelete,
 }) => {
+  const isExcludedFromReport = Boolean(task.excludeFromReport);
+
   return (
     <div
       className={`rounded-xl border p-2.5 sm:p-3 transition-colors ${
@@ -39,21 +41,32 @@ export const CustomizerTaskRow: React.FC<CustomizerTaskRowProps> = ({
           />
 
           {/* Bilingual Titles */}
-          <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
-            <input
-              type="text"
-              value={task.englishTitle}
-              onChange={(e) => onUpdate({ englishTitle: e.target.value })}
-              placeholder="Task Name (English)"
-              className="text-xs font-medium bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-900 dark:text-white"
-            />
-            <input
-              type="text"
-              value={task.urduTitle}
-              onChange={(e) => onUpdate({ urduTitle: e.target.value })}
-              placeholder="ٹاسک کا نام (Urdu)"
-              className="arabic-text text-left text-sm font-bold bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-700 dark:text-ink-300"
-            />
+          <div className="flex-1 min-w-0">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+              <input
+                type="text"
+                value={task.englishTitle}
+                onChange={(e) => onUpdate({ englishTitle: e.target.value })}
+                placeholder="Task Name (English)"
+                className="text-xs font-medium bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-900 dark:text-white"
+              />
+              <input
+                type="text"
+                value={task.urduTitle}
+                onChange={(e) => onUpdate({ urduTitle: e.target.value })}
+                placeholder="ٹاسک کا نام (Urdu)"
+                className="arabic-text text-left text-sm font-bold bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-700 dark:text-ink-300"
+              />
+            </div>
+
+            {isExcludedFromReport && !task.hidden && (
+              <div className="mt-1 flex items-center gap-1">
+                <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-amberGold-50 dark:bg-amberGold-950/40 text-amberGold-700 dark:text-amberGold-400 border border-amberGold-200/80 dark:border-amberGold-800/60">
+                  <FileX className="w-2.5 h-2.5" />
+                  <span>Hidden from Report (صرف شیٹ پر)</span>
+                </span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -76,6 +89,25 @@ export const CustomizerTaskRow: React.FC<CustomizerTaskRowProps> = ({
             <span className="text-[10px] text-ink-400">H</span>
           </div>
 
+          {/* Include / Exclude from Printed Report */}
+          <button
+            type="button"
+            onClick={() => onUpdate({ excludeFromReport: !isExcludedFromReport })}
+            className={`p-1 rounded-lg transition-colors ${
+              isExcludedFromReport
+                ? 'text-amberGold-600 bg-amberGold-50 dark:bg-amberGold-950/40 border border-amberGold-200 dark:border-amberGold-800/60'
+                : 'text-ink-400 hover:text-ink-700 dark:hover:text-ink-200'
+            }`}
+            title={
+              isExcludedFromReport
+                ? 'Excluded from Murrabi Report (Tap to include in report)'
+                : 'Included in Murrabi Report (Tap to keep on sheet but exclude from report)'
+            }
+            aria-label={isExcludedFromReport ? 'Include task in report' : 'Exclude task from report'}
+          >
+            {isExcludedFromReport ? <FileX className="w-3.5 h-3.5" /> : <FileText className="w-3.5 h-3.5" />}
+          </button>
+
           {/* Advanced details expand button */}
           <button
             type="button"
@@ -97,7 +129,7 @@ export const CustomizerTaskRow: React.FC<CustomizerTaskRowProps> = ({
                 ? 'text-amberGold-600 bg-amberGold-50 dark:bg-amberGold-950/40'
                 : 'text-ink-400 hover:text-ink-700 dark:hover:text-ink-200'
             }`}
-            title={task.hidden ? 'Show Task' : 'Hide Task'}
+            title={task.hidden ? 'Show Task on Sheet' : 'Hide Task from Sheet'}
           >
             {task.hidden ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
           </button>
@@ -116,7 +148,37 @@ export const CustomizerTaskRow: React.FC<CustomizerTaskRowProps> = ({
 
       {/* Expanded Details Form */}
       {isDetailsOpen && (
-        <div className="mt-2.5 pt-2 border-t border-paper-200 dark:border-ink-700/80 space-y-2 text-xs">
+        <div className="mt-2.5 pt-2 border-t border-paper-200 dark:border-ink-700/80 space-y-2.5 text-xs">
+          {/* Report Printing Toggle inside details */}
+          <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white dark:bg-ink-850 border border-paper-200 dark:border-ink-700">
+            <div className="min-w-0">
+              <span className="text-[11px] font-bold text-ink-800 dark:text-ink-200 block">
+                Print in Murrabi Report (رپورٹ میں شامل کریں)
+              </span>
+              <span className="text-[10px] text-ink-500 dark:text-ink-400 block">
+                {isExcludedFromReport
+                  ? 'Private on your sheet only — will NOT be printed in exported WhatsApp reports.'
+                  : 'Task is printed in your exported WhatsApp report.'}
+              </span>
+            </div>
+            <button
+              type="button"
+              role="switch"
+              aria-checked={!isExcludedFromReport}
+              onClick={() => onUpdate({ excludeFromReport: !isExcludedFromReport })}
+              className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${
+                !isExcludedFromReport ? 'bg-sage-600' : 'bg-paper-300 dark:bg-ink-700'
+              }`}
+            >
+              <span
+                aria-hidden="true"
+                className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${
+                  !isExcludedFromReport ? 'translate-x-4' : 'translate-x-0'
+                }`}
+              />
+            </button>
+          </div>
+
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
             <div>
               <label className="text-[10px] font-semibold text-ink-500 block mb-0.5">

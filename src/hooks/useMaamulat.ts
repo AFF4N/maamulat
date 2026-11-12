@@ -176,7 +176,7 @@ function performRollover(oldState: MaamulatState, newTodayStr: string): Maamulat
   if (daysPassed > 1) {
     for (let i = 1; i < daysPassed; i++) {
       const gapDate = addDays(oldState.todayDate, i);
-      const gapGoalDay = Math.min(currentGoalMax, currentGoalDay + i);
+      const gapGoalDay = i === 1 && status === 'completed' ? currentGoalDay + 1 : 1;
       gapRecords.push({
         date: gapDate,
         urduDate: formatUrduDate(gapDate),
@@ -222,11 +222,10 @@ function performRollover(oldState: MaamulatState, newTodayStr: string): Maamulat
     oldState.streak?.highest || 0
   );
 
-  // Goal day progresses forward
-  let nextGoalDay = currentGoalDay + (daysPassed > 0 ? daysPassed : 1);
-  if (nextGoalDay > currentGoalMax) {
-    nextGoalDay = currentGoalMax;
-  }
+  // Goal day progresses forward if streak continues; resets to 1 if streak is broken.
+  // Intentionally uncapped above currentGoalMax (e.g. 41/40) until user resets or sets a new goal.
+  const isStreakBroken = streakInfo.consecutivePastDays === 0;
+  const nextGoalDay = isStreakBroken ? 1 : currentGoalDay + 1;
 
   const newState: MaamulatState = {
     ...oldState,
@@ -462,8 +461,26 @@ export function useMaamulat() {
 
         historyCopy[recordIndex] = updatedRecord;
 
+        // Check if editing this past day broke or restored the consecutive streak
+        const updatedStreakInfo = calculateStreakDetails(
+          historyCopy,
+          prev.tasks || [],
+          prev.todayDate,
+          prev.streak?.highest || 0
+        );
+
+        let updatedGoalDay = prev.goalDay;
+        if (updatedStreakInfo.consecutivePastDays === 0) {
+          // Streak is broken as of yesterday -> reset goal back to Day 1
+          updatedGoalDay = 1;
+        } else if (prev.goalDay === 1 && historyCopy[0]?.status === 'completed') {
+          // Yesterday was retroactively completed -> restore goal day progression
+          updatedGoalDay = (historyCopy[0].goalDay || 1) + 1;
+        }
+
         return {
           ...prev,
+          goalDay: updatedGoalDay,
           totalHasanat: Math.max(0, prev.totalHasanat + hasanatDelta),
           history: historyCopy,
         };
@@ -584,11 +601,11 @@ export function useMaamulat() {
     }
   }, [isViewingPastDay, selectedDate, saveState]);
 
-  // Goal current day manual adjustment
+  // Goal current day manual adjustment (uncapped above goalMaxDays to allow 41/40 overflow)
   const setGoalCurrentDay = useCallback((day: number) => {
     saveState(prev => ({
       ...prev,
-      goalDay: Math.min(prev.goalMaxDays, Math.max(1, day)),
+      goalDay: Math.max(1, day),
     }));
   }, [saveState]);
 
@@ -599,7 +616,6 @@ export function useMaamulat() {
       return {
         ...prev,
         goalMaxDays: sanitized,
-        goalDay: Math.min(sanitized, prev.goalDay),
       };
     });
   }, [saveState]);

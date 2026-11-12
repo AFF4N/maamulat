@@ -1,5 +1,6 @@
-import React from 'react';
-import { Moon, Sun, Clock } from 'lucide-react';
+import React, { useState, useRef, useEffect } from 'react';
+import { Moon, Sun, Clock, Minus, Plus } from 'lucide-react';
+import { format12HourTime, shiftTimeByMinutes } from '../utils/dateUtils';
 
 interface SleepWakeCardProps {
   sleepTime: string;
@@ -34,6 +35,22 @@ const WAKE_PRESETS = [
   '08:00 AM',
 ];
 
+const HOURS = ['01', '02', '03', '04', '05', '06', '07', '08', '09', '10', '11', '12'];
+const MINUTES = ['00', '15', '30', '45'];
+const PERIODS: ('AM' | 'PM')[] = ['AM', 'PM'];
+
+function split12HourParts(formattedTime: string): { hour: string; minute: string; period: 'AM' | 'PM' } {
+  const match = formattedTime.match(/^(\d{2}):(\d{2})\s*(AM|PM)$/i);
+  if (!match) {
+    return { hour: '11', minute: '30', period: 'PM' };
+  }
+  return {
+    hour: match[1],
+    minute: match[2],
+    period: match[3].toUpperCase() as 'AM' | 'PM',
+  };
+}
+
 interface TimePresetBoxProps {
   icon: React.ReactNode;
   urduLabel: string;
@@ -42,7 +59,7 @@ interface TimePresetBoxProps {
   presets: string[];
   colorTheme: 'indigo' | 'amber';
   onTimeChange: (time: string) => void;
-  placeholder: string;
+  fallbackTime: string;
 }
 
 const TimePresetBox: React.FC<TimePresetBoxProps> = ({
@@ -53,8 +70,11 @@ const TimePresetBox: React.FC<TimePresetBoxProps> = ({
   presets,
   colorTheme,
   onTimeChange,
-  placeholder,
+  fallbackTime,
 }) => {
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement | null>(null);
+
   const isIndigo = colorTheme === 'indigo';
   const badgeClasses = isIndigo
     ? 'text-slate-700 dark:text-slate-300 bg-slate-100 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700/60'
@@ -62,7 +82,40 @@ const TimePresetBox: React.FC<TimePresetBoxProps> = ({
   const activePresetClasses = isIndigo
     ? 'bg-slate-100 text-slate-800 border-slate-400 dark:bg-slate-800 dark:text-slate-100 dark:border-slate-500 font-bold shadow-soft-sm'
     : 'bg-amber-50/80 text-stone-800 border-amber-300/80 dark:bg-amber-950/40 dark:text-amber-200 dark:border-amber-700/60 font-bold shadow-soft-sm';
-  const hoverBorderClasses = isIndigo ? 'hover:border-slate-400 dark:hover:border-slate-500' : 'hover:border-amber-300 dark:hover:border-amber-700';
+  const hoverBorderClasses = isIndigo
+    ? 'hover:border-slate-400 dark:hover:border-slate-500'
+    : 'hover:border-amber-300 dark:hover:border-amber-700';
+
+  const displayTime = format12HourTime(time, fallbackTime);
+  const { hour, minute, period } = split12HourParts(displayTime);
+
+  const handleStepMinutes = (delta: number) => {
+    const updated = shiftTimeByMinutes(time, delta, fallbackTime);
+    onTimeChange(updated);
+  };
+
+  const handleSelectPart = (newHour: string, newMinute: string, newPeriod: 'AM' | 'PM') => {
+    onTimeChange(`${newHour}:${newMinute} ${newPeriod}`);
+  };
+
+  // Close menu on outside click or Escape
+  useEffect(() => {
+    if (!isMenuOpen) return;
+    const handleClickOutside = (e: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(e.target as Node)) {
+        setIsMenuOpen(false);
+      }
+    };
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setIsMenuOpen(false);
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isMenuOpen]);
 
   return (
     <div className="p-3 rounded-xl bg-paper-50 dark:bg-ink-850 border border-paper-200 dark:border-ink-700 flex flex-col justify-between">
@@ -73,8 +126,8 @@ const TimePresetBox: React.FC<TimePresetBoxProps> = ({
             <span>{englishLabel}</span>
             <span className="arabic-text text-sm font-bold">{urduLabel}</span>
           </div>
-          <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${badgeClasses}`}>
-            {time}
+          <span className={`text-xs font-bold px-2 py-0.5 rounded-md ${badgeClasses}`} dir="ltr">
+            {displayTime}
           </span>
         </div>
 
@@ -86,7 +139,7 @@ const TimePresetBox: React.FC<TimePresetBoxProps> = ({
               type="button"
               onClick={() => onTimeChange(t)}
               className={`text-[10px] px-2 py-1 rounded-md border transition-all tap-bounce ${
-                time === t
+                displayTime === t
                   ? activePresetClasses
                   : `bg-white dark:bg-ink-750 text-ink-600 dark:text-ink-300 border-paper-300 dark:border-ink-650 ${hoverBorderClasses}`
               }`}
@@ -97,14 +150,132 @@ const TimePresetBox: React.FC<TimePresetBoxProps> = ({
         </div>
       </div>
 
-      <div className="mt-2.5 pt-2 border-t border-paper-200 dark:border-ink-700/60">
-        <input
-          type="text"
-          placeholder={placeholder}
-          value={time}
-          onChange={(e) => onTimeChange(e.target.value)}
-          className="w-full text-xs px-2.5 py-1.5 rounded-lg border border-paper-300 dark:border-ink-650 bg-white dark:bg-ink-750 text-ink-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-sage-500"
-        />
+      {/* Minimal Unified Time Field + Stepper Bar (No green focus ring, custom minimal menu) */}
+      <div ref={containerRef} className="relative mt-2.5 pt-2 border-t border-paper-200 dark:border-ink-700/60">
+        <div className="flex items-stretch rounded-xl border border-paper-300 dark:border-ink-650 bg-white dark:bg-ink-750 overflow-hidden transition-colors">
+          {/* Spaced Time Trigger Button (matches "01 : 00 AM" reference) */}
+          <button
+            type="button"
+            onClick={() => setIsMenuOpen((prev) => !prev)}
+            aria-expanded={isMenuOpen}
+            aria-label={`${englishLabel} time selector`}
+            className="flex-1 min-w-0 px-3.5 py-2 text-left text-xs font-semibold tracking-wide text-ink-900 dark:text-white bg-transparent hover:bg-paper-50/80 dark:hover:bg-ink-700/40 focus:outline-none transition-colors flex items-center gap-1.5"
+            dir="ltr"
+          >
+            <span className="tabular-nums">
+              {hour} : {minute}
+            </span>
+            <span className="text-[11px] font-semibold text-ink-500 dark:text-ink-300 ml-0.5">
+              {period}
+            </span>
+          </button>
+
+          {/* Flush − and + Stepper Buttons (±15m) */}
+          <div className="flex items-stretch border-l border-paper-200 dark:border-ink-650 divide-x divide-paper-200 dark:divide-ink-650 shrink-0">
+            <button
+              type="button"
+              onClick={() => handleStepMinutes(-15)}
+              className="w-9 flex items-center justify-center text-ink-500 dark:text-ink-300 hover:bg-paper-100 dark:hover:bg-ink-700 hover:text-ink-900 dark:hover:text-white focus:outline-none transition-colors tap-bounce"
+              title="Subtract 15 minutes"
+              aria-label={`Decrease ${englishLabel} time by 15 minutes`}
+            >
+              <Minus className="w-3.5 h-3.5" />
+            </button>
+
+            <button
+              type="button"
+              onClick={() => handleStepMinutes(15)}
+              className="w-9 flex items-center justify-center text-ink-500 dark:text-ink-300 hover:bg-paper-100 dark:hover:bg-ink-700 hover:text-ink-900 dark:hover:text-white focus:outline-none transition-colors tap-bounce"
+              title="Add 15 minutes"
+              aria-label={`Increase ${englishLabel} time by 15 minutes`}
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+
+        {/* Minimal Theme-Matched Time Popover Menu */}
+        {isMenuOpen && (
+          <div
+            role="dialog"
+            aria-label={`${englishLabel} time picker menu`}
+            dir="ltr"
+            className="absolute left-0 right-0 bottom-[calc(100%-0.25rem)] z-30 p-2.5 rounded-xl bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-650 shadow-xl animate-fadeIn space-y-2"
+          >
+            {/* Hours Grid (01 - 12) */}
+            <div>
+              <span className="text-[9px] font-bold uppercase tracking-wider text-ink-400 dark:text-ink-500 block mb-1 px-0.5">
+                Hour
+              </span>
+              <div className="grid grid-cols-6 gap-1">
+                {HOURS.map((h) => (
+                  <button
+                    key={h}
+                    type="button"
+                    onClick={() => handleSelectPart(h, minute, period)}
+                    className={`py-1 rounded-lg text-[11px] font-semibold tabular-nums transition-colors focus:outline-none ${
+                      hour === h
+                        ? 'bg-ink-900 text-white dark:bg-white dark:text-ink-900 font-bold'
+                        : 'bg-paper-50 dark:bg-ink-750 text-ink-700 dark:text-ink-300 hover:bg-paper-200 dark:hover:bg-ink-700'
+                    }`}
+                  >
+                    {h}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Minutes (00, 15, 30, 45) & AM/PM Row */}
+            <div className="grid grid-cols-2 gap-2 pt-1 border-t border-paper-200 dark:border-ink-700">
+              <div>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-ink-400 dark:text-ink-500 block mb-1 px-0.5">
+                  Minute
+                </span>
+                <div className="grid grid-cols-4 gap-1">
+                  {MINUTES.map((m) => (
+                    <button
+                      key={m}
+                      type="button"
+                      onClick={() => handleSelectPart(hour, m, period)}
+                      className={`py-1 rounded-lg text-[11px] font-semibold tabular-nums transition-colors focus:outline-none ${
+                        minute === m
+                          ? 'bg-ink-900 text-white dark:bg-white dark:text-ink-900 font-bold'
+                          : 'bg-paper-50 dark:bg-ink-750 text-ink-700 dark:text-ink-300 hover:bg-paper-200 dark:hover:bg-ink-700'
+                      }`}
+                    >
+                      :{m}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <span className="text-[9px] font-bold uppercase tracking-wider text-ink-400 dark:text-ink-500 block mb-1 px-0.5">
+                  Period
+                </span>
+                <div className="grid grid-cols-2 gap-1">
+                  {PERIODS.map((p) => (
+                    <button
+                      key={p}
+                      type="button"
+                      onClick={() => {
+                        handleSelectPart(hour, minute, p);
+                        setIsMenuOpen(false);
+                      }}
+                      className={`py-1 rounded-lg text-[11px] font-semibold transition-colors focus:outline-none ${
+                        period === p
+                          ? 'bg-ink-900 text-white dark:bg-white dark:text-ink-900 font-bold'
+                          : 'bg-paper-50 dark:bg-ink-750 text-ink-700 dark:text-ink-300 hover:bg-paper-200 dark:hover:bg-ink-700'
+                      }`}
+                    >
+                      {p}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
@@ -146,7 +317,7 @@ export const SleepWakeCard: React.FC<SleepWakeCardProps> = ({
           presets={SLEEP_PRESETS}
           colorTheme="indigo"
           onTimeChange={onSleepTimeChange}
-          placeholder="Or custom e.g. 10:45 PM"
+          fallbackTime="11:30 PM"
         />
 
         {/* Wake Time Box */}
@@ -158,7 +329,7 @@ export const SleepWakeCard: React.FC<SleepWakeCardProps> = ({
           presets={WAKE_PRESETS}
           colorTheme="amber"
           onTimeChange={onWakeTimeChange}
-          placeholder="Or custom e.g. 04:15 AM"
+          fallbackTime="05:00 AM"
         />
       </div>
     </section>

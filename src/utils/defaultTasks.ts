@@ -3,7 +3,7 @@ import type { MaamulatTask, EncouragementQuote, CategoryConfig } from '../types'
 export const DEFAULT_CATEGORIES: CategoryConfig[] = [
   {
     id: 'salah',
-    urdu: 'نماز پنجگانہ باجماعت',
+    urdu: 'نماز باجماعت',
     english: '5 Daily Prayers (Congregation)',
     emoji: '🕌',
     accent: 'border-sage-300 dark:border-sage-700/60 bg-sage-50/40 dark:bg-sage-900/10'
@@ -362,7 +362,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
 
 export const CATEGORY_INFO: Record<string, { urdu: string; english: string; emoji: string; accent: string }> = {
   salah: {
-    urdu: 'نماز پنجگانہ باجماعت',
+    urdu: 'نماز باجماعت',
     english: '5 Daily Prayers (Congregation)',
     emoji: '🕌',
     accent: 'border-sage-300 dark:border-sage-700/60 bg-sage-50/40 dark:bg-sage-900/10'

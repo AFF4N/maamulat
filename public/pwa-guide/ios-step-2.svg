@@ -1,0 +1,68 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 340" fill="none">
+  <defs>
+    <linearGradient id="bg2" x1="0" y1="0" x2="640" y2="340" gradientUnits="userSpaceOnUse">
+      <stop offset="0%" stop-color="#F5F3EE"/>
+      <stop offset="100%" stop-color="#EAE6DC"/>
+    </linearGradient>
+    <filter id="sheetShadow" x="-10%" y="-10%" width="120%" height="130%">
+      <feDropShadow dx="0" dy="10" stdDeviation="14" flood-color="#000000" flood-opacity="0.14"/>
+    </filter>
+    <filter id="rowGlow" x="-10%" y="-20%" width="120%" height="140%">
+      <feDropShadow dx="0" dy="0" stdDeviation="5" flood-color="#10B981" flood-opacity="0.4"/>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="640" height="340" rx="20" fill="url(#bg2)"/>
+
+  <!-- iOS Share Sheet Container -->
+  <g filter="url(#sheetShadow)">
+    <rect x="70" y="18" width="500" height="304" rx="28" fill="#F2F2F7" stroke="#D1D1D6" stroke-width="1.5"/>
+  </g>
+
+  <!-- Grabber Handle -->
+  <rect x="296" y="26" width="48" height="5" rx="2.5" fill="#C7C7CC"/>
+
+  <!-- Share Sheet App Header -->
+  <rect x="96" y="42" width="44" height="44" rx="10" fill="#1E3E2B"/>
+  <text x="118" y="70" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="22">🌿</text>
+  <text x="152" y="61" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="700" fill="#1C1C1E">معمولات | Maamulat</text>
+  <text x="152" y="79" font-family="system-ui, -apple-system, sans-serif" font-size="12" fill="#8E8E93">maamulat.app</text>
+
+  <!-- Close (X) Circle -->
+  <circle cx="530" cy="64" r="14" fill="#E5E5EA"/>
+  <path d="M525 59l10 10M535 59l-10 10" stroke="#8E8E93" stroke-width="2" stroke-linecap="round"/>
+
+  <!-- Rounded Action List Card -->
+  <rect x="94" y="100" width="452" height="196" rx="16" fill="#FFFFFF"/>
+
+  <!-- Row 1: Copy -->
+  <text x="116" y="131" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="500" fill="#1C1C1E">Copy</text>
+  <rect x="504" y="116" width="14" height="16" rx="2" stroke="#1C1C1E" stroke-width="1.7" fill="none"/>
+  <path d="M500 128h-2a2 2 0 0 1-2-2v-12a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v2" stroke="#1C1C1E" stroke-width="1.7" fill="none"/>
+  <line x1="94" y1="147" x2="546" y2="147" stroke="#E5E5EA" stroke-width="1"/>
+
+  <!-- Row 2: Add to Reading List -->
+  <text x="116" y="177" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="500" fill="#1C1C1E">Add to Reading List</text>
+  <circle cx="503" cy="172" r="6" stroke="#1C1C1E" stroke-width="1.7" fill="none"/>
+  <circle cx="519" cy="172" r="6" stroke="#1C1C1E" stroke-width="1.7" fill="none"/>
+  <path d="M509 172h4" stroke="#1C1C1E" stroke-width="1.7"/>
+  <line x1="94" y1="194" x2="546" y2="194" stroke="#E5E5EA" stroke-width="1"/>
+
+  <!-- Row 3: Highlighted "Add to Home Screen" -->
+  <g filter="url(#rowGlow)">
+    <rect x="88" y="196" width="464" height="52" rx="14" fill="#ECFDF5" stroke="#10B981" stroke-width="2.5"/>
+  </g>
+  <text x="116" y="227" font-family="system-ui, -apple-system, sans-serif" font-size="16" font-weight="700" fill="#065F46">Add to Home Screen</text>
+  <rect x="292" y="209" width="108" height="24" rx="12" fill="#10B981"/>
+  <text x="346" y="225" text-anchor="middle" font-family="system-ui, -apple-system, sans-serif" font-size="11" font-weight="700" fill="#FFFFFF">2. Tap Here →</text>
+
+  <!-- Authentic iOS Plus-Square Icon -->
+  <rect x="500" y="211" width="22" height="22" rx="5" stroke="#065F46" stroke-width="2.2" fill="none"/>
+  <path d="M511 216v12M505 222h12" stroke="#065F46" stroke-width="2.2" stroke-linecap="round"/>
+
+  <!-- Row 4: Add Bookmark -->
+  <text x="116" y="276" font-family="system-ui, -apple-system, sans-serif" font-size="15" font-weight="500" fill="#1C1C1E">Add Bookmark</text>
+  <path d="M505 262h12a2 2 0 0 1 2 2v16l-8-5-8 5v-16a2 2 0 0 1 2-2z" stroke="#1C1C1E" stroke-width="1.7" fill="none"/>
+</svg>
+

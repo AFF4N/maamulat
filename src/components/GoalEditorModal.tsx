@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Target, Check } from 'lucide-react';
+import { Target, Check, RotateCcw } from 'lucide-react';
 
 interface GoalEditorModalProps {
   isOpen: boolean;
@@ -36,7 +36,7 @@ export const GoalEditorModal: React.FC<GoalEditorModalProps> = ({
     const parsedDay = parseInt(dayInput, 10);
 
     if (!isNaN(parsedTarget) && parsedTarget >= 1) {
-      const validDay = !isNaN(parsedDay) && parsedDay >= 1 ? Math.min(parsedTarget, parsedDay) : 1;
+      const validDay = !isNaN(parsedDay) && parsedDay >= 1 ? parsedDay : 1;
       onSave(parsedTarget, validDay);
       onClose();
     }
@@ -46,7 +46,7 @@ export const GoalEditorModal: React.FC<GoalEditorModalProps> = ({
     <div
       role="dialog"
       aria-modal="true"
-      aria-label="Customize Spiritual Goal"
+      aria-label="Customize Goal"
       className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
     >
       <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-sm w-full p-4 border border-paper-300 dark:border-ink-700 shadow-xl space-y-3.5">
@@ -54,7 +54,7 @@ export const GoalEditorModal: React.FC<GoalEditorModalProps> = ({
           <div className="flex items-center gap-2">
             <Target className="w-4 h-4 text-sage-600 dark:text-sage-400" />
             <h3 className="text-sm font-bold text-ink-900 dark:text-white">
-              Customize Spiritual Goal
+              Customize Goal
             </h3>
           </div>
           <button
@@ -79,11 +79,10 @@ export const GoalEditorModal: React.FC<GoalEditorModalProps> = ({
                   key={preset}
                   type="button"
                   onClick={() => setTargetInput(preset.toString())}
-                  className={`flex-1 py-1.5 rounded-lg border text-xs font-semibold transition-all tap-bounce ${
-                    targetInput === preset.toString()
+                  className={`flex-1 py-1.5 rounded-lg border text-xs font-semibold transition-all tap-bounce ${targetInput === preset.toString()
                       ? 'bg-sage-600 text-white border-sage-600'
                       : 'bg-paper-100 dark:bg-ink-750 text-ink-700 dark:text-ink-300 border-paper-300 dark:border-ink-650 hover:border-sage-400'
-                  }`}
+                    }`}
                 >
                   {preset}d
                 </button>
@@ -103,14 +102,26 @@ export const GoalEditorModal: React.FC<GoalEditorModalProps> = ({
 
           {/* Current Day */}
           <div>
-            <label htmlFor="goal-current-day-input" className="font-semibold text-ink-700 dark:text-ink-300 block mb-1">
-              Current Day:
-            </label>
+            <div className="flex items-center justify-between mb-1">
+              <label htmlFor="goal-current-day-input" className="font-semibold text-ink-700 dark:text-ink-300">
+                Current Day:
+              </label>
+              {dayInput !== '1' && (
+                <button
+                  type="button"
+                  onClick={() => setDayInput('1')}
+                  className="inline-flex items-center gap-1 text-[10px] font-bold text-amberGold-700 dark:text-amberGold-400 hover:underline"
+                >
+                  <RotateCcw className="w-2.5 h-2.5" />
+                  <span>Reset to Day 1</span>
+                </button>
+              )}
+            </div>
             <input
               id="goal-current-day-input"
               type="number"
               min="1"
-              max={targetInput || '365'}
+              max="999"
               value={dayInput}
               onChange={(e) => setDayInput(e.target.value)}
               className="w-full px-2.5 py-1.5 rounded-lg border border-paper-300 dark:border-ink-650 bg-white dark:bg-ink-750 text-ink-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-sage-500"

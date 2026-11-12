@@ -33,6 +33,7 @@ export interface MaamulatTask {
   completed: boolean;
   completedAt?: string;
   hidden?: boolean;           // Allows hiding tasks from daily sheet
+  excludeFromReport?: boolean; // Keeps task active on daily sheet, omits from WhatsApp report
 }
 
 export interface DayRecord {

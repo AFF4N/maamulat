@@ -161,3 +161,85 @@ export function formatShortDate(dateStr: string): string {
   }
 }
 
+/**
+ * Parses a 12-hour ("11:30 PM") or 24-hour ("23:30") time string into
+ * total minutes since midnight (0 to 1439). Returns null if invalid.
+ */
+export function parseTimeToMinutes(timeStr: string): number | null {
+  if (!timeStr || typeof timeStr !== 'string') return null;
+  const cleaned = timeStr.replace(/[\u200E\u200F\u2066-\u2069]/g, '').trim();
+  if (!cleaned || cleaned === '--') return null;
+
+  // Match 12-hour format e.g. "11:30 PM", "5:00 am", "12:15PM"
+  const match12 = cleaned.match(/^(\d{1,2}):(\d{2})\s*(AM|PM|am|pm)$/i);
+  if (match12) {
+    let hours = parseInt(match12[1], 10);
+    const mins = parseInt(match12[2], 10);
+    const period = match12[3].toUpperCase();
+    if (hours < 1 || hours > 12 || mins < 0 || mins > 59) return null;
+    if (period === 'AM') {
+      if (hours === 12) hours = 0;
+    } else {
+      if (hours !== 12) hours += 12;
+    }
+    return hours * 60 + mins;
+  }
+
+  // Match 24-hour format e.g. "23:30", "05:00"
+  const match24 = cleaned.match(/^(\d{1,2}):(\d{2})$/);
+  if (match24) {
+    const hours = parseInt(match24[1], 10);
+    const mins = parseInt(match24[2], 10);
+    if (hours < 0 || hours > 23 || mins < 0 || mins > 59) return null;
+    return hours * 60 + mins;
+  }
+
+  return null;
+}
+
+/**
+ * Converts a time string ("11:30 PM" or "23:30") into 24-hour "HH:mm"
+ * format suitable for <input type="time" value={...} />
+ */
+export function to24HourTime(timeStr: string, fallback: string = '23:30'): string {
+  const totalMins = parseTimeToMinutes(timeStr) ?? parseTimeToMinutes(fallback) ?? 23 * 60 + 30;
+  const hours = Math.floor(totalMins / 60) % 24;
+  const mins = totalMins % 60;
+  return `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}`;
+}
+
+/**
+ * Converts a 24-hour ("23:30") or 12-hour ("11:30 pm") time string into
+ * canonical 12-hour format "hh:mm AM/PM" (e.g. "11:30 PM", "05:00 AM").
+ */
+export function format12HourTime(timeStr: string, fallback: string = '11:30 PM'): string {
+  if (timeStr === '--') return '--';
+  const totalMins = parseTimeToMinutes(timeStr) ?? parseTimeToMinutes(fallback);
+  if (totalMins === null) return timeStr || fallback;
+
+  const hours24 = Math.floor(totalMins / 60) % 24;
+  const mins = totalMins % 60;
+  const period = hours24 >= 12 ? 'PM' : 'AM';
+  const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
+  return `${String(hours12).padStart(2, '0')}:${String(mins).padStart(2, '0')} ${period}`;
+}
+
+/**
+ * Shifts a time string by deltaMinutes (e.g. -15 or +15), wrapping around 24 hours,
+ * and returns canonical 12-hour format "hh:mm AM/PM".
+ */
+export function shiftTimeByMinutes(
+  timeStr: string,
+  deltaMinutes: number,
+  fallback: string = '11:30 PM'
+): string {
+  const baseMins = parseTimeToMinutes(timeStr) ?? parseTimeToMinutes(fallback) ?? 23 * 60 + 30;
+  const wrappedMins = ((baseMins + deltaMinutes) % 1440 + 1440) % 1440;
+  const hours24 = Math.floor(wrappedMins / 60);
+  const mins = wrappedMins % 60;
+  const period = hours24 >= 12 ? 'PM' : 'AM';
+  const hours12 = hours24 % 12 === 0 ? 12 : hours24 % 12;
+  return `${String(hours12).padStart(2, '0')}:${String(mins).padStart(2, '0')} ${period}`;
+}
+
+

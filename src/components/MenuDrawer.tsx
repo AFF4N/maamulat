@@ -18,6 +18,8 @@ import {
   Check,
   Bell,
   BellRing,
+  Info,
+  Smartphone,
 } from 'lucide-react';
 import type { MaamulatState } from '../types';
 import { formatUrduHijriDate } from '../utils/dateUtils';
@@ -28,6 +30,7 @@ import {
   unsubscribeFromPushNotifications,
   checkIsSubscribed
 } from '../utils/notificationUtils';
+import { PwaInstallGuideModal } from './PwaInstallGuideModal';
 
 interface MenuDrawerProps {
   isOpen: boolean;
@@ -74,6 +77,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
   const [isPushSupported] = useState(() => isPushNotificationSupported());
   const [isPushEnabled, setIsPushEnabled] = useState(false);
   const [pushLoading, setPushLoading] = useState(false);
+  const [showPwaGuideModal, setShowPwaGuideModal] = useState(false);
 
   useEffect(() => {
     let isMounted = true;
@@ -160,8 +164,8 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
             result.method === 'share'
               ? 'Saved to Files!'
               : result.method === 'copy'
-              ? 'Copied to Clipboard!'
-              : 'Backup Downloaded!';
+                ? 'Copied to Clipboard!'
+                : 'Backup Downloaded!';
           setExportStatus(msg);
           setTimeout(() => setExportStatus(null), 2500);
         }
@@ -429,45 +433,79 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                     {isPushEnabled ? <BellRing className="w-4 h-4" /> : <Bell className="w-4 h-4" />}
                   </div>
                   <div className="min-w-0">
-                    <span className="text-xs font-bold text-ink-900 dark:text-white block truncate">
-                      Daily Reminders & Duas
-                    </span>
+                    <div className="flex items-center gap-1.5">
+                      <span className="text-xs font-bold text-ink-900 dark:text-white block truncate">
+                        Daily Reminders & Duas
+                      </span>
+                      <button
+                        type="button"
+                        onClick={() => setShowPwaGuideModal(true)}
+                        className="p-0.5 rounded-full text-ink-400 hover:text-sage-600 dark:hover:text-sage-300 transition-colors shrink-0"
+                        title="How to install app & enable notifications on Android / iOS"
+                        aria-label="Open PWA installation and notification guide"
+                      >
+                        <Info className="w-3.5 h-3.5" />
+                      </button>
+                    </div>
                     <span className="arabic-text text-[11px] text-sage-700 dark:text-ink-300 block truncate">
                       روزانہ شام کے معمولات کی یاد دہانی
                     </span>
                   </div>
                 </div>
 
-                {/* Toggle switch */}
+                {/* Toggle switch or Interactive "Not Supported" Trigger */}
                 {isPushSupported ? (
                   <button
                     type="button"
                     disabled={pushLoading}
                     onClick={handleTogglePush}
-                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${
-                      isPushEnabled ? 'bg-sage-600' : 'bg-paper-300 dark:bg-ink-700'
-                    }`}
+                    className={`relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none disabled:opacity-50 ${isPushEnabled ? 'bg-sage-600' : 'bg-paper-300 dark:bg-ink-700'
+                      }`}
                     role="switch"
                     aria-checked={isPushEnabled}
                     aria-label="Toggle push notifications"
                   >
                     <span
                       aria-hidden="true"
-                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${
-                        isPushEnabled ? 'translate-x-5' : 'translate-x-0'
-                      }`}
+                      className={`pointer-events-none inline-block h-5 w-5 transform rounded-full bg-white shadow-lg ring-0 transition duration-200 ease-in-out ${isPushEnabled ? 'translate-x-5' : 'translate-x-0'
+                        }`}
                     />
                   </button>
                 ) : (
-                  <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-paper-200 dark:bg-ink-800 text-ink-500">
-                    Not Supported
-                  </span>
+                  <button
+                    type="button"
+                    onClick={() => setShowPwaGuideModal(true)}
+                    className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold bg-amber-100 dark:bg-amber-950/60 hover:bg-amber-200 dark:hover:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-300/80 dark:border-amber-800/80 transition-colors tap-bounce shrink-0"
+                    title="Tap to see how to enable notifications by installing the app"
+                  >
+                    <span>Not Supported</span>
+                    <Info className="w-3 h-3" />
+                  </button>
                 )}
               </div>
 
               <p className="text-[11px] text-ink-600 dark:text-ink-400 leading-snug">
                 Fires an evening browser push reminder so you never miss recording your spiritual habits, alongside rotating Duas and verses of the day.
               </p>
+
+              {/* Helpful Guidance Banner when Push is Not Supported in Browser View */}
+              {!isPushSupported && (
+                <button
+                  type="button"
+                  onClick={() => setShowPwaGuideModal(true)}
+                  className="w-full text-left p-2.5 rounded-xl bg-amber-50/90 dark:bg-amber-950/30 hover:bg-amber-100/80 dark:hover:bg-amber-950/50 border border-amber-200/80 dark:border-amber-800/60 flex items-center justify-between gap-2 transition-colors tap-bounce"
+                >
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-bold text-amber-900 dark:text-amber-200 block">
+                      Works after installing to Home Screen!
+                    </span>
+                    <span className="text-[10px] text-amber-800 dark:text-amber-300/90 block leading-snug">
+                      Tap here for step-by-step iPhone (iOS) &amp; Android install instructions
+                    </span>
+                  </div>
+                  <ChevronRight className="w-3.5 h-3.5 text-amber-700 dark:text-amber-400 shrink-0" />
+                </button>
+              )}
 
               {/* Active Scheduled Badge */}
               {isPushEnabled && (
@@ -562,11 +600,10 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                     key={val}
                     type="button"
                     onClick={() => onUpdateHijriAdjustment?.(val)}
-                    className={`py-1 rounded-lg text-[11px] font-bold transition-all tap-bounce text-center ${
-                      currentAdjustment === val
+                    className={`py-1 rounded-lg text-[11px] font-bold transition-all tap-bounce text-center ${currentAdjustment === val
                         ? 'bg-sage-600 text-white shadow-sm'
                         : 'bg-paper-100 hover:bg-paper-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-ink-700 dark:text-ink-300'
-                    }`}
+                      }`}
                   >
                     {val > 0 ? `+${val}` : val}
                   </button>
@@ -727,7 +764,28 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
             </div>
           </div>
 
-          {/* 6. Privacy Trust Banner */}
+          {/* 6a. PWA Installation & Offline Notification Guide Banner (same style as Privacy Banner) */}
+          <button
+            type="button"
+            onClick={() => setShowPwaGuideModal(true)}
+            className="w-full text-left p-3 rounded-2xl bg-sage-50/70 dark:bg-sage-950/40 hover:bg-sage-100/80 dark:hover:bg-sage-900/50 border border-sage-200 dark:border-sage-900/60 text-xs text-sage-900 dark:text-sage-300 space-y-1 transition-colors tap-bounce group"
+          >
+            <div className="flex items-center justify-between gap-2">
+              <div className="flex items-center gap-1.5 font-bold text-[11px]">
+                <Smartphone className="w-4 h-4 text-sage-600 dark:text-sage-400 shrink-0" />
+                <span>Install App for Offline &amp; Notifications</span>
+              </div>
+              <span className="inline-flex items-center gap-0.5 text-[10px] font-bold text-sage-700 dark:text-sage-300 group-hover:translate-x-0.5 transition-transform">
+                <span>Guide</span>
+                <ChevronRight className="w-3.5 h-3.5" />
+              </span>
+            </div>
+            <p className="text-[11px] text-sage-800 dark:text-ink-300 leading-relaxed opacity-90">
+              Add Maamulat to your Android or iPhone Home Screen to use it offline anytime and unlock daily evening reminders.
+            </p>
+          </button>
+
+          {/* 6b. Privacy Trust Banner */}
           <div className="p-3 rounded-2xl bg-sage-50/70 dark:bg-sage-950/40 border border-sage-200 dark:border-sage-900/60 text-xs text-sage-900 dark:text-sage-300 space-y-1">
             <div className="flex items-center gap-1.5 font-bold text-[11px]">
               <ShieldCheck className="w-4 h-4 text-sage-600 dark:text-sage-400 shrink-0" />
@@ -758,6 +816,13 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
           </span>
         </div>
       </div>
+
+      {/* PWA Installation & Notifications Guide Modal */}
+      <PwaInstallGuideModal
+        isOpen={showPwaGuideModal}
+        onClose={() => setShowPwaGuideModal(false)}
+        isPushSupported={isPushSupported}
+      />
     </>
   );
 };

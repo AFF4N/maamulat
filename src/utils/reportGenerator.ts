@@ -1,5 +1,18 @@
 import type { MaamulatState, DayRecord } from '../types';
-import { formatUrduDate, formatUrduHijriDate, getUrduDayName } from './dateUtils';
+import { formatUrduDate, formatUrduHijriDate, getUrduDayName, format12HourTime } from './dateUtils';
+
+/**
+ * Locks a 12-hour time string (e.g. "12:00 AM") into a single unbroken LTR BiDi run
+ * inside RTL Urdu lines by placing LRM (\u200E) before the digits and before the space
+ * preceding AM/PM so Unicode Rule N1 resolves the space as LTR instead of RTL.
+ */
+function formatBidiSafeTime(rawTime: string, fallback: string): string {
+  const formatted = format12HourTime(rawTime || fallback, fallback);
+  if (formatted === '--') return '--';
+  // Insert \u200E before the time and between the digits and AM/PM space
+  const locked = formatted.replace(/\s+(AM|PM)$/i, '\u200E $1');
+  return `\u200E${locked}\u200E`;
+}
 
 /**
  * Generates the authentic WhatsApp formatted text report
@@ -28,7 +41,9 @@ export function generateWhatsAppReport(state: MaamulatState): string {
     : [];
 
   categories.forEach((cat) => {
-    const catTasks = state.tasks.filter(t => t.category === cat.id && !t.hidden);
+    const catTasks = state.tasks.filter(
+      t => t.category === cat.id && !t.hidden && !t.excludeFromReport
+    );
     if (catTasks.length === 0) return;
 
     // Category Header (e.g. *🟢 سنتوں پر عمل*)
@@ -48,10 +63,12 @@ export function generateWhatsAppReport(state: MaamulatState): string {
     lines.push('');
   });
 
-  // Sleep & Wake times
+  // Sleep & Wake times (locked as a single LTR run so WhatsApp RTL lines render "12:00 AM" and not "AM 12:00")
+  const formattedSleep = formatBidiSafeTime(state.sleepTime || '11:30 PM', '11:30 PM');
+  const formattedWake = formatBidiSafeTime(state.wakeTime || '05:00 AM', '05:00 AM');
   lines.push('*🟤 سونے اور جاگنے کا وقت*');
-  lines.push(`🟫 سونے کا وقت: ${state.sleepTime || '11:30 PM'}`);
-  lines.push(`🟫 جاگنے کا وقت: ${state.wakeTime || '05:00 AM'}`);
+  lines.push(`🟫 سونے کا وقت: ${formattedSleep}`);
+  lines.push(`🟫 جاگنے کا وقت: ${formattedWake}`);
 
   return lines.join('\n');
 }
@@ -109,8 +126,8 @@ export function getReportForDayRecord(record: DayRecord, state: MaamulatState): 
   lines.push(`*✨ کمائے گئے حسنات:* +${record.hasanatEarned}`);
   lines.push('');
   lines.push('*🟤 سونے اور جاگنے کا وقت*');
-  lines.push(`🟫 سونے کا وقت: ${record.sleepTime || '11:30 PM'}`);
-  lines.push(`🟫 جاگنے کا وقت: ${record.wakeTime || '05:00 AM'}`);
+  lines.push(`🟫 سونے کا وقت: ${formatBidiSafeTime(record.sleepTime || '11:30 PM', '11:30 PM')}`);
+  lines.push(`🟫 جاگنے کا وقت: ${formatBidiSafeTime(record.wakeTime || '05:00 AM', '05:00 AM')}`);
 
   return lines.join('\n');
 }
