@@ -148,6 +148,38 @@ export function formatUrduHijriDate(dateStr: string, adjustmentDays: number = 0)
   }
 }
 
+export const RAMADAN_HASANAT_MULTIPLIER = 70;
+
+/**
+ * Checks whether a given YYYY-MM-DD date falls in the Islamic month of Ramadan (month 9),
+ * taking the user's local moon-sighting hijriAdjustment (-3 to +3 days) into account.
+ */
+export function isRamadanDate(dateStr: string, adjustmentDays: number = 0): boolean {
+  try {
+    const [year, month, day] = dateStr.split('-').map(Number);
+    const d = new Date(year, month - 1, day);
+    if (adjustmentDays !== 0) {
+      d.setDate(d.getDate() + adjustmentDays);
+    }
+
+    const monthNumStr = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+      month: 'numeric',
+    }).format(d);
+
+    if (Number(monthNumStr) === 9) {
+      return true;
+    }
+
+    const monthName = new Intl.DateTimeFormat('en-u-ca-islamic-umalqura', {
+      month: 'long',
+    }).format(d);
+
+    return monthName.toLowerCase().includes('ramadan');
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Converts YYYY-MM-DD into a short date like "4 Oct"
  */

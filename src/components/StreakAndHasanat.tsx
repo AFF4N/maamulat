@@ -3,6 +3,7 @@ import { Flame, Sparkles, RefreshCw, Info } from 'lucide-react';
 import { ENCOURAGEMENT_QUOTES } from '../utils/defaultTasks';
 import { STREAK_PASS_PERCENTAGE } from '../constants';
 import { Tooltip } from './Tooltip';
+import { formatHasanat } from '../utils/formatUtils';
 
 interface StreakAndHasanatProps {
   currentStreak: number;
@@ -12,6 +13,8 @@ interface StreakAndHasanatProps {
   dateLabel?: string;
   isTodayQualified?: boolean;
   neededForToday?: number;
+  isRamadan?: boolean;
+  hasanatMultiplier?: number;
 }
 
 export const StreakAndHasanat: React.FC<StreakAndHasanatProps> = ({
@@ -22,6 +25,8 @@ export const StreakAndHasanat: React.FC<StreakAndHasanatProps> = ({
   dateLabel,
   isTodayQualified,
   neededForToday,
+  isRamadan = false,
+  hasanatMultiplier = 1,
 }) => {
   const [quoteIndex, setQuoteIndex] = useState(0);
   const [fade, setFade] = useState(true);
@@ -129,22 +134,37 @@ export const StreakAndHasanat: React.FC<StreakAndHasanatProps> = ({
               Total Hasanat
             </span>
             <span className="p-1 rounded-full bg-sage-50 dark:bg-sage-950/40 text-sage-600 dark:text-sage-400">
-              <Sparkles className="w-3.5 h-3.5 text-sage-600 dark:text-sage-400" />
+              <Sparkles className="w-3.5 h-3.5 text-amberGold-500 dark:text-amberGold-400" />
             </span>
           </div>
 
-          <div className="mt-1 flex items-baseline gap-1">
-            <span className="text-2xl font-bold text-ink-900 dark:text-white tracking-tight">
-              {totalHasanat.toLocaleString()}
+          <div className="mt-1 flex items-center justify-between gap-2">
+            <span
+              title={totalHasanat.toLocaleString()}
+              className="text-2xl font-bold text-ink-900 dark:text-white tracking-tight tabular-nums"
+            >
+              {formatHasanat(totalHasanat)}
             </span>
+            {isRamadan && (
+              <span
+                title={`Ramadan Mubarak! All Hasanat are boosted X${hasanatMultiplier}`}
+                className="inline-flex items-center gap-0.5 text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amberGold-100 dark:bg-amberGold-950/60 text-amberGold-700 dark:text-amberGold-300 border border-amberGold-200 dark:border-amberGold-800/60 whitespace-nowrap"
+              >
+                🌙 x{hasanatMultiplier}
+              </span>
+            )}
           </div>
 
           <div className="mt-1.5 flex items-center justify-between text-[10px] text-ink-500 dark:text-ink-400">
-            <span>
+            <span title={`+${todayHasanat.toLocaleString()} Hasanat`}>
               {dateLabel ? `${dateLabel}:` : 'Today:'}{' '}
-              <span className="font-semibold text-sage-700 dark:text-sage-300">+{todayHasanat}</span>
+              <span className="font-semibold text-sage-700 dark:text-sage-300 tabular-nums">
+                +{formatHasanat(todayHasanat)}
+              </span>
             </span>
-            <span className="text-ink-400 truncate">Sincerity</span>
+            <span className="text-ink-400 truncate">
+              {isRamadan ? 'Ramadan Boost' : 'Sincerity'}
+            </span>
           </div>
         </div>
       </div>

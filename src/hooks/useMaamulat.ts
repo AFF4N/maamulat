@@ -1,12 +1,15 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { MaamulatState, DayRecord, CategoryConfig, MaamulatTask } from '../types';
-import { DEFAULT_TASKS, DEFAULT_CATEGORIES } from '../utils/defaultTasks';
+import { DEFAULT_TASKS, DEFAULT_CATEGORIES, LEGACY_DEFAULT_HASANAT } from '../utils/defaultTasks';
+import { estimateTilawatHasanat } from '../utils/formatUtils';
 import {
   getTodayLocalDateString,
   formatUrduDate,
   formatUrduHijriDate,
   getDayDifference,
   addDays,
+  isRamadanDate,
+  RAMADAN_HASANAT_MULTIPLIER,
 } from '../utils/dateUtils';
 import {
   calculateStreakDetails,
@@ -18,6 +21,10 @@ import confetti from 'canvas-confetti';
 import { generateWhatsAppReport } from '../utils/reportGenerator';
 
 const STORAGE_KEY = 'maamulat_state_v2';
+
+function getHasanatMultiplier(dateStr: string, hijriAdjustment?: number): number {
+  return isRamadanDate(dateStr, hijriAdjustment ?? 0) ? RAMADAN_HASANAT_MULTIPLIER : 1;
+}
 
 function getInitialState(): MaamulatState {
   const todayStr = getTodayLocalDateString();
@@ -89,9 +96,16 @@ function getInitialState(): MaamulatState {
     if (Array.isArray(parsed.tasks) && parsed.tasks.length > 0) {
       parsed.tasks = parsed.tasks.map((existing: any) => {
         const dt = DEFAULT_TASKS.find(x => x.id === existing.id);
+        const legacyVal = LEGACY_DEFAULT_HASANAT[existing.id];
+        const shouldUpgradeHasanat =
+          dt &&
+          legacyVal !== undefined &&
+          existing.hasanat === legacyVal;
+
         return {
           ...dt,
           ...existing,
+          ...(shouldUpgradeHasanat ? { hasanat: dt.hasanat } : {}),
         };
       });
     } else {
@@ -134,9 +148,10 @@ function performRollover(oldState: MaamulatState, newTodayStr: string): Maamulat
   const activeTasks = oldState.tasks.filter(t => !t.hidden);
   const completedCount = activeTasks.filter(t => t.completed).length;
   const totalCount = activeTasks.length;
+  const oldMultiplier = getHasanatMultiplier(oldState.todayDate, oldState.hijriAdjustment);
   const earnedHasanat = activeTasks
     .filter(t => t.completed)
-    .reduce((sum, t) => sum + t.hasanat, 0);
+    .reduce((sum, t) => sum + t.hasanat * oldMultiplier, 0);
 
   const status: 'completed' | 'partial' | 'missed' =
     isCompletionQualified(completedCount, totalCount)
@@ -376,10 +391,12 @@ export function useMaamulat() {
         if (!task) return prev;
 
         const isNowCompleted = !task.completed;
-        const hasanatDelta = isNowCompleted ? task.hasanat : -task.hasanat;
+        const multiplier = getHasanatMultiplier(prev.todayDate, prev.hijriAdjustment);
+        const effectiveHasanat = task.hasanat * multiplier;
+        const hasanatDelta = isNowCompleted ? effectiveHasanat : -effectiveHasanat;
 
         if (isNowCompleted) {
-          setRecentHasanatPop({ id: taskId, amount: task.hasanat });
+          setRecentHasanatPop({ id: taskId, amount: effectiveHasanat });
           setTimeout(() => setRecentHasanatPop(null), 900);
         }
 
@@ -428,10 +445,12 @@ export function useMaamulat() {
         if (!targetTask) return prev;
 
         const isNowCompleted = !targetTask.completed;
-        const hasanatDelta = isNowCompleted ? targetTask.hasanat : -targetTask.hasanat;
+        const multiplier = getHasanatMultiplier(currentRec.date, prev.hijriAdjustment);
+        const effectiveHasanat = targetTask.hasanat * multiplier;
+        const hasanatDelta = isNowCompleted ? effectiveHasanat : -effectiveHasanat;
 
         if (isNowCompleted) {
-          setRecentHasanatPop({ id: taskId, amount: targetTask.hasanat });
+          setRecentHasanatPop({ id: taskId, amount: effectiveHasanat });
           setTimeout(() => setRecentHasanatPop(null), 900);
         }
 
@@ -442,7 +461,7 @@ export function useMaamulat() {
         const activeT = dayTasks.filter(t => !t.hidden);
         const completedCount = activeT.filter(t => t.completed).length;
         const totalCount = activeT.length;
-        const earnedHasanat = activeT.filter(t => t.completed).reduce((sum, t) => sum + t.hasanat, 0);
+        const earnedHasanat = activeT.filter(t => t.completed).reduce((sum, t) => sum + t.hasanat * multiplier, 0);
         const status: 'completed' | 'partial' | 'missed' =
           isCompletionQualified(completedCount, totalCount) ? 'completed' : completedCount > 0 ? 'partial' : 'missed';
 
@@ -744,23 +763,36 @@ export function useMaamulat() {
     return true;
   }, [saveState]);
 
-  // Update customizable task measure (e.g. Tilawat portion)
+  // Update customizable task measure (e.g. Tilawat portion) and recalculate Hasanat dynamically
   const updateTaskMeasure = useCallback((taskId: string, measure: string) => {
-    saveState(prev => ({
-      ...prev,
-      tasks: prev.tasks.map(t => {
+    saveState(prev => {
+      const multiplier = getHasanatMultiplier(prev.todayDate, prev.hijriAdjustment);
+      let hasanatDelta = 0;
+
+      const updatedTasks = prev.tasks.map(t => {
         if (t.id === taskId) {
           const cleanMeasure = measure.trim() || 'ایک پاؤ';
+          const newHasanat = estimateTilawatHasanat(cleanMeasure);
+          if (t.completed) {
+            hasanatDelta += (newHasanat - t.hasanat) * multiplier;
+          }
           return {
             ...t,
             customMeasure: cleanMeasure,
             urduTitle: `تلاوت ( ${cleanMeasure} )`,
             englishTitle: `Tilawat (${cleanMeasure})`,
+            hasanat: newHasanat,
           };
         }
         return t;
-      }),
-    }));
+      });
+
+      return {
+        ...prev,
+        totalHasanat: Math.max(0, prev.totalHasanat + hasanatDelta),
+        tasks: updatedTasks,
+      };
+    });
   }, [saveState]);
 
   // Update categories and tasks (from customizer screen)
@@ -801,9 +833,11 @@ export function useMaamulat() {
   const activeNonHiddenTasks = activeTasks.filter(t => !t.hidden);
   const completedTasksCount = activeNonHiddenTasks.filter(t => t.completed).length;
   const totalTasksCount = activeNonHiddenTasks.length;
+  const hasanatMultiplier = getHasanatMultiplier(selectedDate, state.hijriAdjustment);
+  const isRamadan = hasanatMultiplier > 1;
   const todayEarnedHasanat = activeNonHiddenTasks
     .filter(t => t.completed)
-    .reduce((sum, t) => sum + t.hasanat, 0);
+    .reduce((sum, t) => sum + t.hasanat * hasanatMultiplier, 0);
   const completionPercentage = totalTasksCount > 0
     ? Math.round((completedTasksCount / totalTasksCount) * 100)
     : 0;
@@ -858,6 +892,8 @@ export function useMaamulat() {
     completedTasksCount,
     totalTasksCount,
     todayEarnedHasanat,
+    hasanatMultiplier,
+    isRamadan,
     completionPercentage,
     recentHasanatPop,
     streakDetails,

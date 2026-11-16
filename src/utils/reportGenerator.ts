@@ -1,5 +1,6 @@
 import type { MaamulatState, DayRecord } from '../types';
 import { formatUrduDate, formatUrduHijriDate, getUrduDayName, format12HourTime } from './dateUtils';
+import { formatHasanat } from './formatUtils';
 
 /**
  * Locks a 12-hour time string (e.g. "12:00 AM") into a single unbroken LTR BiDi run
@@ -123,7 +124,7 @@ export function getReportForDayRecord(record: DayRecord, state: MaamulatState): 
   lines.push('');
   lines.push(`*📊 تکمیل معمولات:* ${record.completedCount}/${record.totalCount}`);
   lines.push(`*🔸 تکبیر اولی:* ${record.takbeerOola}/5`);
-  lines.push(`*✨ کمائے گئے حسنات:* +${record.hasanatEarned}`);
+  lines.push(`*✨ کمائے گئے حسنات:* +${formatHasanat(record.hasanatEarned)}`);
   lines.push('');
   lines.push('*🟤 سونے اور جاگنے کا وقت*');
   lines.push(`🟫 سونے کا وقت: ${formatBidiSafeTime(record.sleepTime || '11:30 PM', '11:30 PM')}`);

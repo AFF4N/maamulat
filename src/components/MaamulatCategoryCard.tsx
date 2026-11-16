@@ -11,6 +11,7 @@ interface MaamulatCategoryCardProps {
   onToggleTask: (id: string) => void;
   onUpdateTaskMeasure?: (taskId: string, measure: string) => void;
   recentHasanatPopId: string | null;
+  hasanatMultiplier?: number;
   // Specific for salah category:
   takbeerOola?: number;
   onAdjustTakbeerOola?: (delta: number) => void;
@@ -23,6 +24,7 @@ export const MaamulatCategoryCard: React.FC<MaamulatCategoryCardProps> = ({
   onToggleTask,
   onUpdateTaskMeasure,
   recentHasanatPopId,
+  hasanatMultiplier = 1,
   takbeerOola,
   onAdjustTakbeerOola,
 }) => {
@@ -78,6 +80,7 @@ export const MaamulatCategoryCard: React.FC<MaamulatCategoryCardProps> = ({
             onToggle={onToggleTask}
             onUpdateMeasure={onUpdateTaskMeasure}
             showPop={recentHasanatPopId === task.id}
+            hasanatMultiplier={hasanatMultiplier}
           />
         ))}
 

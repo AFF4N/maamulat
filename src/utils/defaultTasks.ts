@@ -59,8 +59,44 @@ export const DEFAULT_CATEGORIES: CategoryConfig[] = [
   }
 ];
 
+/**
+ * Legacy arbitrary hasanat values used prior to authentic Quran/Hadith estimation,
+ * kept for one-time migration of unedited default tasks in localStorage.
+ */
+export const LEGACY_DEFAULT_HASANAT: Record<string, number> = {
+  fajr_jamaat: 35,
+  zuhr_jamaat: 30,
+  asr_jamaat: 35,
+  maghrib_jamaat: 30,
+  isha_jamaat: 35,
+  miswak: 15,
+  surah_yaseen: 25,
+  surah_waqiah: 25,
+  surah_mulk: 25,
+  tilawat_paao: 30,
+  istighfar_morning: 20,
+  durood_morning: 20,
+  kalimah3_morning: 20,
+  kalimah1_morning: 20,
+  istighfar_evening: 20,
+  durood_evening: 20,
+  kalimah3_evening: 20,
+  kalimah1_evening: 20,
+  tahajjud: 40,
+  ishraq: 20,
+  chasht: 20,
+  awwabin: 20,
+  dua_tahajjud: 15,
+  munajat_faqeer: 20,
+  zuban_hifazat: 30,
+  nazaron_hifazat: 30,
+  kaanon_hifazat: 25,
+};
+
 export const DEFAULT_TASKS: MaamulatTask[] = [
   // 🕌 نماز باجماعت (Salah in Congregation)
+  // Authentic basis: 27x congregation (Bukhari 645) × 10 baseline (Al-An'am 6:160) = 270;
+  // Fajr & Isha doubled for Qiyam al-Layl equivalence (Muslim 656); Asr emphasized as Salat al-Wusta.
   {
     id: 'fajr_jamaat',
     category: 'salah',
@@ -68,7 +104,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: 'Fajr in Congregation',
     description: 'Starting the morning in the protection of Allah',
     emoji: '🔸',
-    hasanat: 35,
+    hasanat: 540,
     completed: false,
   },
   {
@@ -78,7 +114,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: 'Zuhr in Congregation',
     description: 'Pause the day for midday devotion',
     emoji: '🔸',
-    hasanat: 30,
+    hasanat: 270,
     completed: false,
   },
   {
@@ -88,7 +124,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: 'Asr in Congregation',
     description: 'The middle prayer of paramount virtue',
     emoji: '🔸',
-    hasanat: 35,
+    hasanat: 300,
     completed: false,
   },
   {
@@ -98,7 +134,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: 'Maghrib in Congregation',
     description: 'Welcoming the night with gratitude',
     emoji: '🔸',
-    hasanat: 30,
+    hasanat: 270,
     completed: false,
   },
   {
@@ -108,7 +144,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: 'Isha in Congregation',
     description: 'Concluding the active day in sacred assembly',
     emoji: '🔸',
-    hasanat: 35,
+    hasanat: 540,
     completed: false,
   },
 
@@ -121,11 +157,12 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     description: 'Sunnah of purification before Wudu and Salah',
     infoTooltip: 'طریقہ و آداب: دائیں ہاتھ کی چھوٹی انگلی اور انگوٹھا نیچے، بقیہ تین انگلیاں اوپر رکھ کر پکڑیں۔ دانتوں کے عرض (چوڑائی) میں ملیں، لمبائی میں نہیں، تا کہ مسوڑھے زخمی نہ ہوں۔ دانتوں کے اوپر نیچے، اندر باہر اور زبان پر نرمی سے ملیں۔\n\nاوقاتِ مسنونہ: وضو کے دوران (کلی کرتے وقت)، نماز سے قبل، قرآن مجید کی تلاوت سے پہلے، نیند سے بیداری پر اور گھر میں داخل ہوتے وقت۔\n\nفضیلت و ثواب: رسول اللہ ﷺ نے فرمایا: "مسواک منہ کی صفائی اور رب کی رضا کا ذریعہ ہے۔" (صحیح بخاری)\nاور فرمایا: "مسواک کر کے پڑھی جانے والی نماز، بغیر مسواک کی نماز سے ستر (70) گنا افضل ہے۔" (شعب الایمان، بیہقی)',
     emoji: '🔸',
-    hasanat: 15,
+    hasanat: 70,
     completed: false,
   },
 
   // 🔵 قرآن تلاوت (Qur'an Recitation)
+  // Authentic basis: 10 hasanat per Arabic letter recited (Tirmidhi 2910)
   {
     id: 'surah_yaseen',
     category: 'quran',
@@ -133,7 +170,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: 'Surah Yaseen',
     description: 'The heart of the Qur’an recited with reflection',
     emoji: '🔹',
-    hasanat: 25,
+    hasanat: 30000,
     completed: false,
   },
   {
@@ -143,7 +180,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: 'Surah Waqiah',
     description: 'Recitation of the inevitable reality & barakah',
     emoji: '🔹',
-    hasanat: 25,
+    hasanat: 17000,
     completed: false,
   },
   {
@@ -153,7 +190,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: 'Surah Mulk',
     description: 'The protector and intercessor before night sleep',
     emoji: '🔹',
-    hasanat: 25,
+    hasanat: 13000,
     completed: false,
   },
   {
@@ -164,11 +201,12 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     customMeasure: 'ایک پاؤ',
     description: 'Daily portion with contemplation and slow recitation',
     emoji: '🔹',
-    hasanat: 30,
+    hasanat: 27000,
     completed: false,
   },
 
   // 🔴 ذکر صبح (Morning Dhikr - 100x)
+  // Authentic basis: 100x × 10 baseline (Al-An'am 6:160 / Muslim 408 for Durood / 4 phrases for 3rd Kalimah)
   {
     id: 'istighfar_morning',
     category: 'dhikr_morning',
@@ -176,7 +214,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: 'Astaghfirullah (100x)',
     description: 'Cleansing the slate at the dawn of the day',
     emoji: '🔺',
-    hasanat: 20,
+    hasanat: 1000,
     completed: false,
   },
   {
@@ -186,7 +224,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: 'Durood Sharif (100x)',
     description: 'Blessings upon the beloved Prophet Muhammad ﷺ',
     emoji: '🔺',
-    hasanat: 20,
+    hasanat: 1000,
     completed: false,
   },
   {
@@ -196,7 +234,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: '3rd Kalimah (100x)',
     description: 'Subhanallah, Walhamdulillah, Wala ilaha illallah...',
     emoji: '🔺',
-    hasanat: 20,
+    hasanat: 4000,
     completed: false,
   },
   {
@@ -206,7 +244,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: '1st Kalimah (100x)',
     description: 'La ilaha illallah Muhammadur Rasulullah',
     emoji: '🔺',
-    hasanat: 20,
+    hasanat: 1000,
     completed: false,
   },
 
@@ -218,7 +256,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: 'Astaghfirullah (100x)',
     description: 'Seeking pardon before the night envelops the sky',
     emoji: '🔺',
-    hasanat: 20,
+    hasanat: 1000,
     completed: false,
   },
   {
@@ -228,7 +266,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: 'Durood Sharif (100x)',
     description: 'Sending loving salutations upon the Prophet ﷺ',
     emoji: '🔺',
-    hasanat: 20,
+    hasanat: 1000,
     completed: false,
   },
   {
@@ -238,7 +276,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: '3rd Kalimah (100x)',
     description: 'Glorifying the Lord of the heavens and earth',
     emoji: '🔺',
-    hasanat: 20,
+    hasanat: 4000,
     completed: false,
   },
   {
@@ -248,7 +286,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: '1st Kalimah (100x)',
     description: 'Renewing the affirmation of pure Tawhid',
     emoji: '🔺',
-    hasanat: 20,
+    hasanat: 1000,
     completed: false,
   },
 
@@ -261,7 +299,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     description: 'The secret intimate hour when whispers reach the throne',
     infoTooltip: 'طریقہ: عشاء کے بعد سو کر رات کے آخری تہائی حصے میں اٹھنا۔ کم از کم ۲ رکعت، زیادہ سے زیادہ ۸ یا ۱۲ رکعت، ۲، ۲ کر کے ادا کریں۔\n\nفضیلت و ثواب: فرضوں کے بعد سب سے افضل نماز ہے۔ اس وقت اللہ تعالیٰ آسمانِ دنیا پر نزولِ رحمت فرماتے ہیں اور پکارتے ہیں: "ہے کوئی مانگنے والا کہ میں اسے دوں، ہے کوئی بخشش طلب کرنے والا کہ میں اسے بخش دوں!"، دعا کی قبولیت کا خاص وقت ہے۔',
     emoji: '🟩',
-    hasanat: 40,
+    hasanat: 500,
     completed: false,
   },
   {
@@ -272,7 +310,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     description: 'The reward of a complete Hajj and Umrah',
     infoTooltip: 'طریقہ: فجر کی نماز کے بعد اپنی جگہ ذکر، درود و تلاوت میں بیٹھے رہیں، جب سورج طلوع ہو کر تقریباً ۱۵ سے ۲۰ منٹ گزر جائیں (مکروہ وقت ختم ہو جائے) تو ۲ یا ۴ رکعت ادا کریں۔\n\nفضیلت و ثواب: رسول اللہ ﷺ نے فرمایا: جو شخص فجر باجماعت پڑھ کر طلوعِ آفتاب تک اللہ کے ذکر میں بیٹھا رہے پھر دو رکعت پڑھے، اسے ایک کامل حج اور عمرہ کا ثواب ملتا ہے۔ (جامع ترمذی)',
     emoji: '🟩',
-    hasanat: 20,
+    hasanat: 5000,
     completed: false,
   },
   {
@@ -283,7 +321,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     description: 'Charity for every joint in your body',
     infoTooltip: 'طریقہ: سورج کے خوب چڑھ جانے اور تپش محسوس ہونے پر (صبح ۹ بجے سے لے کر زوال سے پہلے تک)، ۲، ۴، ۸ یا ۱۲ رکعت ادا کریں۔\n\nفضیلت و ثواب: انسان کے بدن میں ۳۶۰ جوڑ ہیں اور ہر جوڑ پر روزانہ ایک صدقہ لازم ہے۔ چاشت کی دو رکعتیں تمام ۳۶۰ جوڑوں کی طرف سے شکرانہ اور صدقہ ادا کر دیتی ہیں۔ (صحیح مسلم)',
     emoji: '🟩',
-    hasanat: 20,
+    hasanat: 3600,
     completed: false,
   },
   {
@@ -294,7 +332,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     description: 'The prayer of those who frequently return to Allah',
     infoTooltip: 'طریقہ: مغرب کے فرض و سنتوں کے بعد ۶ رکعت (دو دو کر کے) ادا کی جاتی ہیں۔\n\nفضیلت و ثواب: یہ کثرت سے اللہ کی طرف رجوع کرنے والوں (اوابین) کی نماز ہے۔ حدیث پاک میں آتا ہے کہ جو مغرب کے بعد ۶ رکعت پڑھے اور درمیان میں کوئی بری بات نہ کرے، اسے بارہ سال کی نفلی عبادت کا ثواب ملتا ہے۔ (جامع ترمذی)',
     emoji: '🟩',
-    hasanat: 20,
+    hasanat: 2500,
     completed: false,
   },
 
@@ -307,7 +345,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     description: 'Pouring out personal needs in deep humility',
     infoTooltip: 'طریقہ و فضیلت: تہجد کی نماز کے بعد سجدے یا ہاتھ اٹھا کر اپنے اور امت کے گناہوں کی معافی اور جائز حاجات مانگنا۔ یہ وہ وقت ہے جب ربِ ذوالجلال بندے کے سب سے زیادہ قریب ہوتا ہے۔',
     emoji: '◼️',
-    hasanat: 15,
+    hasanat: 150,
     completed: false,
   },
   {
@@ -320,7 +358,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     linkUrl: 'https://drive.google.com/file/d/1JycrcWVXCUerCS6OY5NcD8xG_e8Uk9AU/view?usp=sharing',
     linkLabel: 'Download File',
     emoji: '◼️',
-    hasanat: 20,
+    hasanat: 300,
     completed: false,
   },
 
@@ -333,7 +371,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     description: 'بُرا نہ بولیں — غیبت، جھوٹ اور بدکلامی سے اجتناب',
     infoTooltip: 'بُرا نہ بولیں: غیبت، جھوٹ، گالی گلوچ، طنز اور فضول گفتگو سے مکمل پرہیز کرنا۔ رسول اللہ ﷺ نے فرمایا: جو شخص مجھے اپنی زبان اور شرمگاہ کی حفاظت کی ضمانت دے، میں اسے جنت کی ضمانت دیتا ہوں۔',
     emoji: '🛡️',
-    hasanat: 30,
+    hasanat: 500,
     completed: false,
   },
   {
@@ -344,7 +382,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     description: 'بُرا نہ دیکھیں — نا محرم اور گناہ کے مناظر سے پرہیز',
     infoTooltip: 'بُرا نہ دیکھیں: نامحرم، غیر اخلاقی مناظر اور سوشل میڈیا کی بے حیائی سے آنکھوں کو جھکانا۔ قرآن کریم: "مومن مردوں سے کہہ دو کہ اپنی نظریں نیچی رکھیں۔"',
     emoji: '🛡️',
-    hasanat: 30,
+    hasanat: 500,
     completed: false,
   },
   {
@@ -355,7 +393,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     description: 'بُرا نہ سنیں — غیبت اور لایعنی باتوں سے کنارہ کشی',
     infoTooltip: 'بُرا نہ سنیں: غیبت سننے سے پرہیز کرنا، گانے اور فحش و لایعنی باتوں کو سننے سے کانوں کی حفاظت کرنا۔ جو بات بولنا حرام ہے، اسے سننا بھی گناہ ہے۔',
     emoji: '🛡️',
-    hasanat: 25,
+    hasanat: 400,
     completed: false,
   },
 ];

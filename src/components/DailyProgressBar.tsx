@@ -1,6 +1,7 @@
 import React from 'react';
-import { Award } from 'lucide-react';
+import { Award, Sparkles } from 'lucide-react';
 import { getStreakPassTarget } from '../constants';
+import { formatHasanat } from '../utils/formatUtils';
 
 interface DailyProgressBarProps {
   completedCount: number;
@@ -9,6 +10,8 @@ interface DailyProgressBarProps {
   todayHasanat: number;
   dateLabel?: string;
   isViewingPastDay?: boolean;
+  isRamadan?: boolean;
+  hasanatMultiplier?: number;
 }
 
 export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
@@ -18,6 +21,8 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
   todayHasanat,
   dateLabel,
   isViewingPastDay,
+  isRamadan = false,
+  hasanatMultiplier = 1,
 }) => {
   const isAllComplete = completedCount === totalCount && totalCount > 0;
   const passTarget = getStreakPassTarget(totalCount);
@@ -60,11 +65,25 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
         </div>
 
         <div className="text-right">
-          <span className="text-[11px] font-medium text-ink-500 dark:text-ink-400">
-            {isViewingPastDay && dateLabel ? `Earned (${dateLabel})` : 'Earned Today'}
-          </span>
-          <p className="text-sm font-bold text-amberGold-600 dark:text-amberGold-400">
-            +{todayHasanat} <span className="text-[10px] font-normal">Hasanat</span>
+          <div className="flex items-center justify-end gap-1">
+            {isRamadan && (
+              <span
+                title={`Ramadan X${hasanatMultiplier} Hasanat Boost`}
+                className="text-[10px] font-bold px-1.5 py-0.5 rounded-full bg-amberGold-100 dark:bg-amberGold-950/60 text-amberGold-700 dark:text-amberGold-300"
+              >
+                🌙 x{hasanatMultiplier}
+              </span>
+            )}
+            <span className="text-[11px] font-medium text-ink-500 dark:text-ink-400">
+              {isViewingPastDay && dateLabel ? `Earned (${dateLabel})` : 'Earned Today'}
+            </span>
+          </div>
+          <p
+            title={`+${todayHasanat.toLocaleString()} Hasanat`}
+            className="text-sm font-bold text-amberGold-600 dark:text-amberGold-400 inline-flex items-center justify-end gap-1 tabular-nums"
+          >
+            <span>+{formatHasanat(todayHasanat)}</span>
+            <Sparkles className="w-3.5 h-3.5 text-amberGold-500 dark:text-amberGold-400" />
           </p>
         </div>
       </div>

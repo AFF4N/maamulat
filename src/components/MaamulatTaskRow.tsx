@@ -1,13 +1,15 @@
 import React, { useState } from 'react';
 import type { MaamulatTask } from '../types';
-import { Check, Info, X, ExternalLink, FileText, Pencil } from 'lucide-react';
+import { Check, Info, X, ExternalLink, FileText, Pencil, Sparkles } from 'lucide-react';
 import { TilawatMeasureModal } from './TilawatMeasureModal';
+import { formatHasanat } from '../utils/formatUtils';
 
 interface MaamulatTaskRowProps {
   task: MaamulatTask;
   onToggle: (id: string) => void;
   onUpdateMeasure?: (taskId: string, measure: string) => void;
   showPop: boolean;
+  hasanatMultiplier?: number;
 }
 
 export const MaamulatTaskRow: React.FC<MaamulatTaskRowProps> = ({
@@ -15,6 +17,7 @@ export const MaamulatTaskRow: React.FC<MaamulatTaskRowProps> = ({
   onToggle,
   onUpdateMeasure,
   showPop,
+  hasanatMultiplier = 1,
 }) => {
   const [showTooltip, setShowTooltip] = useState(false);
   const [showMeasureModal, setShowMeasureModal] = useState(false);
@@ -142,23 +145,38 @@ export const MaamulatTaskRow: React.FC<MaamulatTaskRowProps> = ({
         </div>
 
         {/* Right side: Hasanat Reward Pill & Floating Pop */}
-        <div className="relative flex items-center flex-shrink-0">
-          <span
-            className={`text-[11px] font-semibold px-2 py-0.5 rounded-full transition-colors ${task.completed
-              ? 'bg-sage-200/80 dark:bg-sage-900/80 text-sage-800 dark:text-sage-200'
-              : 'bg-paper-100 dark:bg-ink-750 text-ink-600 dark:text-ink-300'
-              }`}
-          >
-            +{task.hasanat} H
-          </span>
+        {(() => {
+          const effectiveHasanat = task.hasanat * hasanatMultiplier;
+          const isBoosted = hasanatMultiplier > 1;
+          return (
+            <div className="relative flex items-center flex-shrink-0">
+              <span
+                title={
+                  isBoosted
+                    ? `+${effectiveHasanat.toLocaleString()} Hasanat (Ramadan ${hasanatMultiplier}×)`
+                    : `+${effectiveHasanat.toLocaleString()} Hasanat`
+                }
+                className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-0.5 rounded-full tabular-nums transition-colors ${task.completed
+                  ? 'bg-sage-200/80 dark:bg-sage-900/80 text-sage-800 dark:text-sage-200'
+                  : isBoosted
+                    ? 'bg-amberGold-50 dark:bg-amberGold-950/50 text-amberGold-700 dark:text-amberGold-300 border border-amberGold-200/70 dark:border-amberGold-800/50'
+                    : 'bg-paper-100 dark:bg-ink-750 text-ink-600 dark:text-ink-300'
+                  }`}
+              >
+                <span>+{formatHasanat(effectiveHasanat)}</span>
+                <Sparkles className="w-3 h-3 text-amberGold-500 dark:text-amberGold-400 flex-shrink-0" />
+              </span>
 
-          {/* Floating "+Hasanat" animation pop */}
-          {showPop && (
-            <span className="absolute -top-3 right-0 pointer-events-none text-xs font-bold text-amberGold-600 dark:text-amberGold-400 animate-float-up">
-              +{task.hasanat} ✨
-            </span>
-          )}
-        </div>
+              {/* Floating "+Hasanat" animation pop */}
+              {showPop && (
+                <span className="absolute -top-3 right-0 pointer-events-none inline-flex items-center gap-0.5 text-xs font-bold text-amberGold-600 dark:text-amberGold-400 animate-float-up whitespace-nowrap">
+                  +{formatHasanat(effectiveHasanat)}
+                  <Sparkles className="w-3 h-3 text-amberGold-500" />
+                </span>
+              )}
+            </div>
+          );
+        })()}
       </div>
 
       {/* Info Tooltip Popover */}

@@ -43,6 +43,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     completedTasksCount,
     totalTasksCount,
     todayEarnedHasanat,
+    hasanatMultiplier,
+    isRamadan,
     completionPercentage,
     recentHasanatPop,
     streakDetails,
@@ -261,6 +263,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
           dateLabel={friendlyDateLabel}
           isTodayQualified={streakDetails.isTodayQualified}
           neededForToday={streakDetails.neededForToday}
+          isRamadan={isRamadan}
+          hasanatMultiplier={hasanatMultiplier}
         />
 
         {/* 3. Daily Completion Progress Bar (shows 4 Oct's Progress when viewing 4 Oct) */}
@@ -271,6 +275,8 @@ export const AppRouter: React.FC<AppRouterProps> = ({
           todayHasanat={todayEarnedHasanat}
           dateLabel={friendlyDateLabel}
           isViewingPastDay={isViewingPastDay}
+          isRamadan={isRamadan}
+          hasanatMultiplier={hasanatMultiplier}
         />
 
         {/* 4. Recent 7-Day History Pills: Click any day to view & edit that day's sheet */}
@@ -303,6 +309,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                 onToggleTask={toggleTask}
                 onUpdateTaskMeasure={updateTaskMeasure}
                 recentHasanatPopId={recentHasanatPop?.id || null}
+                hasanatMultiplier={hasanatMultiplier}
                 takbeerOola={catConfig.id === 'salah' ? activeTakbeerOola : undefined}
                 onAdjustTakbeerOola={catConfig.id === 'salah' ? adjustTakbeerOola : undefined}
               />

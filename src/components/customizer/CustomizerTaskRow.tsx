@@ -1,6 +1,6 @@
 import React from 'react';
 import type { MaamulatTask } from '../../types';
-import { Trash2, Eye, EyeOff, Info, FileText, FileX } from 'lucide-react';
+import { Trash2, Eye, EyeOff, Info, FileText, FileX, Sparkles } from 'lucide-react';
 
 interface CustomizerTaskRowProps {
   task: MaamulatTask;
@@ -81,12 +81,12 @@ export const CustomizerTaskRow: React.FC<CustomizerTaskRowProps> = ({
             <input
               type="number"
               min="0"
-              max="500"
+              max="1000000"
               value={task.hasanat}
               onChange={(e) => onUpdate({ hasanat: Number(e.target.value) || 0 })}
-              className="w-8 text-center bg-transparent focus:outline-none font-bold text-ink-900 dark:text-white text-[11px]"
+              className="w-16 text-center bg-transparent focus:outline-none font-bold text-ink-900 dark:text-white text-[11px] tabular-nums"
             />
-            <span className="text-[10px] text-ink-400">H</span>
+            <Sparkles className="w-3 h-3 text-amberGold-500 flex-shrink-0" />
           </div>
 
           {/* Include / Exclude from Printed Report */}

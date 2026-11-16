@@ -9,16 +9,17 @@ import {
   ChevronDown,
   ChevronUp,
   Plus,
+  Sparkles,
 } from 'lucide-react';
 import { CustomizerTaskRow } from './CustomizerTaskRow';
 
 const QUICK_TEMPLATES = [
-  { label: 'Tahajjud (تہجد)', emoji: '🌙', english: 'Tahajjud Prayer', urdu: 'تہجد', hasanat: 35 },
-  { label: 'Ishraq (اشراق)', emoji: '🌅', english: 'Ishraq Prayer', urdu: 'اشراق', hasanat: 25 },
-  { label: 'Surah Mulk (سورۃ الملک)', emoji: '📖', english: 'Surah Mulk', urdu: 'سورۃ الملک', hasanat: 30 },
-  { label: 'Surah Yaseen (سورۃ یٰسین)', emoji: '📖', english: 'Surah Yaseen', urdu: 'سورۃ یٰس', hasanat: 30 },
-  { label: 'Darood 100x (درود شریف)', emoji: '📿', english: 'Darood Sharif 100x', urdu: 'درود شریف ۱۰۰ مرتبہ', hasanat: 25 },
-  { label: 'Muraqaba (مراقبہ)', emoji: '🧘', english: 'Muraqaba Death & Akhirah', urdu: 'مراقبہ موت و آخرت', hasanat: 25 },
+  { label: 'Tahajjud (تہجد)', emoji: '🌙', english: 'Tahajjud Prayer', urdu: 'تہجد', hasanat: 500 },
+  { label: 'Ishraq (اشراق)', emoji: '🌅', english: 'Ishraq Prayer', urdu: 'اشراق', hasanat: 5000 },
+  { label: 'Surah Mulk (سورۃ الملک)', emoji: '📖', english: 'Surah Mulk', urdu: 'سورۃ الملک', hasanat: 13000 },
+  { label: 'Surah Yaseen (سورۃ یٰسین)', emoji: '📖', english: 'Surah Yaseen', urdu: 'سورۃ یٰس', hasanat: 30000 },
+  { label: 'Darood 100x (درود شریف)', emoji: '📿', english: 'Darood Sharif 100x', urdu: 'درود شریف ۱۰۰ مرتبہ', hasanat: 1000 },
+  { label: 'Muraqaba (مراقبہ)', emoji: '🧘', english: 'Muraqaba Death & Akhirah', urdu: 'مراقبہ موت و آخرت', hasanat: 300 },
 ];
 
 interface CustomizerSectionCardProps {
@@ -254,14 +255,15 @@ export const CustomizerSectionCard: React.FC<CustomizerSectionCardProps> = ({
 
               <div className="flex items-center justify-between gap-2 pt-1">
                 <div className="flex items-center gap-1.5 text-xs text-ink-600 dark:text-ink-400">
+                  <Sparkles className="w-3.5 h-3.5 text-amberGold-500" />
                   <span>Hasanat:</span>
                   <input
                     type="number"
                     min="0"
-                    max="500"
+                    max="1000000"
                     value={newTaskHasanat}
                     onChange={(e) => setNewTaskHasanat(Number(e.target.value) || 0)}
-                    className="w-12 text-center text-xs px-1.5 py-1 rounded-md border border-sage-300 dark:border-sage-700 bg-white dark:bg-ink-850 text-ink-900 dark:text-white"
+                    className="w-16 text-center text-xs px-1.5 py-1 rounded-md border border-sage-300 dark:border-sage-700 bg-white dark:bg-ink-850 text-ink-900 dark:text-white tabular-nums"
                   />
                 </div>
                 <button

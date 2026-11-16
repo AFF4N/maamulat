@@ -1,4 +1,6 @@
 import React, { useState } from 'react';
+import { Sparkles } from 'lucide-react';
+import { estimateTilawatHasanat, formatHasanat } from '../utils/formatUtils';
 
 interface TilawatMeasureModalProps {
   isOpen: boolean;
@@ -78,7 +80,14 @@ export const TilawatMeasureModal: React.FC<TilawatMeasureModalProps> = ({
               }`}
             >
               <span className="arabic-text text-sm font-bold">{preset.label}</span>
-              <span className="text-[10px] text-ink-500 dark:text-ink-400">{preset.english}</span>
+              <span className="text-[10px] text-ink-500 dark:text-ink-400 inline-flex items-center gap-1">
+                <span>{preset.english}</span>
+                <span>·</span>
+                <span className="text-amberGold-600 dark:text-amberGold-400 font-semibold inline-flex items-center gap-0.5">
+                  +{formatHasanat(estimateTilawatHasanat(preset.label))}
+                  <Sparkles className="w-2.5 h-2.5" />
+                </span>
+              </span>
             </button>
           ))}
         </div>

@@ -223,7 +223,7 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
       urduTitle: urdu,
       englishTitle: english,
       emoji: emoji || '🔹',
-      hasanat: Number(hasanat) || 20,
+      hasanat: Number(hasanat) || 100,
       completed: false,
       hidden: false,
     };
