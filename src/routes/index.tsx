@@ -55,6 +55,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
     setWakeTime,
     setGoalCurrentDay,
     setGoalTargetDays,
+    setSyncGoalWithStreak,
     setMurrabiContact,
     setHijriAdjustment,
     simulateNextDay,
@@ -129,6 +130,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
           goalMaxDays={activeGoalMaxDays}
           onUpdateGoalDay={setGoalCurrentDay}
           onUpdateGoalMaxDays={setGoalTargetDays}
+          onUpdateSyncGoalWithStreak={setSyncGoalWithStreak}
           isDark={isDark}
           onToggleTheme={onToggleTheme}
           onNavigateToCustomize={() => navigateTo('/customize')}

@@ -13,6 +13,7 @@ interface HeaderProps {
   goalMaxDays: number;
   onUpdateGoalDay: (day: number) => void;
   onUpdateGoalMaxDays: (maxDays: number) => void;
+  onUpdateSyncGoalWithStreak?: (sync: boolean) => void;
   isDark: boolean;
   onToggleTheme: () => void;
   onNavigateToCustomize?: () => void;
@@ -37,6 +38,7 @@ export const Header: React.FC<HeaderProps> = ({
   goalMaxDays,
   onUpdateGoalDay,
   onUpdateGoalMaxDays,
+  onUpdateSyncGoalWithStreak,
   isDark,
   onToggleTheme,
   onNavigateToCustomize,
@@ -413,6 +415,7 @@ export const Header: React.FC<HeaderProps> = ({
         onResetToDefault={onResetToDefault}
         onUpdateMurrabiContact={onUpdateMurrabiContact}
         onUpdateHijriAdjustment={onUpdateHijriAdjustment}
+        onUpdateSyncGoalWithStreak={onUpdateSyncGoalWithStreak}
         onRestoreBackup={onRestoreBackup}
       />
     </header>

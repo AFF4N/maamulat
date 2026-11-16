@@ -18,15 +18,17 @@ export const GoalEditorModal: React.FC<GoalEditorModalProps> = ({
   goalMaxDays,
   onSave,
 }) => {
-  const [dayInput, setDayInput] = useState(goalDay.toString());
-  const [targetInput, setTargetInput] = useState(goalMaxDays.toString());
+  const safeGoalDay = goalDay ?? 1;
+  const safeGoalMaxDays = goalMaxDays ?? 40;
+  const [dayInput, setDayInput] = useState(safeGoalDay.toString());
+  const [targetInput, setTargetInput] = useState(safeGoalMaxDays.toString());
 
   useEffect(() => {
     if (isOpen) {
-      setDayInput(goalDay.toString());
-      setTargetInput(goalMaxDays.toString());
+      setDayInput(safeGoalDay.toString());
+      setTargetInput(safeGoalMaxDays.toString());
     }
-  }, [isOpen, goalDay, goalMaxDays]);
+  }, [isOpen, safeGoalDay, safeGoalMaxDays]);
 
   if (!isOpen) return null;
 

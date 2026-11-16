@@ -37,6 +37,7 @@ function getInitialState(): MaamulatState {
     todayDate: todayStr,
     goalDay: 1,
     goalMaxDays: 40,
+    syncGoalWithStreak: false,
     hijriAdjustment: 0,
     streak: {
       current: 1,
@@ -171,12 +172,16 @@ function performRollover(oldState: MaamulatState, newTodayStr: string): Maamulat
     completedAt: undefined,
   }));
 
+  const syncWithStreak = oldState.syncGoalWithStreak === true;
+
   // If daysPassed > 1, backfill missing calendar days as 'missed' so history has no gaps
   const gapRecords: DayRecord[] = [];
   if (daysPassed > 1) {
     for (let i = 1; i < daysPassed; i++) {
       const gapDate = addDays(oldState.todayDate, i);
-      const gapGoalDay = i === 1 && status === 'completed' ? currentGoalDay + 1 : 1;
+      const gapGoalDay = syncWithStreak
+        ? (i === 1 && status === 'completed' ? currentGoalDay + 1 : 1)
+        : currentGoalDay + i;
       gapRecords.push({
         date: gapDate,
         urduDate: formatUrduDate(gapDate),
@@ -222,10 +227,14 @@ function performRollover(oldState: MaamulatState, newTodayStr: string): Maamulat
     oldState.streak?.highest || 0
   );
 
-  // Goal day progresses forward if streak continues; resets to 1 if streak is broken.
+  // Goal day progresses forward if streak continues (or if streak sync is disabled);
+  // resets to 1 when streak is broken and syncGoalWithStreak is enabled.
   // Intentionally uncapped above currentGoalMax (e.g. 41/40) until user resets or sets a new goal.
   const isStreakBroken = streakInfo.consecutivePastDays === 0;
-  const nextGoalDay = isStreakBroken ? 1 : currentGoalDay + 1;
+  const nextGoalDay =
+    syncWithStreak && isStreakBroken
+      ? 1
+      : currentGoalDay + (daysPassed > 0 ? daysPassed : 1);
 
   const newState: MaamulatState = {
     ...oldState,
@@ -345,12 +354,12 @@ export function useMaamulat() {
 
   // Active Goal Day
   const activeGoalDay = isViewingPastDay && selectedDayRecord
-    ? selectedDayRecord.goalDay
+    ? (selectedDayRecord.goalDay ?? state.goalDay ?? 1)
     : (state.goalDay ?? 1);
 
   // Active Goal Max Days
   const activeGoalMaxDays = isViewingPastDay && selectedDayRecord
-    ? selectedDayRecord.goalMaxDays
+    ? (selectedDayRecord.goalMaxDays ?? state.goalMaxDays ?? 40)
     : (state.goalMaxDays ?? 40);
 
   // Active Urdu Date
@@ -470,12 +479,14 @@ export function useMaamulat() {
         );
 
         let updatedGoalDay = prev.goalDay;
-        if (updatedStreakInfo.consecutivePastDays === 0) {
-          // Streak is broken as of yesterday -> reset goal back to Day 1
-          updatedGoalDay = 1;
-        } else if (prev.goalDay === 1 && historyCopy[0]?.status === 'completed') {
-          // Yesterday was retroactively completed -> restore goal day progression
-          updatedGoalDay = (historyCopy[0].goalDay || 1) + 1;
+        if (prev.syncGoalWithStreak === true) {
+          if (updatedStreakInfo.consecutivePastDays === 0) {
+            // Streak is broken as of yesterday -> reset goal back to Day 1
+            updatedGoalDay = 1;
+          } else {
+            // Keep goal day synced with consecutive streak days + today
+            updatedGoalDay = updatedStreakInfo.consecutivePastDays + 1;
+          }
         }
 
         return {
@@ -616,6 +627,29 @@ export function useMaamulat() {
       return {
         ...prev,
         goalMaxDays: sanitized,
+      };
+    });
+  }, [saveState]);
+
+  // Toggle whether breaking the streak resets goalDay back to 1
+  const setSyncGoalWithStreak = useCallback((sync: boolean) => {
+    saveState(prev => {
+      if (!sync) {
+        return {
+          ...prev,
+          syncGoalWithStreak: false,
+        };
+      }
+      const streakInfo = calculateStreakDetails(
+        prev.history || [],
+        prev.tasks || [],
+        prev.todayDate,
+        prev.streak?.highest || 0
+      );
+      return {
+        ...prev,
+        syncGoalWithStreak: true,
+        goalDay: streakInfo.consecutivePastDays + 1,
       };
     });
   }, [saveState]);
@@ -836,6 +870,7 @@ export function useMaamulat() {
     setWakeTime,
     setGoalCurrentDay,
     setGoalTargetDays,
+    setSyncGoalWithStreak,
     setChillaDay: setGoalCurrentDay, // alias
     setMurrabiContact,
     setHijriAdjustment,

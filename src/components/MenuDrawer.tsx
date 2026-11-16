@@ -47,6 +47,7 @@ interface MenuDrawerProps {
   onResetToDefault?: () => void;
   onUpdateMurrabiContact?: (contact: string) => void;
   onUpdateHijriAdjustment?: (adjustment: number) => void;
+  onUpdateSyncGoalWithStreak?: (sync: boolean) => void;
   onRestoreBackup?: (backup: MaamulatState) => void;
 }
 
@@ -65,6 +66,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
   onResetToDefault,
   onUpdateMurrabiContact,
   onUpdateHijriAdjustment,
+  onUpdateSyncGoalWithStreak,
   onRestoreBackup,
 }) => {
   const [murrabiInput, setMurrabiInput] = useState(state?.murrabiContact || '');
@@ -437,15 +439,17 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                       <span className="text-xs font-bold text-ink-900 dark:text-white block truncate">
                         Daily Reminders & Duas
                       </span>
-                      <button
-                        type="button"
-                        onClick={() => setShowPwaGuideModal(true)}
-                        className="p-0.5 rounded-full text-ink-400 hover:text-sage-600 dark:hover:text-sage-300 transition-colors shrink-0"
-                        title="How to install app & enable notifications on Android / iOS"
-                        aria-label="Open PWA installation and notification guide"
-                      >
-                        <Info className="w-3.5 h-3.5" />
-                      </button>
+                      {isPushSupported && (
+                        <button
+                          type="button"
+                          onClick={() => setShowPwaGuideModal(true)}
+                          className="p-0.5 rounded-full text-ink-400 hover:text-sage-600 dark:hover:text-sage-300 transition-colors shrink-0"
+                          title="How to install app & enable notifications on Android / iOS"
+                          aria-label="Open PWA installation and notification guide"
+                        >
+                          <Info className="w-3.5 h-3.5" />
+                        </button>
+                      )}
                     </div>
                     <span className="arabic-text text-[11px] text-sage-700 dark:text-ink-300 block truncate">
                       روزانہ شام کے معمولات کی یاد دہانی
@@ -601,8 +605,8 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                     type="button"
                     onClick={() => onUpdateHijriAdjustment?.(val)}
                     className={`py-1 rounded-lg text-[11px] font-bold transition-all tap-bounce text-center ${currentAdjustment === val
-                        ? 'bg-sage-600 text-white shadow-sm'
-                        : 'bg-paper-100 hover:bg-paper-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-ink-700 dark:text-ink-300'
+                      ? 'bg-sage-600 text-white shadow-sm'
+                      : 'bg-paper-100 hover:bg-paper-200 dark:bg-ink-800 dark:hover:bg-ink-700 text-ink-700 dark:text-ink-300'
                       }`}
                   >
                     {val > 0 ? `+${val}` : val}
@@ -644,6 +648,37 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
                   Edit
                 </button>
               </div>
+
+              {/* Sync Goal with Streak Toggle */}
+              {onUpdateSyncGoalWithStreak && (
+                <div className="pt-2.5 border-t border-paper-200 dark:border-ink-800 flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <span className="text-[11px] font-bold text-ink-800 dark:text-ink-200 block">
+                      Sync Goal with Streak (تسلسل سے منسلک)
+                    </span>
+                    <span className="text-[10px] text-ink-500 dark:text-ink-400 block leading-snug">
+                      {state?.syncGoalWithStreak === true
+                        ? 'Breaking your daily streak restarts the goal from Day 1.'
+                        : 'Goal days count up each day regardless of streak criteria.'}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    role="switch"
+                    aria-checked={state?.syncGoalWithStreak === true}
+                    aria-label="Sync spiritual goal with daily streak"
+                    onClick={() => onUpdateSyncGoalWithStreak(!(state?.syncGoalWithStreak === true))}
+                    className={`relative inline-flex h-5 w-9 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors duration-200 ease-in-out focus:outline-none ${state?.syncGoalWithStreak === true ? 'bg-sage-600' : 'bg-paper-300 dark:bg-ink-700'
+                      }`}
+                  >
+                    <span
+                      aria-hidden="true"
+                      className={`pointer-events-none inline-block h-4 w-4 transform rounded-full bg-white shadow ring-0 transition duration-200 ease-in-out ${state?.syncGoalWithStreak === true ? 'translate-x-4' : 'translate-x-0'
+                        }`}
+                    />
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 

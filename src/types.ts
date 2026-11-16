@@ -58,6 +58,7 @@ export interface MaamulatState {
   todayDate: string;          // YYYY-MM-DD
   goalDay: number;            // 1 to goalMaxDays
   goalMaxDays: number;        // user customizable: 7, 21, 40, 100, etc.
+  syncGoalWithStreak?: boolean; // when true (default), breaking streak resets goalDay to 1
   hijriAdjustment?: number;   // -3 to +3 days manual offset based on local moon sighting
   streak: {
     current: number;
