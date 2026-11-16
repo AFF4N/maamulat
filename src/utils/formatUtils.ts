@@ -95,3 +95,52 @@ export function estimateTilawatHasanat(measure: string): number {
   return 27000;
 }
 
+export function toUrduDigits(num: number): string {
+  const urduDigits = ['۰', '۱', '۲', '۳', '۴', '۵', '۶', '۷', '۸', '۹'];
+  return String(Math.round(num)).replace(/\d/g, (d) => urduDigits[Number(d)]);
+}
+
+// TODO(legacy-migration): Remove extractDhikrCount & removeDhikrCountFromTitle once existing localStorage users have migrated off baked-in title counts.
+/**
+ * Extracts a repetition count from legacy Dhikr task titles (e.g. "Astaghfirullah (150x)" or "استغفار ۱۵۰"),
+ * ignoring English ordinals like "1st" or "3rd".
+ */
+export function extractDhikrCount(englishTitle: string, urduTitle: string): number | null {
+  const cleanEnglish = normalizeDigits(englishTitle || '').replace(/\b\d+(st|nd|rd|th)\b/gi, '');
+  const enMatch = cleanEnglish.match(/(\d+)\s*x?\b/i);
+  if (enMatch) {
+    const val = parseInt(enMatch[1], 10);
+    if (val > 0) return val;
+  }
+
+  const cleanUrdu = normalizeDigits(urduTitle || '');
+  const urMatch = cleanUrdu.match(/(\d+)/);
+  if (urMatch) {
+    const val = parseInt(urMatch[1], 10);
+    if (val > 0) return val;
+  }
+
+  return null;
+}
+
+/**
+ * Strips baked-in repetition counts from legacy Dhikr titles during migration,
+ * preserving English ordinals like "1st" or "3rd".
+ */
+export function removeDhikrCountFromTitle(title: string, isUrdu: boolean = false): string {
+  if (isUrdu) {
+    return title
+      .replace(/\s*\([۰-۹٠-٩\d]+\)\s*/g, ' ')
+      .replace(/\s+[۰-۹٠-٩\d]+\s*$/g, '')
+      .trim();
+  }
+
+  const withoutOrdinals = title.replace(/\b\d+(st|nd|rd|th)\b/gi, (m) => `__ORD_${m}__`);
+  const cleaned = withoutOrdinals
+    .replace(/\s*\(\s*\d+\s*x?\s*\)\s*/gi, ' ')
+    .replace(/\s+\d+\s*x?\s*$/gi, '')
+    .trim();
+
+  return cleaned.replace(/__ORD_(\d+(?:st|nd|rd|th))__/gi, '$1');
+}
+

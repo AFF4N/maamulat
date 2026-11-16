@@ -24,15 +24,15 @@ export const DEFAULT_CATEGORIES: CategoryConfig[] = [
   },
   {
     id: 'dhikr_morning',
-    urdu: 'ذکر صبح (۱۰۰ مرتبہ)',
-    english: 'Morning Dhikr (100x)',
+    urdu: 'ذکر صبح',
+    english: 'Morning Dhikr',
     emoji: '🔴',
     accent: 'border-amber-200 dark:border-amber-800/40 bg-amber-50/30 dark:bg-amber-950/10'
   },
   {
     id: 'dhikr_evening',
-    urdu: 'ذکر شام (۱۰۰ مرتبہ)',
-    english: 'Evening Dhikr (100x)',
+    urdu: 'ذکر شام',
+    english: 'Evening Dhikr',
     emoji: '🔴',
     accent: 'border-orange-200 dark:border-orange-800/40 bg-orange-50/30 dark:bg-orange-950/10'
   },
@@ -59,6 +59,7 @@ export const DEFAULT_CATEGORIES: CategoryConfig[] = [
   }
 ];
 
+// TODO(legacy-migration): Remove LEGACY_DEFAULT_HASANAT once existing localStorage users have migrated to the authentic estimates.
 /**
  * Legacy arbitrary hasanat values used prior to authentic Quran/Hadith estimation,
  * kept for one-time migration of unedited default tasks in localStorage.
@@ -205,88 +206,104 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     completed: false,
   },
 
-  // 🔴 ذکر صبح (Morning Dhikr - 100x)
+  // 🔴 ذکر صبح (Morning Dhikr)
   // Authentic basis: 100x × 10 baseline (Al-An'am 6:160 / Muslim 408 for Durood / 4 phrases for 3rd Kalimah)
   {
     id: 'istighfar_morning',
     category: 'dhikr_morning',
-    urduTitle: 'استغفار ۱۰۰',
-    englishTitle: 'Astaghfirullah (100x)',
+    urduTitle: 'استغفار',
+    englishTitle: 'Astaghfirullah',
     description: 'Cleansing the slate at the dawn of the day',
     emoji: '🔺',
     hasanat: 1000,
+    baseHasanat: 10,
+    targetCount: 100,
     completed: false,
   },
   {
     id: 'durood_morning',
     category: 'dhikr_morning',
-    urduTitle: 'درود شریف ۱۰۰',
-    englishTitle: 'Durood Sharif (100x)',
+    urduTitle: 'درود شریف',
+    englishTitle: 'Durood Sharif',
     description: 'Blessings upon the beloved Prophet Muhammad ﷺ',
     emoji: '🔺',
     hasanat: 1000,
+    baseHasanat: 10,
+    targetCount: 100,
     completed: false,
   },
   {
     id: 'kalimah3_morning',
     category: 'dhikr_morning',
-    urduTitle: 'تیسرا کلمہ ۱۰۰',
-    englishTitle: '3rd Kalimah (100x)',
+    urduTitle: 'تیسرا کلمہ',
+    englishTitle: '3rd Kalimah',
     description: 'Subhanallah, Walhamdulillah, Wala ilaha illallah...',
     emoji: '🔺',
     hasanat: 4000,
+    baseHasanat: 40,
+    targetCount: 100,
     completed: false,
   },
   {
     id: 'kalimah1_morning',
     category: 'dhikr_morning',
-    urduTitle: 'پہلا کلمہ ۱۰۰',
-    englishTitle: '1st Kalimah (100x)',
+    urduTitle: 'پہلا کلمہ',
+    englishTitle: '1st Kalimah',
     description: 'La ilaha illallah Muhammadur Rasulullah',
     emoji: '🔺',
     hasanat: 1000,
+    baseHasanat: 10,
+    targetCount: 100,
     completed: false,
   },
 
-  // 🔴 ذکر شام (Evening Dhikr - 100x)
+  // 🔴 ذکر شام (Evening Dhikr)
   {
     id: 'istighfar_evening',
     category: 'dhikr_evening',
-    urduTitle: 'استغفار ۱۰۰',
-    englishTitle: 'Astaghfirullah (100x)',
+    urduTitle: 'استغفار',
+    englishTitle: 'Astaghfirullah',
     description: 'Seeking pardon before the night envelops the sky',
     emoji: '🔺',
     hasanat: 1000,
+    baseHasanat: 10,
+    targetCount: 100,
     completed: false,
   },
   {
     id: 'durood_evening',
     category: 'dhikr_evening',
-    urduTitle: 'درود شریف ۱۰۰',
-    englishTitle: 'Durood Sharif (100x)',
+    urduTitle: 'درود شریف',
+    englishTitle: 'Durood Sharif',
     description: 'Sending loving salutations upon the Prophet ﷺ',
     emoji: '🔺',
     hasanat: 1000,
+    baseHasanat: 10,
+    targetCount: 100,
     completed: false,
   },
   {
     id: 'kalimah3_evening',
     category: 'dhikr_evening',
-    urduTitle: 'تیسرا کلمہ ۱۰۰',
-    englishTitle: '3rd Kalimah (100x)',
+    urduTitle: 'تیسرا کلمہ',
+    englishTitle: '3rd Kalimah',
     description: 'Glorifying the Lord of the heavens and earth',
     emoji: '🔺',
     hasanat: 4000,
+    baseHasanat: 40,
+    targetCount: 100,
     completed: false,
   },
   {
     id: 'kalimah1_evening',
     category: 'dhikr_evening',
-    urduTitle: 'پہلا کلمہ ۱۰۰',
-    englishTitle: '1st Kalimah (100x)',
+    urduTitle: 'پہلا کلمہ',
+    englishTitle: '1st Kalimah',
     description: 'Renewing the affirmation of pure Tawhid',
     emoji: '🔺',
     hasanat: 1000,
+    baseHasanat: 10,
+    targetCount: 100,
     completed: false,
   },
 
@@ -418,14 +435,14 @@ export const CATEGORY_INFO: Record<string, { urdu: string; english: string; emoj
     accent: 'border-sky-200 dark:border-sky-800/40 bg-sky-50/30 dark:bg-sky-950/10'
   },
   dhikr_morning: {
-    urdu: 'ذکر صبح (۱۰۰ مرتبہ)',
-    english: 'Morning Dhikr (100x)',
+    urdu: 'ذکر صبح',
+    english: 'Morning Dhikr',
     emoji: '🔴',
     accent: 'border-amber-200 dark:border-amber-800/40 bg-amber-50/30 dark:bg-amber-950/10'
   },
   dhikr_evening: {
-    urdu: 'ذکر شام (۱۰۰ مرتبہ)',
-    english: 'Evening Dhikr (100x)',
+    urdu: 'ذکر شام',
+    english: 'Evening Dhikr',
     emoji: '🔴',
     accent: 'border-orange-200 dark:border-orange-800/40 bg-orange-50/30 dark:bg-orange-950/10'
   },

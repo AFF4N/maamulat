@@ -38,7 +38,15 @@ interface CustomizerSectionCardProps {
   onToggleTaskDetails: (taskId: string) => void;
   onToggleTaskVisibility: (taskId: string) => void;
   onDeleteTask: (taskId: string) => void;
-  onCreateTask: (catId: string, english: string, urdu: string, emoji: string, hasanat: number) => void;
+  onCreateTask: (
+    catId: string,
+    english: string,
+    urdu: string,
+    emoji: string,
+    hasanat: number,
+    baseHasanat?: number,
+    targetCount?: number
+  ) => void;
 }
 
 export const CustomizerSectionCard: React.FC<CustomizerSectionCardProps> = ({
@@ -63,13 +71,18 @@ export const CustomizerSectionCard: React.FC<CustomizerSectionCardProps> = ({
   const [newTaskEnglish, setNewTaskEnglish] = useState('');
   const [newTaskUrdu, setNewTaskUrdu] = useState('');
   const [newTaskEmoji, setNewTaskEmoji] = useState('🔹');
-  const [newTaskHasanat, setNewTaskHasanat] = useState(25);
+  const [newTaskHasanat, setNewTaskHasanat] = useState(100);
+  const [newTaskCountable, setNewTaskCountable] = useState(false);
+  const [newTaskTargetCount, setNewTaskTargetCount] = useState(100);
 
   const handleApplyTemplate = (tpl: (typeof QUICK_TEMPLATES)[0]) => {
     setNewTaskEnglish(tpl.english);
     setNewTaskUrdu(tpl.urdu);
     setNewTaskEmoji(tpl.emoji);
     setNewTaskHasanat(tpl.hasanat);
+    const isTplCountable = tpl.english.includes('100x');
+    setNewTaskCountable(isTplCountable);
+    setNewTaskTargetCount(100);
   };
 
   const handleQuickAddSubmit = () => {
@@ -77,11 +90,21 @@ export const CustomizerSectionCard: React.FC<CustomizerSectionCardProps> = ({
     const urdu = newTaskUrdu.trim() || newTaskEnglish.trim();
     if (!english && !urdu) return;
 
-    onCreateTask(cat.id, english, urdu, newTaskEmoji, newTaskHasanat);
+    onCreateTask(
+      cat.id,
+      english,
+      urdu,
+      newTaskEmoji,
+      newTaskHasanat,
+      newTaskCountable ? 10 : undefined,
+      newTaskCountable ? newTaskTargetCount : undefined
+    );
     setNewTaskEnglish('');
     setNewTaskUrdu('');
     setNewTaskEmoji('🔹');
-    setNewTaskHasanat(25);
+    setNewTaskHasanat(100);
+    setNewTaskCountable(false);
+    setNewTaskTargetCount(100);
     setIsAddingTask(false);
   };
 
@@ -253,18 +276,55 @@ export const CustomizerSectionCard: React.FC<CustomizerSectionCardProps> = ({
                 />
               </div>
 
-              <div className="flex items-center justify-between gap-2 pt-1">
-                <div className="flex items-center gap-1.5 text-xs text-ink-600 dark:text-ink-400">
-                  <Sparkles className="w-3.5 h-3.5 text-amberGold-500" />
-                  <span>Hasanat:</span>
-                  <input
-                    type="number"
-                    min="0"
-                    max="1000000"
-                    value={newTaskHasanat}
-                    onChange={(e) => setNewTaskHasanat(Number(e.target.value) || 0)}
-                    className="w-16 text-center text-xs px-1.5 py-1 rounded-md border border-sage-300 dark:border-sage-700 bg-white dark:bg-ink-850 text-ink-900 dark:text-white tabular-nums"
-                  />
+              <div className="flex items-center justify-between gap-2 pt-1 flex-wrap">
+                <div className="flex items-center gap-2 flex-wrap">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const next = !newTaskCountable;
+                      setNewTaskCountable(next);
+                      if (next) {
+                        setNewTaskHasanat(10 * newTaskTargetCount);
+                      }
+                    }}
+                    className={`inline-flex items-center gap-1 text-[11px] font-semibold px-2 py-1 rounded-md border transition-colors ${
+                      newTaskCountable
+                        ? 'bg-sage-100 dark:bg-sage-900/50 border-sage-400 dark:border-sage-700 text-sage-800 dark:text-sage-200'
+                        : 'bg-white dark:bg-ink-850 border-paper-300 dark:border-ink-700 text-ink-500 dark:text-ink-400'
+                    }`}
+                    title="Enable repetition count (×) for this task"
+                  >
+                    <span>× Count</span>
+                  </button>
+
+                  {newTaskCountable && (
+                    <input
+                      type="number"
+                      min="1"
+                      max="100000"
+                      value={newTaskTargetCount}
+                      onChange={(e) => {
+                        const c = Math.max(1, parseInt(e.target.value, 10) || 1);
+                        setNewTaskTargetCount(c);
+                        setNewTaskHasanat(10 * c);
+                      }}
+                      className="w-14 text-center text-xs px-1.5 py-1 rounded-md border border-sage-300 dark:border-sage-700 bg-white dark:bg-ink-850 text-ink-900 dark:text-white tabular-nums"
+                      title="Target repetition count"
+                    />
+                  )}
+
+                  <div className="flex items-center gap-1.5 text-xs text-ink-600 dark:text-ink-400">
+                    <Sparkles className="w-3.5 h-3.5 text-amberGold-500" />
+                    <span>Hasanat:</span>
+                    <input
+                      type="number"
+                      min="0"
+                      max="1000000"
+                      value={newTaskHasanat}
+                      onChange={(e) => setNewTaskHasanat(Number(e.target.value) || 0)}
+                      className="w-16 text-center text-xs px-1.5 py-1 rounded-md border border-sage-300 dark:border-sage-700 bg-white dark:bg-ink-850 text-ink-900 dark:text-white tabular-nums"
+                    />
+                  </div>
                 </div>
                 <button
                   type="button"

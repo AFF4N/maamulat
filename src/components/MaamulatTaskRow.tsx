@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import type { MaamulatTask } from '../types';
 import { Check, Info, X, ExternalLink, FileText, Pencil, Sparkles } from 'lucide-react';
 import { TilawatMeasureModal } from './TilawatMeasureModal';
-import { formatHasanat } from '../utils/formatUtils';
+import { formatHasanat, toUrduDigits } from '../utils/formatUtils';
 
 interface MaamulatTaskRowProps {
   task: MaamulatTask;
@@ -69,6 +69,7 @@ export const MaamulatTaskRow: React.FC<MaamulatTaskRowProps> = ({
                   }`}
               >
                 {task.urduTitle}
+                {task.baseHasanat !== undefined && task.targetCount ? ` ${toUrduDigits(task.targetCount)}` : ''}
               </span>
               <span
                 className={`text-xs font-medium leading-tight truncate ${task.completed
@@ -76,7 +77,8 @@ export const MaamulatTaskRow: React.FC<MaamulatTaskRowProps> = ({
                   : 'text-ink-500 dark:text-ink-400'
                   }`}
               >
-                ({task.englishTitle})
+                {task.englishTitle}
+                {task.baseHasanat !== undefined && task.targetCount ? ` (${task.targetCount}x)` : ''}
               </span>
 
               {/* Little (i) info icon button */}

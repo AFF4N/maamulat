@@ -214,7 +214,9 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
     english: string,
     urdu: string,
     emoji: string,
-    hasanat: number
+    hasanat: number,
+    baseHasanat?: number,
+    targetCount?: number
   ) => {
     const newId = `task_${Date.now()}`;
     const newTask: MaamulatTask = {
@@ -224,6 +226,8 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
       englishTitle: english,
       emoji: emoji || '🔹',
       hasanat: Number(hasanat) || 100,
+      ...(baseHasanat !== undefined ? { baseHasanat } : {}),
+      ...(targetCount !== undefined ? { targetCount } : {}),
       completed: false,
       hidden: false,
     };

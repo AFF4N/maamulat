@@ -1,6 +1,6 @@
 import type { MaamulatState, DayRecord } from '../types';
 import { formatUrduDate, formatUrduHijriDate, getUrduDayName, format12HourTime } from './dateUtils';
-import { formatHasanat } from './formatUtils';
+import { formatHasanat, toUrduDigits } from './formatUtils';
 
 /**
  * Locks a 12-hour time string (e.g. "12:00 AM") into a single unbroken LTR BiDi run
@@ -27,6 +27,7 @@ export function generateWhatsAppReport(state: MaamulatState): string {
   const lines: string[] = [];
 
   // Goal & Date Header (e.g. *ہدف یوم:* 7/40)
+  // TODO(legacy-migration): Remove chillaDay/chillaMaxDays fallback once all users have migrated to goalDay/goalMaxDays.
   const currentDay = state.goalDay ?? state.chillaDay ?? 1;
   const targetDays = state.goalMaxDays ?? state.chillaMaxDays ?? 40;
   lines.push(`*ہدف یوم:* ${currentDay}/${targetDays}`);
@@ -53,7 +54,8 @@ export function generateWhatsAppReport(state: MaamulatState): string {
     // Tasks under category
     catTasks.forEach((task) => {
       const status = task.completed ? '✅' : '❌';
-      lines.push(`${task.emoji}${task.urduTitle} ${status}`);
+      const countSuffix = task.baseHasanat !== undefined && task.targetCount ? ` ${toUrduDigits(task.targetCount)}` : '';
+      lines.push(`${task.emoji}${task.urduTitle}${countSuffix} ${status}`);
     });
 
     // If salah, include Takbeer-e-Oola count
@@ -111,6 +113,7 @@ export function getReportForDayRecord(record: DayRecord, state: MaamulatState): 
     });
   }
 
+  // TODO(legacy-migration): Remove legacy DayRecord summary fallback once all history records include full task snapshots.
   // Fallback for legacy day records without full task snapshot
   const lines: string[] = [];
   lines.push(`*ہدف یوم:* ${record.goalDay || 1}/${record.goalMaxDays || 40}`);

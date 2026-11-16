@@ -36,8 +36,6 @@ export const MaamulatCategoryCard: React.FC<MaamulatCategoryCardProps> = ({
   };
 
   const visibleTasks = tasks.filter(t => !t.hidden);
-  const completedCount = visibleTasks.filter(t => t.completed).length;
-  const isCategoryComplete = completedCount === visibleTasks.length && visibleTasks.length > 0;
 
   if (visibleTasks.length === 0) {
     return null;
@@ -46,29 +44,18 @@ export const MaamulatCategoryCard: React.FC<MaamulatCategoryCardProps> = ({
   return (
     <section className="rounded-2xl p-3.5 sm:p-4 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm space-y-3">
       {/* Category Header */}
-      <div className="flex items-center justify-between gap-2 border-b border-paper-200/80 dark:border-ink-700/60 pb-2.5">
-        <div className="flex items-center gap-2 min-w-0 flex-1">
-          <span className="text-lg flex-shrink-0 select-none">{info.emoji}</span>
-          <div className="min-w-0 flex-1">
-            <div className="flex flex-row-reverse items-baseline justify-between gap-2">
-              <h2 className="arabic-text text-lg sm:text-xl font-bold text-ink-900 dark:text-white leading-tight">
-                {info.urdu}
-              </h2>
-              <span className="text-xs text-ink-500 dark:text-ink-400 font-medium">
-                {info.english}
-              </span>
-            </div>
+      <div className="flex items-center gap-2 border-b border-paper-200/80 dark:border-ink-700/60 pb-2.5">
+        <span className="text-lg flex-shrink-0 select-none">{info.emoji}</span>
+        <div className="min-w-0 flex-1">
+          <div className="flex flex-row-reverse items-baseline justify-between gap-2">
+            <h2 className="arabic-text text-lg sm:text-xl font-bold text-ink-900 dark:text-white leading-tight">
+              {info.urdu}
+            </h2>
+            <span className="text-xs text-ink-500 dark:text-ink-400 font-medium">
+              {info.english}
+            </span>
           </div>
         </div>
-
-        <span
-          className={`text-xs font-semibold px-2 py-0.5 rounded-full whitespace-nowrap flex-shrink-0 tabular-nums ${isCategoryComplete
-            ? 'bg-sage-100 dark:bg-sage-900/60 text-sage-800 dark:text-sage-300'
-            : 'bg-paper-100 dark:bg-ink-750 text-ink-500 dark:text-ink-400'
-            }`}
-        >
-          {completedCount}&nbsp;/&nbsp;{visibleTasks.length}
-        </span>
       </div>
 
       {/* Task Rows List */}

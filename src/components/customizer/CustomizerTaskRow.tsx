@@ -1,6 +1,7 @@
 import React from 'react';
 import type { MaamulatTask } from '../../types';
-import { Trash2, Eye, EyeOff, Info, FileText, FileX, Sparkles } from 'lucide-react';
+import { Trash2, Eye, EyeOff, Info, FileText, FileX, Sparkles, Repeat } from 'lucide-react';
+import { toUrduDigits } from '../../utils/formatUtils';
 
 interface CustomizerTaskRowProps {
   task: MaamulatTask;
@@ -20,61 +21,140 @@ export const CustomizerTaskRow: React.FC<CustomizerTaskRowProps> = ({
   onDelete,
 }) => {
   const isExcludedFromReport = Boolean(task.excludeFromReport);
+  const isCountable = task.baseHasanat !== undefined;
+  const basePerRep = task.baseHasanat ?? 10;
+  const currentCount = task.targetCount ?? 100;
+
+  const handleToggleCountable = () => {
+    if (isCountable) {
+      onUpdate({
+        baseHasanat: undefined,
+        targetCount: undefined,
+      });
+    } else {
+      const initialCount = 100;
+      const base = 10;
+      onUpdate({
+        baseHasanat: base,
+        targetCount: initialCount,
+        hasanat: base * initialCount,
+      });
+    }
+  };
+
+  const handleCountChange = (rawValue: string) => {
+    if (rawValue === '') {
+      onUpdate({
+        baseHasanat: basePerRep,
+        targetCount: 0,
+        hasanat: 0,
+      });
+      return;
+    }
+
+    const newCount = Math.max(1, parseInt(rawValue, 10) || 1);
+    onUpdate({
+      baseHasanat: basePerRep,
+      targetCount: newCount,
+      hasanat: basePerRep * newCount,
+    });
+  };
 
   return (
     <div
-      className={`rounded-xl border p-2.5 sm:p-3 transition-colors ${
+      className={`rounded-xl border p-3 transition-colors space-y-2.5 ${
         task.hidden
           ? 'bg-paper-100/60 dark:bg-ink-900/40 border-dashed border-paper-300 dark:border-ink-800 opacity-60'
           : 'bg-paper-50/70 dark:bg-ink-800/60 border-paper-200 dark:border-ink-700/60'
       }`}
     >
-      <div className="flex items-center justify-between gap-2">
-        <div className="flex items-center gap-2 flex-1 min-w-0">
-          {/* Emoji */}
-          <input
-            type="text"
-            value={task.emoji}
-            onChange={(e) => onUpdate({ emoji: e.target.value })}
-            className="w-7 h-7 rounded-lg bg-white dark:bg-ink-850 border border-paper-300 dark:border-ink-700 text-center text-sm focus:outline-none focus:ring-1 focus:ring-sage-500 flex-shrink-0"
-            title="Task Emoji"
-          />
+      {/* Row 1: Emoji & Bilingual Titles (full width, plenty of breathing room) */}
+      <div className="flex items-start gap-2.5 min-w-0">
+        {/* Emoji */}
+        <input
+          type="text"
+          value={task.emoji}
+          onChange={(e) => onUpdate({ emoji: e.target.value })}
+          className="w-8 h-8 rounded-lg bg-white dark:bg-ink-850 border border-paper-300 dark:border-ink-700 text-center text-sm focus:outline-none focus:ring-1 focus:ring-sage-500 flex-shrink-0 mt-0.5"
+          title="Task Emoji"
+        />
 
-          {/* Bilingual Titles */}
-          <div className="flex-1 min-w-0">
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+        {/* Bilingual Titles */}
+        <div className="flex-1 min-w-0">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-1.5">
+            <div className="flex items-center gap-1 min-w-0">
               <input
                 type="text"
                 value={task.englishTitle}
                 onChange={(e) => onUpdate({ englishTitle: e.target.value })}
                 placeholder="Task Name (English)"
-                className="text-xs font-medium bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-900 dark:text-white"
+                className="flex-1 min-w-0 text-xs sm:text-sm font-medium bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-900 dark:text-white py-0.5"
               />
+              {isCountable && currentCount > 0 && (
+                <span
+                  title={`(${currentCount}x)`}
+                  className="text-[11px] font-semibold text-sage-600 dark:text-sage-400 flex-shrink-0 tabular-nums max-w-[10ch] truncate"
+                >
+                  ({currentCount}x)
+                </span>
+              )}
+            </div>
+            <div className="flex items-center gap-1.5 min-w-0">
               <input
                 type="text"
                 value={task.urduTitle}
                 onChange={(e) => onUpdate({ urduTitle: e.target.value })}
                 placeholder="ٹاسک کا نام (Urdu)"
-                className="arabic-text text-left text-sm font-bold bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-700 dark:text-ink-300"
+                className="flex-1 min-w-0 arabic-text text-left text-sm font-bold bg-transparent border-b border-transparent hover:border-paper-300 focus:border-sage-500 focus:outline-none text-ink-700 dark:text-ink-300 py-0.5"
+              />
+              {isCountable && currentCount > 0 && (
+                <span
+                  title={toUrduDigits(currentCount)}
+                  className="arabic-text text-xs font-bold text-sage-600 dark:text-sage-400 flex-shrink-0 max-w-[10ch] truncate"
+                >
+                  {toUrduDigits(currentCount)}
+                </span>
+              )}
+            </div>
+          </div>
+
+          {isExcludedFromReport && !task.hidden && (
+            <div className="mt-1.5 flex items-center gap-1">
+              <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-amberGold-50 dark:bg-amberGold-950/40 text-amberGold-700 dark:text-amberGold-400 border border-amberGold-200/80 dark:border-amberGold-800/60">
+                <FileX className="w-2.5 h-2.5" />
+                <span>Hidden from Report</span>
+              </span>
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Row 2: Count / Hasanat Rewards & Quick Action Controls */}
+      <div className="pt-2 border-t border-paper-200/70 dark:border-ink-700/50 flex items-center justify-between gap-1">
+        {/* Left: Count & Hasanat inputs */}
+        <div className="flex items-center gap-1 min-w-0">
+          {/* Repetition count input for countable tasks */}
+          {isCountable && (
+            <div
+              className="flex items-center gap-0.5 bg-sage-50 dark:bg-sage-950/50 border border-sage-200 dark:border-sage-800 px-1.5 py-0.5 rounded-lg text-[11px] min-w-0"
+              title={`Repetition count (${basePerRep} Hasanat each)`}
+            >
+              <span className="text-sage-600 dark:text-sage-400 font-bold">×</span>
+              <input
+                type="number"
+                min="1"
+                max="100000"
+                value={currentCount === 0 ? '' : currentCount}
+                onChange={(e) => handleCountChange(e.target.value)}
+                style={{ width: `${Math.max(2, String(currentCount || '').length) + 0.5}ch` }}
+                className="max-w-[5ch] text-center bg-transparent focus:outline-none font-bold text-sage-800 dark:text-sage-200 text-[11px] tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
               />
             </div>
+          )}
 
-            {isExcludedFromReport && !task.hidden && (
-              <div className="mt-1 flex items-center gap-1">
-                <span className="inline-flex items-center gap-1 text-[10px] font-semibold px-1.5 py-0.5 rounded-md bg-amberGold-50 dark:bg-amberGold-950/40 text-amberGold-700 dark:text-amberGold-400 border border-amberGold-200/80 dark:border-amberGold-800/60">
-                  <FileX className="w-2.5 h-2.5" />
-                  <span>Hidden from Report (صرف شیٹ پر)</span>
-                </span>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* Reward & Quick Controls */}
-        <div className="flex items-center gap-1.5 flex-shrink-0">
           {/* Hasanat reward input */}
           <div
-            className="flex items-center gap-1 bg-white dark:bg-ink-850 border border-paper-300 dark:border-ink-700 px-1.5 py-0.5 rounded-lg text-[11px]"
+            className="flex items-center gap-0.5 bg-white dark:bg-ink-850 border border-paper-300 dark:border-ink-700 px-1.5 py-0.5 rounded-lg text-[11px] min-w-0"
             title="Reward Hasanat"
           >
             <span className="text-amberGold-600 font-bold">+</span>
@@ -84,10 +164,33 @@ export const CustomizerTaskRow: React.FC<CustomizerTaskRowProps> = ({
               max="1000000"
               value={task.hasanat}
               onChange={(e) => onUpdate({ hasanat: Number(e.target.value) || 0 })}
-              className="w-16 text-center bg-transparent focus:outline-none font-bold text-ink-900 dark:text-white text-[11px] tabular-nums"
+              style={{ width: `${Math.max(2, String(task.hasanat).length) + 0.5}ch` }}
+              className="max-w-[6ch] text-center bg-transparent focus:outline-none font-bold text-ink-900 dark:text-white text-[11px] tabular-nums [appearance:textfield] [&::-webkit-outer-spin-button]:appearance-none [&::-webkit-inner-spin-button]:appearance-none"
             />
             <Sparkles className="w-3 h-3 text-amberGold-500 flex-shrink-0" />
           </div>
+        </div>
+
+        {/* Right: Action buttons */}
+        <div className="flex items-center gap-0.5 flex-shrink-0">
+          {/* Toggle repetition count (×) */}
+          <button
+            type="button"
+            onClick={handleToggleCountable}
+            className={`p-1 rounded-lg transition-colors ${
+              isCountable
+                ? 'text-sage-700 dark:text-sage-300 bg-sage-100 dark:bg-sage-900/50 border border-sage-200 dark:border-sage-800'
+                : 'text-ink-400 hover:text-ink-700 dark:hover:text-ink-200'
+            }`}
+            title={
+              isCountable
+                ? 'Repetition count enabled (Tap to disable × count)'
+                : 'Enable repetition count (×) for this task'
+            }
+            aria-label="Toggle repetition count"
+          >
+            <Repeat className="w-3.5 h-3.5" />
+          </button>
 
           {/* Include / Exclude from Printed Report */}
           <button

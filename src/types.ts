@@ -30,6 +30,8 @@ export interface MaamulatTask {
   customMeasure?: string;     // Customizable measure (e.g. Tilawat portion)
   emoji: string;
   hasanat: number;
+  baseHasanat?: number;       // Optional per-repetition Hasanat for countable tasks (e.g. Dhikr)
+  targetCount?: number;       // Repetition count for countable tasks (e.g. 100, 150)
   completed: boolean;
   completedAt?: string;
   hidden?: boolean;           // Allows hiding tasks from daily sheet
@@ -73,6 +75,7 @@ export interface MaamulatState {
   tasks: MaamulatTask[];
   history: DayRecord[];
   murrabiContact?: string;    // from ?murrabi= or stored
+  // TODO(legacy-migration): Remove chillaDay/chillaMaxDays once all users have migrated to goalDay/goalMaxDays.
   chillaDay?: number;
   chillaMaxDays?: number;
 }

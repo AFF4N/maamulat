@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import type { MaamulatState, DayRecord, CategoryConfig, MaamulatTask } from '../types';
 import { DEFAULT_TASKS, DEFAULT_CATEGORIES, LEGACY_DEFAULT_HASANAT } from '../utils/defaultTasks';
-import { estimateTilawatHasanat } from '../utils/formatUtils';
+import { estimateTilawatHasanat, extractDhikrCount, removeDhikrCountFromTitle } from '../utils/formatUtils';
 import {
   getTodayLocalDateString,
   formatUrduDate,
@@ -74,6 +74,7 @@ function getInitialState(): MaamulatState {
 
     const parsed: any = JSON.parse(stored);
 
+    // TODO(legacy-migration): Remove chillaDay/chillaMaxDays -> goalDay/goalMaxDays migration once all users have migrated.
     // Migration from old chillaDay/chillaMaxDays to goalDay/goalMaxDays if needed
     if (parsed.goalDay === undefined) {
       parsed.goalDay = parsed.chillaDay ?? 1;
@@ -90,21 +91,64 @@ function getInitialState(): MaamulatState {
     // Initialize or preserve categories configuration
     if (!parsed.categories || !Array.isArray(parsed.categories) || parsed.categories.length === 0) {
       parsed.categories = DEFAULT_CATEGORIES;
+    } else {
+      // TODO(legacy-migration): Remove this Dhikr category title cleanup once all users have migrated off hardcoded "(100x)" / "(۱۰۰ مرتبہ)" titles.
+      parsed.categories = parsed.categories.map((cat: any) => {
+        if (cat.id === 'dhikr_morning') {
+          return {
+            ...cat,
+            urdu: cat.urdu === 'ذکر صبح (۱۰۰ مرتبہ)' ? 'ذکر صبح' : cat.urdu,
+            english: cat.english === 'Morning Dhikr (100x)' ? 'Morning Dhikr' : cat.english,
+          };
+        }
+        if (cat.id === 'dhikr_evening') {
+          return {
+            ...cat,
+            urdu: cat.urdu === 'ذکر شام (۱۰۰ مرتبہ)' ? 'ذکر شام' : cat.urdu,
+            english: cat.english === 'Evening Dhikr (100x)' ? 'Evening Dhikr' : cat.english,
+          };
+        }
+        return cat;
+      });
     }
 
     // Merge tasks: preserve user custom tasks, edits, and hidden statuses
     if (Array.isArray(parsed.tasks) && parsed.tasks.length > 0) {
       parsed.tasks = parsed.tasks.map((existing: any) => {
         const dt = DEFAULT_TASKS.find(x => x.id === existing.id);
+        // TODO(legacy-migration): Remove LEGACY_DEFAULT_HASANAT and legacy Dhikr count backfill once all localStorage states have migrated.
         const legacyVal = LEGACY_DEFAULT_HASANAT[existing.id];
+        const merged = {
+          ...dt,
+          ...existing,
+        };
+
+        const basePerUnit = merged.baseHasanat ?? dt?.baseHasanat;
+        if (basePerUnit !== undefined) {
+          const detectedCount = extractDhikrCount(merged.englishTitle || '', merged.urduTitle || '');
+          const effectiveCount = detectedCount ?? merged.targetCount ?? dt?.targetCount ?? 100;
+          const isUneditedHasanat =
+            existing.hasanat === legacyVal ||
+            existing.hasanat === dt?.hasanat ||
+            existing.targetCount === undefined;
+
+          return {
+            ...merged,
+            englishTitle: detectedCount !== null ? removeDhikrCountFromTitle(merged.englishTitle || '', false) : merged.englishTitle,
+            urduTitle: detectedCount !== null ? removeDhikrCountFromTitle(merged.urduTitle || '', true) : merged.urduTitle,
+            baseHasanat: basePerUnit,
+            targetCount: effectiveCount,
+            ...(isUneditedHasanat ? { hasanat: basePerUnit * effectiveCount } : {}),
+          };
+        }
+
         const shouldUpgradeHasanat =
           dt &&
           legacyVal !== undefined &&
           existing.hasanat === legacyVal;
 
         return {
-          ...dt,
-          ...existing,
+          ...merged,
           ...(shouldUpgradeHasanat ? { hasanat: dt.hasanat } : {}),
         };
       });
@@ -160,6 +204,7 @@ function performRollover(oldState: MaamulatState, newTodayStr: string): Maamulat
         ? 'partial'
         : 'missed';
 
+  // TODO(legacy-migration): Remove chillaDay/chillaMaxDays fallback once all users have migrated to goalDay/goalMaxDays.
   const currentGoalDay = oldState.goalDay ?? oldState.chillaDay ?? 1;
   const currentGoalMax = oldState.goalMaxDays ?? oldState.chillaMaxDays ?? 40;
 
@@ -730,6 +775,7 @@ export function useMaamulat() {
     // Ensure version and fields
     sanitized.version = 2;
     sanitized.history = Array.isArray(sanitized.history) ? sanitized.history : [];
+    // TODO(legacy-migration): Remove chillaDay/chillaMaxDays backup fallback once legacy backups are no longer supported.
     sanitized.goalDay = sanitized.goalDay ?? sanitized.chillaDay ?? 1;
     sanitized.goalMaxDays = sanitized.goalMaxDays ?? sanitized.chillaMaxDays ?? 40;
     sanitized.totalHasanat = typeof sanitized.totalHasanat === 'number' ? sanitized.totalHasanat : 0;
@@ -907,6 +953,7 @@ export function useMaamulat() {
     setGoalCurrentDay,
     setGoalTargetDays,
     setSyncGoalWithStreak,
+    // TODO(legacy-migration): Remove setChillaDay alias once all callers use setGoalCurrentDay.
     setChillaDay: setGoalCurrentDay, // alias
     setMurrabiContact,
     setHijriAdjustment,

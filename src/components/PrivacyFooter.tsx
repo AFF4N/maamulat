@@ -65,6 +65,10 @@ export const PrivacyFooter: React.FC<PrivacyFooterProps> = ({
         <p className="text-xs text-ink-500 dark:text-ink-400 leading-relaxed">
           Your Maamulat stay here on your device. No account. No backend. No cloud servers. No one else sees them. Just you and Allah.
         </p>
+
+        <p className="text-[11px] text-ink-400 dark:text-ink-500 leading-relaxed pt-1">
+          Note: Hasanat counts are motivational estimates based on Qur’an &amp; Hadith references and may not be exact—true reward belongs to Allah alone.
+        </p>
       </div>
 
       {/* Discrete Local Testing & Backup Drawer */}
