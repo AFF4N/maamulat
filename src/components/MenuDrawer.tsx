@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { createPortal } from 'react-dom';
 import {
   X,
   SlidersHorizontal,
@@ -236,7 +237,9 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
     }
   };
 
-  return (
+  if (typeof document === 'undefined') return null;
+
+  return createPortal(
     <>
       {/* Backdrop */}
       <div
@@ -251,7 +254,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
         role="dialog"
         aria-modal="true"
         aria-label="Navigation & Settings Menu"
-        className={`fixed top-0 right-0 bottom-0 z-50 w-[90vw] sm:w-full max-w-md bg-paper-50 dark:bg-ink-900 border-l border-paper-300 dark:border-ink-800 shadow-2xl flex flex-col transform transition-transform duration-300 ease-out pb-6 standalone:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] ${isOpen ? 'translate-x-0' : 'translate-x-full'
+        className={`fixed top-0 right-0 bottom-0 h-[100dvh] z-50 w-[90vw] sm:w-full max-w-md bg-paper-50 dark:bg-ink-900 border-l border-paper-300 dark:border-ink-800 shadow-2xl flex flex-col transform transition-transform duration-300 ease-out pb-6 standalone:pb-[calc(1.5rem+env(safe-area-inset-bottom,0px))] ${isOpen ? 'translate-x-0' : 'translate-x-full'
           }`}
       >
         {/* Header */}
@@ -858,6 +861,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
         onClose={() => setShowPwaGuideModal(false)}
         isPushSupported={isPushSupported}
       />
-    </>
+    </>,
+    document.body
   );
 };

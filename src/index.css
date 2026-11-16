@@ -39,11 +39,157 @@
 
 /* Tactile button press effect */
 .tap-bounce {
-  transition: transform 0.15s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.15s ease;
+  transition: transform 0.16s cubic-bezier(0.34, 1.56, 0.64, 1), background-color 0.2s ease, border-color 0.2s ease, color 0.2s ease, box-shadow 0.2s ease;
 }
 
 .tap-bounce:active {
   transform: scale(0.96);
+}
+
+/* Subtle hover lift for interactive cards on pointer devices */
+@media (hover: hover) {
+  .card-hover {
+    transition: transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.22s ease, border-color 0.22s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-1px);
+  }
+}
+
+/* Core Fluid UI Animations */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fadeIn {
+  animation: fadeIn 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes backdropIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-backdrop {
+  animation: backdropIn 0.2s ease-out both;
+}
+
+@keyframes modalIn {
+  from {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-modal-in {
+  animation: modalIn 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes popoverIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95) translateY(4px);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-popover {
+  animation: popoverIn 0.18s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes toastTopIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, -12px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+.animate-toast-top {
+  animation: toastTopIn 0.24s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes toastBottomIn {
+  from {
+    opacity: 0;
+    transform: translate(-50%, 16px) scale(0.97);
+  }
+  to {
+    opacity: 1;
+    transform: translate(-50%, 0) scale(1);
+  }
+}
+
+.animate-toast-bottom {
+  animation: toastBottomIn 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes checkPop {
+  0% {
+    opacity: 0;
+    transform: scale(0.5);
+  }
+  65% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-check-pop {
+  animation: checkPop 0.24s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+}
+
+@keyframes sectionEnter {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-section-enter {
+  animation: sectionEnter 0.36s cubic-bezier(0.22, 1, 0.36, 1) backwards;
+}
+
+@keyframes screenEnter {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-screen-enter {
+  animation: screenEnter 0.24s ease-out backwards;
 }
 
 /* Subtle pulse for active streak */
@@ -98,4 +244,26 @@
 }
 ::-webkit-scrollbar-thumb:hover {
   background: rgba(100, 116, 139, 0.35);
+}
+
+/* Respect user motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  .animate-fadeIn,
+  .animate-backdrop,
+  .animate-modal-in,
+  .animate-popover,
+  .animate-toast-top,
+  .animate-toast-bottom,
+  .animate-check-pop,
+  .animate-section-enter,
+  .animate-screen-enter,
+  .animate-float-up,
+  .glow-amber {
+    animation: none !important;
+  }
+
+  .tap-bounce,
+  .card-hover {
+    transition: none !important;
+  }
 }

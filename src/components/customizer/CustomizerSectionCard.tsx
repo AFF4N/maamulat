@@ -7,7 +7,6 @@ import {
   EyeOff,
   Trash2,
   ChevronDown,
-  ChevronUp,
   Plus,
   Sparkles,
 } from 'lucide-react';
@@ -191,17 +190,23 @@ export const CustomizerSectionCard: React.FC<CustomizerSectionCardProps> = ({
           <button
             type="button"
             onClick={onToggleExpand}
-            className="p-1.5 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 transition-colors"
+            className="p-1.5 rounded-lg text-ink-400 hover:text-ink-700 dark:hover:text-ink-200 transition-colors tap-bounce"
             title={isExpanded ? 'Collapse section' : 'Expand section'}
           >
-            {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+            <ChevronDown className={`w-4 h-4 transition-transform duration-200 ease-out ${isExpanded ? 'rotate-180' : ''}`} />
           </button>
         </div>
       </div>
 
       {/* Accordion Body: Task Rows */}
-      {isExpanded && (
-        <div className="p-3 sm:p-4 space-y-2.5">
+      <div
+        className={`grid transition-[grid-template-rows,opacity] duration-300 ease-[cubic-bezier(0.22,1,0.36,1)] ${
+          isExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'
+        }`}
+        aria-hidden={!isExpanded}
+      >
+        <div className="overflow-hidden">
+          <div className="p-3 sm:p-4 space-y-2.5">
           {catTasks.length === 0 ? (
             <p className="text-xs text-ink-400 text-center py-3 italic">
               No tasks in this section yet. Tap below to add one.
@@ -346,8 +351,9 @@ export const CustomizerSectionCard: React.FC<CustomizerSectionCardProps> = ({
               <span>Add Custom Task to {cat.english}</span>
             </button>
           )}
+          </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };

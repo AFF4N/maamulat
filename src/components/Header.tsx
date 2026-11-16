@@ -337,9 +337,9 @@ export const Header: React.FC<HeaderProps> = ({
           role="dialog"
           aria-modal="true"
           aria-label="Goal Reached Celebration"
-          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+          className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-backdrop"
         >
-          <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-sm w-full p-5 border border-amberGold-300 dark:border-amberGold-700/80 shadow-xl space-y-4 text-center">
+          <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-sm w-full p-5 border border-amberGold-300 dark:border-amberGold-700/80 shadow-xl space-y-4 text-center animate-modal-in">
             <div className="mx-auto w-12 h-12 rounded-2xl bg-amberGold-100 dark:bg-amberGold-950/60 border border-amberGold-200 dark:border-amberGold-800 flex items-center justify-center text-amberGold-600 dark:text-amberGold-400 shadow-sm">
               <Trophy className="w-6 h-6" />
             </div>

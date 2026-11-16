@@ -159,27 +159,29 @@ export const Tooltip: React.FC<TooltipProps> = ({
             }
           : undefined
       }
-      className={`p-1.5 px-2 rounded-xl bg-slate-100 dark:bg-ink-800 border border-slate-300 dark:border-ink-650 text-slate-800 dark:text-slate-100 text-[10px] leading-snug shadow-soft-md pointer-events-none ${
-        !usePortal ? 'absolute z-50' : ''
-      } ${className}`}
+      className={`pointer-events-none ${!usePortal ? 'absolute z-50' : ''}`}
     >
-      <div className="flex items-start justify-between gap-1">
-        <div className="flex-1">{children}</div>
-        {showCloseButton && onClose && (
-          <button
-            type="button"
-            onClick={(e) => {
-              e.stopPropagation();
-              onClose();
-            }}
-            className="text-slate-400 hover:text-slate-700 dark:text-ink-400 dark:hover:text-white text-xs leading-none ml-1 shrink-0 tap-bounce"
-            aria-label="Close tooltip"
-          >
-            ×
-          </button>
-        )}
+      <div
+        className={`relative p-1.5 px-2 rounded-xl bg-slate-100 dark:bg-ink-800 border border-slate-300 dark:border-ink-650 text-slate-800 dark:text-slate-100 text-[10px] leading-snug shadow-soft-md animate-popover ${className}`}
+      >
+        <div className="flex items-start justify-between gap-1">
+          <div className="flex-1">{children}</div>
+          {showCloseButton && onClose && (
+            <button
+              type="button"
+              onClick={(e) => {
+                e.stopPropagation();
+                onClose();
+              }}
+              className="text-slate-400 hover:text-slate-700 dark:text-ink-400 dark:hover:text-white text-xs leading-none ml-1 shrink-0 tap-bounce"
+              aria-label="Close tooltip"
+            >
+              ×
+            </button>
+          )}
+        </div>
+        <span className={arrowClasses} />
       </div>
-      <span className={arrowClasses} />
     </div>
   ) : null;
 

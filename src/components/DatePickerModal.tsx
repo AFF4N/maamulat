@@ -1,4 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { ChevronLeft, ChevronRight, X, Calendar as CalendarIcon } from 'lucide-react';
 
 export type DateStatus = 'passed' | 'partial' | 'missed' | 'today';
@@ -116,19 +117,19 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
     return { firstDayIndex, days };
   }, [viewYear, viewMonth, availableSet, selectedDate, dateStatusMap]);
 
-  if (!isOpen) return null;
+  if (!isOpen || typeof document === 'undefined') return null;
 
-  return (
+  return createPortal(
     <div
       role="dialog"
       aria-modal="true"
       aria-labelledby="datepicker-modal-title"
-      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-ink-950/60 backdrop-blur-xs animate-fadeIn"
+      className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-ink-950/60 backdrop-blur-xs animate-backdrop"
       onClick={onClose}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="w-full max-w-xs sm:max-w-sm rounded-2xl bg-white dark:bg-ink-850 border border-paper-300 dark:border-ink-700 p-4 shadow-soft-xl space-y-3.5 my-auto max-h-[92vh] overflow-y-auto"
+        className="w-full max-w-xs sm:max-w-sm rounded-2xl bg-white dark:bg-ink-850 border border-paper-300 dark:border-ink-700 p-4 shadow-soft-xl space-y-3.5 my-auto max-h-[92vh] overflow-y-auto animate-modal-in"
       >
         {/* Header */}
         <div className="flex items-center justify-between border-b border-paper-200/80 dark:border-ink-750 pb-2.5">
@@ -272,7 +273,8 @@ export const DatePickerModal: React.FC<DatePickerModalProps> = ({
           </button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

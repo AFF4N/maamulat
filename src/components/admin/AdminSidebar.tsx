@@ -30,12 +30,13 @@ export const AdminSidebar: React.FC<AdminSidebarProps> = ({
   return (
     <>
       {/* Mobile Backdrop */}
-      {isMobileOpen && (
-        <div
-          onClick={onCloseMobile}
-          className="fixed inset-0 z-30 bg-black/40 backdrop-blur-sm md:hidden"
-        />
-      )}
+      <div
+        onClick={onCloseMobile}
+        aria-hidden="true"
+        className={`fixed inset-0 z-30 bg-black/40 backdrop-blur-sm md:hidden transition-opacity duration-300 ${
+          isMobileOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        }`}
+      />
 
       {/* Sidebar Container */}
       <aside

@@ -251,7 +251,7 @@ export const CustomizerTaskRow: React.FC<CustomizerTaskRowProps> = ({
 
       {/* Expanded Details Form */}
       {isDetailsOpen && (
-        <div className="mt-2.5 pt-2 border-t border-paper-200 dark:border-ink-700/80 space-y-2.5 text-xs">
+        <div className="mt-2.5 pt-2 border-t border-paper-200 dark:border-ink-700/80 space-y-2.5 text-xs animate-fadeIn">
           {/* Report Printing Toggle inside details */}
           <div className="flex items-center justify-between gap-2 p-2 rounded-lg bg-white dark:bg-ink-850 border border-paper-200 dark:border-ink-700">
             <div className="min-w-0">

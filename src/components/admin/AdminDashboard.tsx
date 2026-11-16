@@ -172,25 +172,27 @@ export const AdminDashboard: React.FC<AdminDashboardProps> = ({ onBack }) => {
         </div>
 
         {/* Dynamic Module Content */}
-        {activeModule === 'notifications' && (
-          <NotificationsModule
-            adminData={adminData}
-            pin={pin}
-            onRefresh={() => fetchAdminStats(pin)}
-          />
-        )}
+        <div key={activeModule} className="animate-fadeIn">
+          {activeModule === 'notifications' && (
+            <NotificationsModule
+              adminData={adminData}
+              pin={pin}
+              onRefresh={() => fetchAdminStats(pin)}
+            />
+          )}
 
-        {activeModule === 'storage' && (
-          <DatabaseModule
-            adminData={adminData}
-            onRefresh={() => fetchAdminStats(pin)}
-            loading={loading}
-          />
-        )}
+          {activeModule === 'storage' && (
+            <DatabaseModule
+              adminData={adminData}
+              onRefresh={() => fetchAdminStats(pin)}
+              loading={loading}
+            />
+          )}
 
-        {activeModule === 'system' && (
-          <SystemModule adminData={adminData} />
-        )}
+          {activeModule === 'system' && (
+            <SystemModule adminData={adminData} />
+          )}
+          </div>
         </div>
       </main>
     </div>

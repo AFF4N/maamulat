@@ -15,6 +15,7 @@ interface MaamulatCategoryCardProps {
   // Specific for salah category:
   takbeerOola?: number;
   onAdjustTakbeerOola?: (delta: number) => void;
+  animationDelayMs?: number;
 }
 
 export const MaamulatCategoryCard: React.FC<MaamulatCategoryCardProps> = ({
@@ -27,6 +28,7 @@ export const MaamulatCategoryCard: React.FC<MaamulatCategoryCardProps> = ({
   hasanatMultiplier = 1,
   takbeerOola,
   onAdjustTakbeerOola,
+  animationDelayMs,
 }) => {
   const info = categoryConfig || CATEGORY_INFO[category] || {
     urdu: category,
@@ -42,7 +44,10 @@ export const MaamulatCategoryCard: React.FC<MaamulatCategoryCardProps> = ({
   }
 
   return (
-    <section className="rounded-2xl p-3.5 sm:p-4 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm space-y-3">
+    <section
+      style={animationDelayMs ? { animationDelay: `${animationDelayMs}ms` } : undefined}
+      className="rounded-2xl p-3.5 sm:p-4 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm space-y-3 animate-section-enter card-hover"
+    >
       {/* Category Header */}
       <div className="flex items-center gap-2 border-b border-paper-200/80 dark:border-ink-700/60 pb-2.5">
         <span className="text-lg flex-shrink-0 select-none">{info.emoji}</span>

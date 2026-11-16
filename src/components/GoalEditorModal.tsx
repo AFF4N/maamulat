@@ -49,9 +49,9 @@ export const GoalEditorModal: React.FC<GoalEditorModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-label="Customize Goal"
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-backdrop"
     >
-      <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-sm w-full p-4 border border-paper-300 dark:border-ink-700 shadow-xl space-y-3.5">
+      <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-sm w-full p-4 border border-paper-300 dark:border-ink-700 shadow-xl space-y-3.5 animate-modal-in">
         <div className="flex items-center justify-between border-b border-paper-200 dark:border-ink-700 pb-2">
           <div className="flex items-center gap-2">
             <Target className="w-4 h-4 text-sage-600 dark:text-sage-400" />

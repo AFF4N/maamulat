@@ -82,27 +82,31 @@ export const AppRouter: React.FC<AppRouterProps> = ({
   // 1. Route: /customize (Task & Section Customizer)
   if (currentRoute === '/customize') {
     return (
-      <TaskCustomizerScreen
-        initialCategories={state.categories}
-        initialTasks={state.tasks}
-        onSave={(newCategories, newTasks) => {
-          updateCategoriesAndTasks(newCategories, newTasks);
-        }}
-        onResetToDefault={() => {
-          resetCategoriesAndTasksToDefault();
-        }}
-        onBackToHome={() => navigateTo('/')}
-      />
+      <div key="route-customize" className="animate-screen-enter">
+        <TaskCustomizerScreen
+          initialCategories={state.categories}
+          initialTasks={state.tasks}
+          onSave={(newCategories, newTasks) => {
+            updateCategoriesAndTasks(newCategories, newTasks);
+          }}
+          onResetToDefault={() => {
+            resetCategoriesAndTasksToDefault();
+          }}
+          onBackToHome={() => navigateTo('/')}
+        />
+      </div>
     );
   }
 
   // 2. Admin Portal & Management Dashboard
   if (currentRoute === '/admin') {
     return (
-      <AdminDashboard
-        onBack={() => navigateTo('/')}
-        isDark={isDark}
-      />
+      <div key="route-admin" className="animate-screen-enter">
+        <AdminDashboard
+          onBack={() => navigateTo('/')}
+          isDark={isDark}
+        />
+      </div>
     );
   }
 
@@ -122,7 +126,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
   const uncheckedTasks = activeTasks.filter((t) => !t.hidden && !t.completed);
 
   return (
-    <div className="min-h-screen bg-paper-50 dark:bg-[#121514] text-ink-900 dark:text-[#E8ECE9] transition-colors duration-300">
+    <div key="route-home" className="min-h-screen bg-paper-50 dark:bg-[#121514] text-ink-900 dark:text-[#E8ECE9] transition-colors duration-300 animate-screen-enter">
       {/* Mobile-first centered container with safe-area spacing */}
       <main className="max-w-xl mx-auto px-3.5 sm:px-5 py-4 pb-16 space-y-4">
         {/* 1. Header with Spiritual Goal Tracker & Menu Drawer */}
@@ -156,7 +160,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
           <div
             role="alert"
             aria-live="polite"
-            className="fixed bottom-5 sm:bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-1.5rem)] max-w-lg bg-white/95 dark:bg-[#121514]/95 backdrop-blur-2xl text-ink-900 dark:text-white border border-paper-300 dark:border-ink-800 shadow-[0_15px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-2xl p-4 sm:p-4.5 space-y-3 transition-all animate-in fade-in slide-in-from-bottom-5 duration-300"
+            className="fixed bottom-5 sm:bottom-6 left-1/2 z-50 w-[calc(100%-1.5rem)] max-w-lg bg-white/95 dark:bg-[#121514]/95 backdrop-blur-2xl text-ink-900 dark:text-white border border-paper-300 dark:border-ink-800 shadow-[0_15px_40px_rgba(0,0,0,0.12)] dark:shadow-[0_20px_50px_rgba(0,0,0,0.5)] rounded-2xl p-4 sm:p-4.5 space-y-3 animate-toast-bottom"
           >
             <div className="flex items-start justify-between gap-3">
               <div className="flex items-start gap-3 min-w-0">
@@ -296,7 +300,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
 
         {/* 5. Daily Maamulat Task Categories (renders active date's tasks) */}
         <div className="space-y-3.5 pt-1">
-          {activeCategories.map((catConfig) => {
+          {activeCategories.map((catConfig, idx) => {
             const catTasks = activeTasks.filter((t) => t.category === catConfig.id && !t.hidden);
             if (catTasks.length === 0) return null;
 
@@ -312,6 +316,7 @@ export const AppRouter: React.FC<AppRouterProps> = ({
                 hasanatMultiplier={hasanatMultiplier}
                 takbeerOola={catConfig.id === 'salah' ? activeTakbeerOola : undefined}
                 onAdjustTakbeerOola={catConfig.id === 'salah' ? adjustTakbeerOola : undefined}
+                animationDelayMs={Math.min(idx * 45, 225)}
               />
             );
           })}

@@ -37,7 +37,7 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
   //   : "آج کی پیشرفت";
 
   return (
-    <div className="rounded-2xl p-4 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm my-3 space-y-2.5">
+    <div className="rounded-2xl p-4 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm my-3 space-y-2.5 animate-section-enter card-hover" style={{ animationDelay: '60ms' }}>
       <div className="flex items-baseline justify-between">
         <div>
           <span className="text-xs font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">
@@ -91,12 +91,8 @@ export const DailyProgressBar: React.FC<DailyProgressBarProps> = ({
       {/* Progress Track */}
       <div className="w-full bg-paper-200 dark:bg-ink-700/80 rounded-full h-2.5 overflow-hidden p-0.5 relative">
         <div
-          className={`h-full rounded-full transition-all duration-500 ease-out ${
-            isAllComplete
-              ? 'bg-gradient-to-r from-sage-500 via-amberGold-500 to-emerald-500'
-              : 'bg-sage-600 dark:bg-sage-500'
-          }`}
-          style={{ width: `${percentage}%` }}
+          className="w-full h-full rounded-full transition-[clip-path] duration-500 ease-[cubic-bezier(0.22,1,0.36,1)] bg-gradient-to-r from-sage-500 via-amberGold-500 to-emerald-500"
+          style={{ clipPath: `inset(0 ${Math.max(0, 100 - percentage)}% 0 0 round 9999px)` }}
         />
       </div>
 

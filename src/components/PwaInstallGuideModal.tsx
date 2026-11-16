@@ -83,9 +83,9 @@ export const PwaInstallGuideModal: React.FC<PwaInstallGuideModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-label="App Installation & Offline Notifications Guide"
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-fadeIn"
+      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-backdrop"
     >
-      <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col p-4 sm:p-5 border border-paper-300 dark:border-ink-700 shadow-xl">
+      <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col p-4 sm:p-5 border border-paper-300 dark:border-ink-700 shadow-xl animate-modal-in">
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-paper-200 dark:border-ink-700 pb-2.5 flex-shrink-0">
           <div className="flex items-center gap-2">

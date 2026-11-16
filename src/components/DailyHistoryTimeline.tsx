@@ -52,7 +52,7 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
   }, [history, todayDate]);
 
   return (
-    <div className="rounded-2xl p-3.5 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm my-3">
+    <div className="rounded-2xl p-3.5 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm my-3 animate-section-enter card-hover" style={{ animationDelay: '100ms' }}>
       <div className="flex items-center justify-between mb-2">
         <div className="flex items-center gap-1.5">
           <Calendar className="w-3.5 h-3.5 text-sage-600 dark:text-sage-400" />
@@ -115,8 +115,8 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
             <button
               key={rec.date}
               onClick={() => onSelectDate(rec.date)}
-              className={`flex flex-col items-center py-2 px-1 rounded-xl border-2 text-center transition-colors tap-bounce relative whitespace-nowrap ${stateStyles.base} ${
-                isSelected ? stateStyles.selected : stateStyles.unselected
+              className={`flex flex-col items-center py-2 px-1 rounded-xl border-2 text-center transition-all duration-200 tap-bounce relative whitespace-nowrap ${stateStyles.base} ${
+                isSelected ? `${stateStyles.selected} scale-[1.03]` : stateStyles.unselected
               }`}
               title={`${rec.date} (${rec.completedCount}/${rec.totalCount}) - ${isPassed ? `Passed (≥${STREAK_PASS_PERCENTAGE}%)` : isPartial ? `Partial (<${STREAK_PASS_PERCENTAGE}%)` : 'Missed (0)'}`}
             >
@@ -152,9 +152,9 @@ export const DailyHistoryTimeline: React.FC<DailyHistoryTimelineProps> = ({
         {/* Today Pill */}
         <button
           onClick={() => onSelectDate(todayDate)}
-          className={`flex flex-col items-center py-2 px-1 rounded-xl border-2 text-center transition-colors tap-bounce relative ${
+          className={`flex flex-col items-center py-2 px-1 rounded-xl border-2 text-center transition-all duration-200 tap-bounce relative ${
             isTodaySelected
-              ? 'border-sage-600 dark:border-sage-500/70 bg-sage-100/90 dark:bg-sage-900/50 text-sage-900 dark:text-sage-200 z-10 shadow-soft-sm'
+              ? 'border-sage-600 dark:border-sage-500/70 bg-sage-100/90 dark:bg-sage-900/50 text-sage-900 dark:text-sage-200 z-10 shadow-soft-sm scale-[1.03]'
               : 'border-sage-300 dark:border-sage-800/80 bg-sage-50/50 dark:bg-sage-950/20 text-sage-800 dark:text-sage-300 hover:border-sage-400'
           }`}
           title={`آج کا دن (Today) - ${completedTodayCount}/${totalTodayCount} ${isTodayQualified ? '(Passed)' : '(In Progress)'}`}

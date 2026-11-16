@@ -230,8 +230,8 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
 
       {/* "Why Involve Another Person?" Explanatory Modal */}
       {showWhyModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-fadeIn">
-          <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col p-4 sm:p-5 border border-paper-300 dark:border-ink-700 shadow-xl">
+        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-backdrop">
+          <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col p-4 sm:p-5 border border-paper-300 dark:border-ink-700 shadow-xl animate-modal-in">
             <div className="flex items-center justify-between border-b border-paper-200 dark:border-ink-700 pb-2.5 flex-shrink-0">
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-sage-600 flex-shrink-0" />

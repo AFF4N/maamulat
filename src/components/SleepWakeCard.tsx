@@ -200,7 +200,7 @@ const TimePresetBox: React.FC<TimePresetBoxProps> = ({
             role="dialog"
             aria-label={`${englishLabel} time picker menu`}
             dir="ltr"
-            className="absolute left-0 right-0 bottom-[calc(100%-0.25rem)] z-30 p-2.5 rounded-xl bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-650 shadow-xl animate-fadeIn space-y-2"
+            className="absolute left-0 right-0 bottom-[calc(100%-0.25rem)] z-30 p-2.5 rounded-xl bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-650 shadow-xl animate-popover space-y-2"
           >
             {/* Hours Grid (01 - 12) */}
             <div>

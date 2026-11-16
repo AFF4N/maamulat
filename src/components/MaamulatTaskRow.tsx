@@ -41,7 +41,7 @@ export const MaamulatTaskRow: React.FC<MaamulatTaskRowProps> = ({
             onToggle(task.id);
           }
         }}
-        className={`group relative flex items-center justify-between p-3 rounded-xl border transition-all duration-200 cursor-pointer select-none tap-bounce ${task.completed
+        className={`group relative flex items-center justify-between p-3 rounded-xl border cursor-pointer select-none tap-bounce ${task.completed
           ? 'bg-sage-50/70 dark:bg-sage-950/60 border-sage-300 dark:border-sage-800 shadow-soft-sm'
           : 'bg-white dark:bg-ink-850 border-paper-200 dark:border-ink-700/80 hover:border-paper-400 dark:hover:border-ink-600'
           }`}
@@ -50,12 +50,12 @@ export const MaamulatTaskRow: React.FC<MaamulatTaskRowProps> = ({
         <div className="flex items-center gap-3 min-w-0 pr-2">
           {/* Custom tactile checkbox */}
           <div
-            className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-200 flex-shrink-0 ${task.completed
+            className={`w-6 h-6 rounded-lg flex items-center justify-center transition-all duration-200 ease-out flex-shrink-0 ${task.completed
               ? 'bg-sage-600 dark:bg-sage-600 text-white scale-100 shadow-sm'
               : 'border-2 border-paper-300 dark:border-ink-600 bg-paper-50 dark:bg-ink-800 group-hover:border-sage-400 dark:group-hover:border-sage-500'
               }`}
           >
-            {task.completed && <Check className="w-4 h-4 stroke-[2.8]" />}
+            {task.completed && <Check className="w-4 h-4 stroke-[2.8] animate-check-pop" />}
           </div>
 
           {/* Text Details */}

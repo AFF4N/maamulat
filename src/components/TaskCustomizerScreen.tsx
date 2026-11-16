@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef, useLayoutEffect } from 'react';
 import type { CategoryConfig, MaamulatTask } from '../types';
 import { ArrowLeft, RotateCcw, Check, Save } from 'lucide-react';
 import { CustomizerSectionCard } from './customizer/CustomizerSectionCard';
@@ -57,7 +57,7 @@ export const SaveActionButton: React.FC<SaveActionButtonProps> = ({
 export const SaveSuccessToast: React.FC<{ message?: string }> = ({
   message = 'Changes saved! Returning to sheet...',
 }) => (
-  <div className="fixed top-5 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-700 text-white shadow-xl border border-emerald-500/80 animate-in fade-in slide-in-from-top-4 duration-200">
+  <div className="fixed top-5 left-1/2 z-50 flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-emerald-700 text-white shadow-xl border border-emerald-500/80 animate-toast-top">
     <Check className="w-4 h-4 stroke-[3] flex-shrink-0" />
     <span className="text-xs font-bold whitespace-nowrap">{message}</span>
   </div>
@@ -81,9 +81,9 @@ export const ResetConfirmModal: React.FC<ResetConfirmModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-label="Confirm Reset"
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-fadeIn"
+      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-backdrop"
     >
-      <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-sm w-full p-5 border border-paper-300 dark:border-ink-700 shadow-xl space-y-3">
+      <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-sm w-full p-5 border border-paper-300 dark:border-ink-700 shadow-xl space-y-3 animate-modal-in">
         <div className="space-y-1">
           <h4 className="text-base font-bold text-ink-900 dark:text-white">
             Reset to Original Defaults?
@@ -169,12 +169,98 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
     }
   };
 
+  const sectionRefs = useRef<Record<string, HTMLDivElement | null>>({});
+  const prevTopsRef = useRef<Record<string, number> | null>(null);
+  const lastMovedIdRef = useRef<string | null>(null);
+  const [recentlyMovedId, setRecentlyMovedId] = useState<string | null>(null);
+
+  useLayoutEffect(() => {
+    const prevTops = prevTopsRef.current;
+    if (!prevTops) return;
+    prevTopsRef.current = null;
+
+    const movedId = lastMovedIdRef.current;
+    lastMovedIdRef.current = null;
+
+    const prefersReducedMotion =
+      typeof window !== 'undefined' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+    if (prefersReducedMotion) return;
+
+    const animatedEls: HTMLDivElement[] = [];
+
+    Object.entries(prevTops).forEach(([id, prevTop]) => {
+      const el = sectionRefs.current[id];
+      if (!el) return;
+      const newTop = el.getBoundingClientRect().top;
+      const deltaY = prevTop - newTop;
+      if (Math.abs(deltaY) < 1) return;
+
+      el.style.transition = 'none';
+      el.style.transform = `translateY(${deltaY}px)`;
+      if (id === movedId) {
+        el.style.zIndex = '10';
+        el.style.position = 'relative';
+      }
+      animatedEls.push(el);
+    });
+
+    if (animatedEls.length === 0) return;
+
+    // Force layout flush so the inverted transform applies before transitioning
+    void document.body.offsetHeight;
+
+    requestAnimationFrame(() => {
+      animatedEls.forEach((el) => {
+        el.style.transition = 'transform 320ms cubic-bezier(0.22, 1, 0.36, 1)';
+        el.style.transform = '';
+      });
+
+      if (movedId) {
+        const movedEl = sectionRefs.current[movedId];
+        if (movedEl) {
+          const rect = movedEl.getBoundingClientRect();
+          if (rect.top < 16 || rect.bottom > window.innerHeight - 16) {
+            movedEl.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+          }
+        }
+      }
+    });
+
+    const cleanupTimer = window.setTimeout(() => {
+      animatedEls.forEach((el) => {
+        el.style.transition = '';
+        el.style.zIndex = '';
+        el.style.position = '';
+      });
+    }, 340);
+
+    return () => window.clearTimeout(cleanupTimer);
+  }, [categories]);
+
   const handleMoveCategory = (index: number, direction: 'up' | 'down') => {
     const targetIndex = direction === 'up' ? index - 1 : index + 1;
     if (targetIndex < 0 || targetIndex >= categories.length) return;
+
+    const tops: Record<string, number> = {};
+    categories.forEach((cat) => {
+      const el = sectionRefs.current[cat.id];
+      if (el) {
+        tops[cat.id] = el.getBoundingClientRect().top;
+      }
+    });
+    prevTopsRef.current = tops;
+
     const reordered = [...categories];
     const [moved] = reordered.splice(index, 1);
     reordered.splice(targetIndex, 0, moved);
+    lastMovedIdRef.current = moved.id;
+    setRecentlyMovedId(moved.id);
+    window.setTimeout(() => {
+      setRecentlyMovedId((prev) => (prev === moved.id ? null : prev));
+    }, 450);
+
     setCategories(reordered);
   };
 
@@ -315,26 +401,36 @@ export const TaskCustomizerScreen: React.FC<TaskCustomizerScreenProps> = ({
         <div className="space-y-3.5">
           {categories.map((cat, catIndex) => {
             const catTasks = tasks.filter(t => t.category === cat.id);
+            const isRecentlyMoved = recentlyMovedId === cat.id;
             return (
-              <CustomizerSectionCard
+              <div
                 key={cat.id}
-                cat={cat}
-                catIndex={catIndex}
-                totalCategories={categories.length}
-                isExpanded={expandedSections[cat.id] ?? true}
-                catTasks={catTasks}
-                expandedTaskDetails={expandedTaskDetails}
-                onToggleExpand={() => toggleSectionExpand(cat.id)}
-                onUpdateCategory={(updates) => handleUpdateCategory(cat.id, updates)}
-                onMoveCategory={(dir) => handleMoveCategory(catIndex, dir)}
-                onToggleCategoryVisibility={() => handleToggleCategoryVisibility(cat.id)}
-                onDeleteCategory={() => handleDeleteCategory(cat.id)}
-                onUpdateTask={handleUpdateTask}
-                onToggleTaskDetails={toggleTaskDetails}
-                onToggleTaskVisibility={handleToggleTaskVisibility}
-                onDeleteTask={handleDeleteTask}
-                onCreateTask={handleCreateTask}
-              />
+                ref={(el) => {
+                  sectionRefs.current[cat.id] = el;
+                }}
+                className={`rounded-2xl transition-shadow duration-300 ${
+                  isRecentlyMoved ? 'shadow-xl dark:shadow-[0_12px_30px_rgba(0,0,0,0.45)]' : ''
+                }`}
+              >
+                <CustomizerSectionCard
+                  cat={cat}
+                  catIndex={catIndex}
+                  totalCategories={categories.length}
+                  isExpanded={expandedSections[cat.id] ?? true}
+                  catTasks={catTasks}
+                  expandedTaskDetails={expandedTaskDetails}
+                  onToggleExpand={() => toggleSectionExpand(cat.id)}
+                  onUpdateCategory={(updates) => handleUpdateCategory(cat.id, updates)}
+                  onMoveCategory={(dir) => handleMoveCategory(catIndex, dir)}
+                  onToggleCategoryVisibility={() => handleToggleCategoryVisibility(cat.id)}
+                  onDeleteCategory={() => handleDeleteCategory(cat.id)}
+                  onUpdateTask={handleUpdateTask}
+                  onToggleTaskDetails={toggleTaskDetails}
+                  onToggleTaskVisibility={handleToggleTaskVisibility}
+                  onDeleteTask={handleDeleteTask}
+                  onCreateTask={handleCreateTask}
+                />
+              </div>
             );
           })}
         </div>

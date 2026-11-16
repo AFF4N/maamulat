@@ -50,11 +50,11 @@ export const StreakAndHasanat: React.FC<StreakAndHasanatProps> = ({
   const currentQuote = ENCOURAGEMENT_QUOTES[quoteIndex];
 
   return (
-    <div className="space-y-2.5 my-3">
+    <div className="space-y-2.5 my-3 animate-section-enter" style={{ animationDelay: '30ms' }}>
       {/* 2-Column Stat Cards */}
       <div className="grid grid-cols-2 gap-2.5">
         {/* Streak Card */}
-        <div className="rounded-2xl p-3 sm:p-3.5 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm relative group">
+        <div className="rounded-2xl p-3 sm:p-3.5 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm relative group card-hover">
           <div className="flex items-center justify-between">
             <span className="text-[11px] font-semibold tracking-wider uppercase text-ink-500 dark:text-ink-400">
               Current Streak
@@ -78,50 +78,41 @@ export const StreakAndHasanat: React.FC<StreakAndHasanatProps> = ({
               Best: <span className="font-semibold text-ink-700 dark:text-ink-200">{highestStreak} {highestStreak === 1 ? 'day' : 'days'}</span>
             </span>
 
-            {isTodayQualified !== undefined && (
-              <div className="relative inline-flex items-center gap-1">
+            {isTodayQualified !== undefined && (isTodayQualified || (neededForToday && neededForToday > 0)) && (
+              <div className="inline-flex items-center gap-1">
                 {isTodayQualified ? (
-                  <>
-                    <span className="font-bold text-sage-600 dark:text-sage-400">
-                      ✓ Passed
-                    </span>
-                    <span
-                      onMouseEnter={() => setShowThresholdTip(true)}
-                      onMouseLeave={() => setShowThresholdTip(false)}
-                      className="p-0.5 rounded-full text-ink-400 hover:text-sage-600 dark:hover:text-sage-300 cursor-help inline-flex items-center"
-                      aria-label="Streak threshold info"
-                    >
-                      <Info className="w-3 h-3" />
-                    </span>
-                  </>
-                ) : neededForToday && neededForToday > 0 ? (
-                  <>
-                    <span className="font-medium text-amberGold-700 dark:text-amberGold-400">
-                      {neededForToday} left
-                    </span>
-                    <span
-                      onMouseEnter={() => setShowThresholdTip(true)}
-                      onMouseLeave={() => setShowThresholdTip(false)}
-                      className="p-0.5 rounded-full text-ink-400 hover:text-amberGold-600 dark:hover:text-amberGold-400 cursor-help inline-flex items-center"
-                      aria-label="Streak threshold info"
-                    >
-                      <Info className="w-3 h-3" />
-                    </span>
-                  </>
-                ) : null}
-
-                {/* Simple hover tooltip */}
-                <Tooltip
-                  isOpen={showThresholdTip}
-                  position="above"
-                  align="center"
-                  arrowPosition="center"
-                  className="w-36 text-[9.5px]"
-                >
-                  <span>
-                    <strong className="text-amberGold-600 dark:text-amberGold-400 font-semibold">≥{STREAK_PASS_PERCENTAGE}%</strong> daily tasks needed to pass & extend.
+                  <span className="font-bold text-sage-600 dark:text-sage-400">
+                    ✓ Passed
                   </span>
-                </Tooltip>
+                ) : (
+                  <span className="font-medium text-amberGold-700 dark:text-amberGold-400">
+                    {neededForToday} left
+                  </span>
+                )}
+
+                <span
+                  onMouseEnter={() => setShowThresholdTip(true)}
+                  onMouseLeave={() => setShowThresholdTip(false)}
+                  className={`relative p-0.5 rounded-full text-ink-400 cursor-help inline-flex items-center ${
+                    isTodayQualified
+                      ? 'hover:text-sage-600 dark:hover:text-sage-300'
+                      : 'hover:text-amberGold-600 dark:hover:text-amberGold-400'
+                  }`}
+                  aria-label="Streak threshold info"
+                >
+                  <Info className="w-3 h-3" />
+                  <Tooltip
+                    isOpen={showThresholdTip}
+                    position="above"
+                    align="center"
+                    arrowPosition="center"
+                    className="w-36 text-[9.5px]"
+                  >
+                    <span>
+                      <strong className="text-amberGold-600 dark:text-amberGold-400 font-semibold">≥{STREAK_PASS_PERCENTAGE}%</strong> daily tasks needed to pass & extend.
+                    </span>
+                  </Tooltip>
+                </span>
               </div>
             )}
           </div>
@@ -178,8 +169,8 @@ export const StreakAndHasanat: React.FC<StreakAndHasanatProps> = ({
         <div className="flex items-center gap-2 flex-1 min-w-0">
           <span className="text-sm shrink-0">💬</span>
           <p
-            className={`italic transition-opacity duration-200 line-clamp-2 leading-snug min-h-[2.4rem] flex items-center ${
-              fade ? 'opacity-100' : 'opacity-0'
+            className={`italic transition-all duration-200 ease-out line-clamp-2 leading-snug min-h-[2.4rem] flex items-center ${
+              fade ? 'opacity-100 translate-y-0' : 'opacity-0 translate-y-1'
             }`}
           >
             "{currentQuote.quote}"
