@@ -163,7 +163,7 @@ export const StreakAndHasanat: React.FC<StreakAndHasanatProps> = ({
       {/* Warm Halal Wit & Encouragement Bar (Fixed 2 lines to prevent truncation) */}
       <div
         onClick={rotateQuote}
-        className="cursor-pointer select-none rounded-xl px-3.5 py-2.5 bg-paper-100/90 dark:bg-ink-800/60 border border-paper-300/60 dark:border-ink-700/60 flex items-center justify-between gap-2.5 text-xs text-ink-700 dark:text-ink-300 hover:border-sage-300 dark:hover:border-sage-700 transition-colors tap-bounce"
+        className="cursor-pointer select-none rounded-xl px-3.5 py-2.5 bg-white dark:bg-ink-800 border border-paper-300 dark:border-ink-700/80 shadow-soft-sm flex items-center justify-between gap-2.5 text-xs text-ink-700 dark:text-ink-300 hover:border-sage-300 dark:hover:border-sage-700 transition-colors tap-bounce"
         title="Tap for another encouragement"
       >
         <div className="flex items-center gap-2 flex-1 min-w-0">
