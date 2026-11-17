@@ -64,12 +64,12 @@ export const DEFAULT_CATEGORIES: CategoryConfig[] = [
  * Legacy arbitrary hasanat values used prior to authentic Quran/Hadith estimation,
  * kept for one-time migration of unedited default tasks in localStorage.
  */
-export const LEGACY_DEFAULT_HASANAT: Record<string, number> = {
-  fajr_jamaat: 35,
-  zuhr_jamaat: 30,
-  asr_jamaat: 35,
-  maghrib_jamaat: 30,
-  isha_jamaat: 35,
+export const LEGACY_DEFAULT_HASANAT: Record<string, number | number[]> = {
+  fajr_jamaat: [35, 540],
+  zuhr_jamaat: [30, 270],
+  asr_jamaat: [35, 300],
+  maghrib_jamaat: [30, 270],
+  isha_jamaat: [35, 540],
   miswak: 15,
   surah_yaseen: 25,
   surah_waqiah: 25,
@@ -96,8 +96,13 @@ export const LEGACY_DEFAULT_HASANAT: Record<string, number> = {
 
 export const DEFAULT_TASKS: MaamulatTask[] = [
   // 🕌 نماز باجماعت (Salah in Congregation)
-  // Authentic basis: 27x congregation (Bukhari 645) × 10 baseline (Al-An'am 6:160) = 270;
-  // Fajr & Isha doubled for Qiyam al-Layl equivalence (Muslim 656); Asr emphasized as Salat al-Wusta.
+  // Authentic basis: 10 hasanat per Arabic letter recited (Tirmidhi 2910 / Al-An'am 6:160) × 27 congregation (Bukhari 645).
+  // Farz rakat letter-count breakdown (solo base):
+  //   Sana (~46) + Fatiha (~143/rakat) + Surah Ikhlas (~47 in 1st & 2nd) + Ruku (~79/rakat)
+  //   + 2 Sujuds (~102/rakat) + Takbeers (~32–40/rakat) + Tashahhud (~143 each) + Durood (~170) + Dua & Salam (~95).
+  //   2 Farz (Fajr): ~1,280 letters = 12,800 base × 27 ≈ 345,000
+  //   3 Farz (Maghrib): ~1,780 letters = 17,800 base × 27 ≈ 480,000
+  //   4 Farz (Zuhr/Asr/Isha): ~2,130 letters = 21,300 base × 27 ≈ 575,000
   {
     id: 'fajr_jamaat',
     category: 'salah',
@@ -105,7 +110,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: 'Fajr in Congregation',
     description: 'Starting the morning in the protection of Allah',
     emoji: '🔸',
-    hasanat: 540,
+    hasanat: 345000,
     completed: false,
   },
   {
@@ -115,7 +120,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: 'Zuhr in Congregation',
     description: 'Pause the day for midday devotion',
     emoji: '🔸',
-    hasanat: 270,
+    hasanat: 575000,
     completed: false,
   },
   {
@@ -125,7 +130,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: 'Asr in Congregation',
     description: 'The middle prayer of paramount virtue',
     emoji: '🔸',
-    hasanat: 300,
+    hasanat: 575000,
     completed: false,
   },
   {
@@ -135,7 +140,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: 'Maghrib in Congregation',
     description: 'Welcoming the night with gratitude',
     emoji: '🔸',
-    hasanat: 270,
+    hasanat: 480000,
     completed: false,
   },
   {
@@ -145,7 +150,7 @@ export const DEFAULT_TASKS: MaamulatTask[] = [
     englishTitle: 'Isha in Congregation',
     description: 'Concluding the active day in sacred assembly',
     emoji: '🔸',
-    hasanat: 540,
+    hasanat: 575000,
     completed: false,
   },
 

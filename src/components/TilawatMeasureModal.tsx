@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Sparkles } from 'lucide-react';
 import { estimateTilawatHasanat, formatHasanat } from '../utils/formatUtils';
+import { useModalTransition } from '../hooks/useModalTransition';
 
 interface TilawatMeasureModalProps {
   isOpen: boolean;
@@ -26,8 +27,9 @@ export const TilawatMeasureModal: React.FC<TilawatMeasureModalProps> = ({
   onSelectMeasure,
 }) => {
   const [measureInput, setMeasureInput] = useState(currentMeasure || 'ایک پاؤ');
+  const { shouldRender, isClosing } = useModalTransition(isOpen);
 
-  if (!isOpen || typeof document === 'undefined') return null;
+  if (!shouldRender || typeof document === 'undefined') return null;
 
   const handleSelect = (measure: string) => {
     onSelectMeasure(measure);
@@ -43,11 +45,11 @@ export const TilawatMeasureModal: React.FC<TilawatMeasureModalProps> = ({
         e.stopPropagation();
         onClose();
       }}
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-backdrop"
+      className={`fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overscroll-none ${isClosing ? 'animate-backdrop-out pointer-events-none' : 'animate-backdrop'}`}
     >
       <div
         onClick={(e) => e.stopPropagation()}
-        className="bg-white dark:bg-ink-800 rounded-2xl max-w-sm w-full p-4 sm:p-5 border border-paper-300 dark:border-ink-700 shadow-xl space-y-3.5 animate-modal-in"
+        className={`bg-white dark:bg-ink-800 rounded-2xl max-w-sm w-full p-4 sm:p-5 border border-paper-300 dark:border-ink-700 shadow-xl space-y-3.5 ${isClosing ? 'animate-modal-out' : 'animate-modal-in'}`}
       >
         <div className="flex items-center justify-between border-b border-paper-200 dark:border-ink-700 pb-2">
           <h4 className="arabic-text text-base font-bold text-ink-900 dark:text-white">

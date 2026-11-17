@@ -118,6 +118,9 @@ function getInitialState(): MaamulatState {
         const dt = DEFAULT_TASKS.find(x => x.id === existing.id);
         // TODO(legacy-migration): Remove LEGACY_DEFAULT_HASANAT and legacy Dhikr count backfill once all localStorage states have migrated.
         const legacyVal = LEGACY_DEFAULT_HASANAT[existing.id];
+        const isLegacyVal = Array.isArray(legacyVal)
+          ? legacyVal.includes(existing.hasanat)
+          : legacyVal !== undefined && existing.hasanat === legacyVal;
         const merged = {
           ...dt,
           ...existing,
@@ -128,7 +131,7 @@ function getInitialState(): MaamulatState {
           const detectedCount = extractDhikrCount(merged.englishTitle || '', merged.urduTitle || '');
           const effectiveCount = detectedCount ?? merged.targetCount ?? dt?.targetCount ?? 100;
           const isUneditedHasanat =
-            existing.hasanat === legacyVal ||
+            isLegacyVal ||
             existing.hasanat === dt?.hasanat ||
             existing.targetCount === undefined;
 
@@ -144,8 +147,7 @@ function getInitialState(): MaamulatState {
 
         const shouldUpgradeHasanat =
           dt &&
-          legacyVal !== undefined &&
-          existing.hasanat === legacyVal;
+          isLegacyVal;
 
         return {
           ...merged,

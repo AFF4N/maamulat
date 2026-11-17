@@ -64,7 +64,7 @@ export const MaamulatTaskRow: React.FC<MaamulatTaskRowProps> = ({
               <span className="text-sm select-none">{task.emoji}</span>
               <span
                 className={`arabic-text text-base font-bold leading-snug transition-colors ${task.completed
-                  ? 'text-sage-900 dark:text-sage-200 line-through opacity-85'
+                  ? 'text-sage-900 dark:text-sage-200 opacity-85'
                   : 'text-ink-900 dark:text-white'
                   }`}
               >

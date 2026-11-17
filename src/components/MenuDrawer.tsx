@@ -23,6 +23,7 @@ import {
   Smartphone,
 } from 'lucide-react';
 import type { MaamulatState } from '../types';
+import { useBodyScrollLock } from '../hooks/useModalTransition';
 import { formatUrduHijriDate } from '../utils/dateUtils';
 import { exportBackupJSON, validateBackupJSON, readUploadedFileAsText } from '../utils/backupUtils';
 import {
@@ -146,16 +147,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
   }, [isOpen, onClose]);
 
   // Lock body scroll when drawer is open
-  useEffect(() => {
-    if (isOpen) {
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.style.overflow = '';
-    }
-    return () => {
-      document.body.style.overflow = '';
-    };
-  }, [isOpen]);
+  useBodyScrollLock(isOpen);
 
   const handleExportJSON = async () => {
     if (!state) return;
@@ -245,7 +237,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
       <div
         onClick={onClose}
         aria-hidden="true"
-        className={`fixed inset-0 z-50 bg-black/40 backdrop-blur-sm transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
+        className={`fixed inset-0 z-50 bg-black/40 backdrop-blur-sm overscroll-none transition-opacity duration-300 ${isOpen ? 'opacity-100 pointer-events-auto' : 'opacity-0 pointer-events-none'
           }`}
       />
 
@@ -283,7 +275,7 @@ export const MenuDrawer: React.FC<MenuDrawerProps> = ({
         </div>
 
         {/* Scrollable Body */}
-        <div className="flex-1 overflow-y-auto px-5 py-4 space-y-5">
+        <div className="flex-1 overflow-y-auto overscroll-contain px-5 py-4 space-y-5">
           {/* 1. Customise Tasks Card */}
           <div className="space-y-1.5">
             <span className="text-[11px] font-bold uppercase tracking-wider text-ink-500 dark:text-ink-400">

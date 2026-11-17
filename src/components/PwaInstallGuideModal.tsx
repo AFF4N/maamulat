@@ -7,6 +7,7 @@ import {
   CheckCircle2,
   ExternalLink,
 } from 'lucide-react';
+import { useModalTransition } from '../hooks/useModalTransition';
 
 interface BeforeInstallPromptEvent extends Event {
   prompt: () => Promise<void>;
@@ -62,7 +63,9 @@ export const PwaInstallGuideModal: React.FC<PwaInstallGuideModalProps> = ({
     return () => window.removeEventListener('beforeinstallprompt', handler);
   }, []);
 
-  if (!isOpen) return null;
+  const { shouldRender, isClosing } = useModalTransition(isOpen);
+
+  if (!shouldRender) return null;
 
   const handleNativeInstall = async () => {
     if (!installPrompt) return;
@@ -83,9 +86,9 @@ export const PwaInstallGuideModal: React.FC<PwaInstallGuideModalProps> = ({
       role="dialog"
       aria-modal="true"
       aria-label="App Installation & Offline Notifications Guide"
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-backdrop"
+      className={`fixed inset-0 z-50 bg-black/60 flex items-center justify-center p-3 sm:p-4 overscroll-none ${isClosing ? 'animate-backdrop-out pointer-events-none' : 'animate-backdrop'}`}
     >
-      <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col p-4 sm:p-5 border border-paper-300 dark:border-ink-700 shadow-xl animate-modal-in">
+      <div className={`bg-white dark:bg-ink-800 rounded-2xl max-w-md w-full h-[85dvh] max-h-[680px] flex flex-col p-4 sm:p-5 border border-paper-300 dark:border-ink-700 shadow-xl ${isClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
         {/* Modal Header */}
         <div className="flex items-center justify-between border-b border-paper-200 dark:border-ink-700 pb-2.5 flex-shrink-0">
           <div className="flex items-center gap-2">
@@ -112,7 +115,10 @@ export const PwaInstallGuideModal: React.FC<PwaInstallGuideModalProps> = ({
         </div>
 
         {/* Scrollable Content */}
-        <div className="overflow-y-auto flex-1 py-3 pr-1 space-y-3.5 text-xs text-ink-700 dark:text-ink-300 leading-relaxed">
+        <div
+          style={{ WebkitOverflowScrolling: 'touch' }}
+          className="overflow-y-auto overscroll-contain will-change-scroll flex-1 py-3 pr-1 space-y-3.5 text-xs text-ink-700 dark:text-ink-300 leading-relaxed"
+        >
           {/* Why Not Supported / Benefits Callout */}
           {!isPushSupported ? (
             <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800/80 text-amber-950 dark:text-amber-200 space-y-1">
@@ -179,7 +185,7 @@ export const PwaInstallGuideModal: React.FC<PwaInstallGuideModalProps> = ({
                 : 'text-ink-500 hover:text-ink-800 dark:hover:text-ink-200'
                 }`}
             >
-              <span>🍎 iPhone (Safari)</span>
+              <span>iPhone (Safari)</span>
             </button>
             <button
               type="button"
@@ -189,7 +195,7 @@ export const PwaInstallGuideModal: React.FC<PwaInstallGuideModalProps> = ({
                 : 'text-ink-500 hover:text-ink-800 dark:hover:text-ink-200'
                 }`}
             >
-              <span>🤖 Android (Chrome)</span>
+              <span>Android (Chrome)</span>
             </button>
           </div>
 
@@ -217,7 +223,7 @@ export const PwaInstallGuideModal: React.FC<PwaInstallGuideModalProps> = ({
                   src="/pwa-guide/ios-step-1.svg"
                   alt="iOS Safari Step 1: Tap the Share icon at the bottom toolbar"
                   className="w-full rounded-xl border border-paper-300/80 dark:border-ink-700 shadow-soft-sm"
-                  loading="lazy"
+                  decoding="async"
                 />
               </div>
 
@@ -235,7 +241,7 @@ export const PwaInstallGuideModal: React.FC<PwaInstallGuideModalProps> = ({
                   src="/pwa-guide/ios-step-2.svg"
                   alt="iOS Safari Step 2: Tap Add to Home Screen in the Share menu"
                   className="w-full rounded-xl border border-paper-300/80 dark:border-ink-700 shadow-soft-sm"
-                  loading="lazy"
+                  decoding="async"
                 />
               </div>
 
@@ -263,7 +269,7 @@ export const PwaInstallGuideModal: React.FC<PwaInstallGuideModalProps> = ({
                   src="/pwa-guide/android-step-1.svg"
                   alt="Android Chrome Step 1: Tap the three-dot menu icon in the top-right corner"
                   className="w-full rounded-xl border border-paper-300/80 dark:border-ink-700 shadow-soft-sm"
-                  loading="lazy"
+                  decoding="async"
                 />
               </div>
 
@@ -281,7 +287,7 @@ export const PwaInstallGuideModal: React.FC<PwaInstallGuideModalProps> = ({
                   src="/pwa-guide/android-step-2.svg"
                   alt="Android Chrome Step 2: Tap Install app or Add to Home screen from the menu"
                   className="w-full rounded-xl border border-paper-300/80 dark:border-ink-700 shadow-soft-sm"
-                  loading="lazy"
+                  decoding="async"
                 />
               </div>
 

@@ -3,6 +3,7 @@ import type { CategoryConfig, MaamulatTask } from '../types';
 import { ArrowLeft, RotateCcw, Check, Save } from 'lucide-react';
 import { CustomizerSectionCard } from './customizer/CustomizerSectionCard';
 import { NewCategoryCard } from './customizer/NewCategoryCard';
+import { useModalTransition } from '../hooks/useModalTransition';
 
 interface TaskCustomizerScreenProps {
   initialCategories: CategoryConfig[];
@@ -75,15 +76,17 @@ export const ResetConfirmModal: React.FC<ResetConfirmModalProps> = ({
   onCancel,
   onConfirm,
 }) => {
-  if (!isOpen) return null;
+  const { shouldRender, isClosing } = useModalTransition(isOpen);
+
+  if (!shouldRender) return null;
   return (
     <div
       role="dialog"
       aria-modal="true"
       aria-label="Confirm Reset"
-      className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 animate-backdrop"
+      className={`fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-4 overscroll-none ${isClosing ? 'animate-backdrop-out pointer-events-none' : 'animate-backdrop'}`}
     >
-      <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-sm w-full p-5 border border-paper-300 dark:border-ink-700 shadow-xl space-y-3 animate-modal-in">
+      <div className={`bg-white dark:bg-ink-800 rounded-2xl max-w-sm w-full p-5 border border-paper-300 dark:border-ink-700 shadow-xl space-y-3 ${isClosing ? 'animate-modal-out' : 'animate-modal-in'}`}>
         <div className="space-y-1">
           <h4 className="text-base font-bold text-ink-900 dark:text-white">
             Reset to Original Defaults?

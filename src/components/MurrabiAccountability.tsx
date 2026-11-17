@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import type { MaamulatState } from '../types';
 import { generateWhatsAppReport, buildWhatsAppLink } from '../utils/reportGenerator';
+import { useModalTransition } from '../hooks/useModalTransition';
 import {
   Send,
   Copy,
@@ -31,6 +32,7 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
   onSelectYesterday: _onSelectYesterday,
 }) => {
   const [showWhyModal, setShowWhyModal] = useState(false);
+  const { shouldRender: shouldRenderWhyModal, isClosing: isClosingWhyModal } = useModalTransition(showWhyModal);
   const [isCopied, setIsCopied] = useState(false);
   const [isContactEditing, setIsContactEditing] = useState(false);
   const [contactInput, setContactInput] = useState(state.murrabiContact || '');
@@ -229,9 +231,9 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
       </div>
 
       {/* "Why Involve Another Person?" Explanatory Modal */}
-      {showWhyModal && (
-        <div className="fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 animate-backdrop">
-          <div className="bg-white dark:bg-ink-800 rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col p-4 sm:p-5 border border-paper-300 dark:border-ink-700 shadow-xl animate-modal-in">
+      {shouldRenderWhyModal && (
+        <div className={`fixed inset-0 z-50 bg-black/50 backdrop-blur-sm flex items-center justify-center p-3 sm:p-4 overscroll-none ${isClosingWhyModal ? 'animate-backdrop-out pointer-events-none' : 'animate-backdrop'}`}>
+          <div className={`bg-white dark:bg-ink-800 rounded-2xl max-w-md w-full max-h-[90vh] flex flex-col p-4 sm:p-5 border border-paper-300 dark:border-ink-700 shadow-xl ${isClosingWhyModal ? 'animate-modal-out' : 'animate-modal-in'}`}>
             <div className="flex items-center justify-between border-b border-paper-200 dark:border-ink-700 pb-2.5 flex-shrink-0">
               <div className="flex items-center gap-2">
                 <Shield className="w-4 h-4 text-sage-600 flex-shrink-0" />
@@ -248,7 +250,7 @@ export const MurrabiAccountability: React.FC<MurrabiAccountabilityProps> = ({
               </button>
             </div>
 
-            <div className="overflow-y-auto flex-1 py-3 pr-1 space-y-3 text-xs text-ink-700 dark:text-ink-300 leading-relaxed">
+            <div className="overflow-y-auto overscroll-contain flex-1 py-3 pr-1 space-y-3 text-xs text-ink-700 dark:text-ink-300 leading-relaxed">
               <div className="p-3 rounded-xl bg-sage-50 dark:bg-sage-950/40 border border-sage-200 dark:border-sage-800/80 text-sage-900 dark:text-sage-200">
                 <p className="font-semibold text-sm mb-1">
                   Allah is the One we ultimately answer to.
